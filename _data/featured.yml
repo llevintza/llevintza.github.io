@@ -1,0 +1,63 @@
+# Featured projects on the home and /projects/ pages.
+# Text mirrors the "Building" table in the public llevintza/llevintza profile README; keep the two in sync.
+# Private repos: no `repo` link (it would 404 for visitors); `access: On request`.
+
+- name: instrument-price-dashboard
+  private: true
+  site: "https://llevintza.github.io/instrument-price-dashboard/"
+  description: >-
+    Dashboard over daily closing prices: a layered .NET 10 API serving price series with return,
+    volatility and drawdown stats, and a React front end for search, charting and ticker comparison.
+    Milestones M1-M3 shipped
+  stack: [".NET 10", "React 19", "TanStack Query", "Recharts", "SignalR", "Playwright"]
+  access: On request
+
+- name: credit-desk-analytics
+  repo: "https://github.com/llevintza/credit-desk-analytics"
+  site: "https://llevintza.github.io/credit-desk-analytics/"
+  description: >-
+    Front-office analytics for a structured-credit desk: very large position grids, fund performance
+    and deal exploration. Built spec-first and tuned for load and render speed. Phases 0-6 shipped
+  stack: [".NET 10", "Angular", "Postgres", "AG Grid", "Dapper/EF Core", "Playwright"]
+  access: Public
+
+- name: energlens
+  repo: "https://github.com/llevintza/energlens"
+  site: "https://llevintza.github.io/energlens/"
+  description: >-
+    Utility-bill analytics across properties, with a Claude-powered PDF extraction CLI. Zero-cost demo
+    deployment
+  stack: ["Python/FastAPI", "SQLAlchemy 2.0", "React 19", "Claude API"]
+  access: Public
+
+- name: unlistd
+  repo: "https://github.com/llevintza/unlistd"
+  description: >-
+    Self-hosted data-broker PII removal pipeline that keeps profiles, keys and audit trails in your own
+    AWS account. Early MVP
+  stack: ["TypeScript", "Next.js", "Prisma", "AWS CDK", "SQS/Lambda/Fargate", "Playwright"]
+  access: Public
+
+- name: openswim
+  repo: "https://github.com/llevintza/openswim"
+  description: >-
+    Free, ad-free operations platform for small-town swim teams. Phase 0: Go/Postgres API foundations,
+    domain model and observability contract fixed by ADR
+  stack: ["Go", "PostgreSQL", "Next.js", "OpenAPI"]
+  access: Public
+
+- name: aws-fastify-prometheus
+  repo: "https://github.com/llevintza/aws-fastify-prometheus"
+  description: >-
+    @llevintza/fastify-prometheus-metrics: automatic Prometheus HTTP metrics with an optional
+    CloudWatch bridge. v1.0.2, MIT
+  stack: ["TypeScript", "Fastify", "Prometheus", "CloudWatch"]
+  access: Public
+
+- name: claude-codebase-agent
+  repo: "https://github.com/llevintza/claude-codebase-agent"
+  description: >-
+    Claude Agent SDK CLI that explores unfamiliar codebases and implements features behind a human
+    approval gate
+  stack: ["Python", "Claude Agent SDK", "MCP"]
+  access: Public
