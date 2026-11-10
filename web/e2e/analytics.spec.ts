@@ -3,7 +3,8 @@ import { TOP_LEVEL } from "./routes";
 
 // Umami analytics (ADR 0002, #58). The e2e build has no
 // NEXT_PUBLIC_UMAMI_WEBSITE_ID, so the script must not render or load, and the
-// site itself must store nothing on the visitor's device.
+// site must store nothing on first load (the theme toggle stores a preference
+// in localStorage only after a visitor picks one).
 
 for (const route of TOP_LEVEL) {
   test(`${route} loads no analytics and stores nothing`, async ({
