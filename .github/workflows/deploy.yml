@@ -1,0 +1,100 @@
+name: Deploy site
+
+# Builds the Next.js static export (web/out) and publishes it to GitHub Pages.
+#
+# The deploy job is gated: it runs only when the repo variable
+# PAGES_DEPLOY_ENABLED is 'true' AND the Pages source is "GitHub Actions".
+# Until the cutover (#38, docs/runbooks/cutover.md) neither is set, so this
+# workflow builds and uploads the artifact but Jekyll keeps serving the site.
+# Pull requests run the build only; they never deploy.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - ".github/workflows/deploy.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "web/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One Pages deploy at a time: push, manual and the later #23 cron runs share
+# the `pages` group, and a queued run waits instead of cancelling a deploy in
+# progress. PR runs (build only) get their own group so they never queue there.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pages-pr-{0}', github.event.pull_request.number) || 'pages' }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build static export
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: web/package.json
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: web/.nvmrc
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        env:
+          # Empty until Leo sets the Actions variable (ADR 0002, #58); the
+          # site then ships without the analytics script.
+          NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${{ vars.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}
+          # Read-only token so the build can list public repos (#22, #45).
+          GITHUB_TOKEN: ${{ github.token }}
+        run: pnpm build
+
+      - name: Public content guardrail
+        run: pnpm check:public-content
+
+      # Tell Pages to serve the export as-is (keeps `_next/` and other
+      # underscore paths).
+      - name: Add .nojekyll
+        run: touch out/.nojekyll
+
+      # Also runs on PRs, so reviewers can download the exact export.
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: web/out
+          # Without this the action drops dotfiles, including .nojekyll.
+          include-hidden-files: true
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    # Gate: off until the cutover runbook sets PAGES_DEPLOY_ENABLED=true.
+    if: github.event_name != 'pull_request' && vars.PAGES_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
