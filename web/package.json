@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lhci": "pnpm dlx @lhci/cli@0.16.0"
   },
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",
