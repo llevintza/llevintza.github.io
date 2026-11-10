@@ -25,6 +25,12 @@ pnpm dev          # http://localhost:3000
 
 `next.config.ts` sets `output: 'export'`, `trailingSlash: true` (URLs match the Jekyll site) and `images.unoptimized` (static export has no image optimizer).
 
+## Repo list cache
+
+`/projects/` lists public repos from the GitHub API at build time and falls back to the committed `content/repos.cache.json` when the API fails, so keep that file under 14 days old: run `pnpm refresh:repos` (it prints what changed and leaves no diff when nothing did), commit the file and open a PR. `pnpm refresh:repos --check` prints the cache age without fetching.
+
+`.github/workflows/repo-cache.yml` runs that check every Monday (and on demand). When the cache is older than 14 days it opens or updates one `chore` issue, "Repo cache is N days old: run pnpm refresh:repos and open a PR", and closes it once a refresh has landed.
+
 ## Link checking
 
 `.github/workflows/links.yml` runs on every PR, on pushes to `main`, weekly (Monday 06:00 UTC) and on demand:
@@ -41,7 +47,7 @@ lychee --config lychee.toml --root-dir "$PWD/web/out" 'web/out/**/*.html'
 
 ## Lighthouse
 
-CI (`.github/workflows/lighthouse.yml`, check **Lighthouse budgets**) runs Lighthouse on every PR against the static export and fails when a budget is missed: Performance ≥ 95, Accessibility = 100, Best Practices ≥ 95, SEO = 100. It tests `/`, `/projects/` and the newest blog post (3 mobile runs each, median), then posts a sticky `[Lighthouse]` comment with the scores and a link to the HTML reports artifact. The config is `lighthouserc.cjs`.
+CI (`.github/workflows/lighthouse.yml`, check **Lighthouse budgets**) runs Lighthouse on every PR against the static export and fails when a budget is missed: Performance ≥ 95, Accessibility = 100, Best Practices ≥ 95, SEO = 100. It tests `/`, `/projects/`, `/projects/credit-desk-analytics/` and the newest blog post (5 mobile runs each, median), then posts a sticky `[Lighthouse]` comment with the scores and a link to the HTML reports artifact. The config is `lighthouserc.cjs`.
 
 Run it locally (needs Chrome installed):
 

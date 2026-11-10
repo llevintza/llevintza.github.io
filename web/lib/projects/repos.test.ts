@@ -400,6 +400,26 @@ describe("getPublicRepos", () => {
       );
     });
 
+    it("states the cache age and the 14-day threshold for a fresh cache", async () => {
+      await writeFile(cachePath, serializeCache(cached, daysAgo(3)));
+      const logger = silentLogger();
+
+      await getPublicRepos({
+        fetch: async () => json({}, { status: 503 }),
+        cachePath,
+        logger,
+        offline: false,
+        now,
+        annotate: false,
+      });
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /using the cached repo list .*\. The cache is 3 days old \(stale after 14 days\)\.$/,
+        ),
+      );
+    });
+
     it("uses a cache older than 14 days, with a stale-cache warning", async () => {
       expect(MAX_CACHE_AGE_MS).toBe(14 * 24 * 60 * 60 * 1000);
       await writeFile(cachePath, serializeCache(cached, daysAgo(15)));
@@ -418,7 +438,7 @@ describe("getPublicRepos", () => {
       expect(logger.warn).toHaveBeenCalledOnce();
       expect(logger.warn).toHaveBeenCalledWith(
         expect.stringMatching(
-          /^\[repos\] warning: GitHub API HTTP 503.*the cache is 15 days old \(limit 14\); using the cached repo list.*refresh and commit/,
+          /^\[repos\] warning: GitHub API HTTP 503.*the cache is 15 days old \(stale after 14 days\); using the cached repo list.*run `pnpm refresh:repos` and commit repos\.cache\.json/,
         ),
       );
     });

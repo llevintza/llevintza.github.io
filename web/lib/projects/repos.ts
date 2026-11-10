@@ -475,17 +475,21 @@ export async function getPublicRepos(
   if (offline) return repos;
 
   const ageMs = now().getTime() - Date.parse(cache.fetchedAt);
+  const ageDays = Math.floor(ageMs / DAY_MS);
+  const limitDays = MAX_CACHE_AGE_MS / DAY_MS;
   const used = `using the cached repo list (${repos.length} repos, fetched ${cache.fetchedAt})`;
   // A future fetchedAt (typo, hand edit) is as untrustworthy as an old one.
   if (ageMs >= 0 && ageMs <= MAX_CACHE_AGE_MS) {
-    warn(`GitHub API ${reason}; ${used}.`);
+    warn(
+      `GitHub API ${reason}; ${used}. The cache is ${ageDays} ${ageDays === 1 ? "day" : "days"} old (stale after ${limitDays} days).`,
+    );
   } else {
     const age =
       ageMs < 0
         ? "has a fetchedAt in the future"
-        : `is ${Math.floor(ageMs / DAY_MS)} days old (limit ${MAX_CACHE_AGE_MS / DAY_MS})`;
+        : `is ${ageDays} days old (stale after ${limitDays} days)`;
     warn(
-      `GitHub API ${reason} and the cache ${age}; ${used}. A repo may have gone private since: refresh and commit ${path.basename(cachePath)}.`,
+      `GitHub API ${reason} and the cache ${age}; ${used}. A repo may have gone private since: run \`pnpm refresh:repos\` and commit ${path.basename(cachePath)}.`,
     );
   }
   return repos;
