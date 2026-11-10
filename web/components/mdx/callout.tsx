@@ -33,7 +33,7 @@ export function Callout({ type = "note", title, children }: CalloutProps) {
           <>
             <span aria-hidden="true"> · </span>
             <span className="mdx-callout__title">
-              <span className="visually-hidden">: </span>
+              <span className="sr-only">: </span>
               {title}
             </span>
           </>

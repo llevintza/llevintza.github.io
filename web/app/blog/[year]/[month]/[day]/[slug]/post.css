@@ -3,31 +3,6 @@
  * column on wide screens when the post has one. Prose styling is #8's.
  */
 
-/* Page colours for the post until the global layer (#61) styles every page,
-   so the light/dark post components sit on a matching page. The mdx tokens
-   defer to #61's tokens once they exist. */
-:root {
-  background: var(--mdx-page-bg);
-  color: var(--mdx-ink);
-  --mdx-page-bg: var(--bg, #f7f9fb);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --mdx-page-bg: var(--bg, #0b1118);
-  }
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --mdx-page-bg: var(--bg, #0b1118);
-}
-
-.post-layout a:not(.heading-anchor) {
-  color: var(--mdx-link);
-}
-
 .post-layout {
   box-sizing: border-box;
   max-width: 72ch;

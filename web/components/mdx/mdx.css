@@ -3,90 +3,9 @@
  * heading anchors and the table of contents, in the console style of spec
  * #60 (hard edges, 1px frames, hard shadow, mono chrome).
  *
- * Colours come from the global tokens of #61 when present; the fallbacks are
- * the same direction-B values, so these components also look right before
- * the global layer lands.
+ * Styled only through the global tokens in app/globals.css (AGENTS.md):
+ * no hard-coded colours or font families.
  */
-
-:root {
-  --mdx-bg-2: var(--bg-2, #eef2f6);
-  --mdx-panel: var(--panel, #ffffff);
-  --mdx-panel-2: var(--panel-2, #f3f6f9);
-  --mdx-ink: var(--ink, #1f2a36);
-  --mdx-head: var(--head, #2c3e50);
-  --mdx-muted: var(--muted, #56677a);
-  --mdx-link: var(--link, #1d6fa5);
-  --mdx-accent: var(--accent, #1d6fa5);
-  --mdx-ok: var(--ok, #16794a);
-  --mdx-line: var(--line, #dae1e8);
-  --mdx-ring: var(--ring, #1d6fa5);
-  --mdx-titlebar-bg: var(--titlebar-bg, #2c3e50);
-  --mdx-titlebar-ink: var(--titlebar-ink, #f7f9fb);
-  --mdx-shadow-ink: var(--shadow-ink, rgba(44, 62, 80, 0.35));
-  /* Warn reuses ink colours in light mode: no new hue (spec #60). */
-  --mdx-warn-bar: #1f2a36;
-  --mdx-warn-ink: #ffffff;
-  --mdx-font-mono: var(
-    --font-mono,
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Consolas,
-    monospace
-  );
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --mdx-bg-2: var(--bg-2, #0f1822);
-    --mdx-panel: var(--panel, #111c28);
-    --mdx-panel-2: var(--panel-2, #16232f);
-    --mdx-ink: var(--ink, #d5dee7);
-    --mdx-head: var(--head, #f2f6fa);
-    --mdx-muted: var(--muted, #8796a5);
-    --mdx-link: var(--link, #5dade2);
-    --mdx-accent: var(--accent, #3498db);
-    --mdx-ok: var(--ok, #4ade80);
-    --mdx-line: var(--line, #22313f);
-    --mdx-ring: var(--ring, #3498db);
-    --mdx-titlebar-bg: var(--titlebar-bg, #d5dee7);
-    --mdx-titlebar-ink: var(--titlebar-ink, #0b1118);
-    --mdx-shadow-ink: var(--shadow-ink, rgba(0, 0, 0, 0.6));
-    --mdx-warn-bar: #f2f6fa;
-    --mdx-warn-ink: #0b1118;
-  }
-}
-
-:root[data-theme="dark"] {
-  --mdx-bg-2: var(--bg-2, #0f1822);
-  --mdx-panel: var(--panel, #111c28);
-  --mdx-panel-2: var(--panel-2, #16232f);
-  --mdx-ink: var(--ink, #d5dee7);
-  --mdx-head: var(--head, #f2f6fa);
-  --mdx-muted: var(--muted, #8796a5);
-  --mdx-link: var(--link, #5dade2);
-  --mdx-accent: var(--accent, #3498db);
-  --mdx-ok: var(--ok, #4ade80);
-  --mdx-line: var(--line, #22313f);
-  --mdx-ring: var(--ring, #3498db);
-  --mdx-titlebar-bg: var(--titlebar-bg, #d5dee7);
-  --mdx-titlebar-ink: var(--titlebar-ink, #0b1118);
-  --mdx-shadow-ink: var(--shadow-ink, rgba(0, 0, 0, 0.6));
-  --mdx-warn-bar: #f2f6fa;
-  --mdx-warn-ink: #0b1118;
-}
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
 
 /* ---- Heading anchors (rehype-autolink-headings, behavior "wrap") ---- */
 
@@ -98,7 +17,7 @@
 .heading-anchor:hover,
 .heading-anchor:focus-visible {
   text-decoration: underline;
-  text-decoration-color: var(--mdx-accent);
+  text-decoration-color: var(--accent);
   text-underline-offset: 0.2em;
 }
 
@@ -111,11 +30,11 @@
 
 .mdx-callout {
   margin-block: 1.5rem;
-  border: 1px solid var(--mdx-line);
+  border: 1px solid var(--line);
   border-radius: 0;
-  background: var(--mdx-panel);
-  color: var(--mdx-ink);
-  box-shadow: 2px 2px 0 var(--mdx-shadow-ink);
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow-hard);
 }
 
 .mdx-callout__bar {
@@ -126,18 +45,18 @@
   align-items: baseline;
   margin: 0;
   padding: 0.3rem 0.75rem;
-  font-family: var(--font-pixel, var(--mdx-font-mono));
-  font-size: 0.8125rem;
+  font-family: var(--font-pixel);
+  font-size: var(--text-sm);
   line-height: 1.4;
   letter-spacing: 0.02em;
   text-transform: lowercase;
-  background: var(--mdx-panel-2);
-  color: var(--mdx-head);
-  border-bottom: 1px solid var(--mdx-line);
+  background: var(--panel-2);
+  color: var(--head);
+  border-bottom: 1px solid var(--line);
 }
 
 .mdx-callout__glyph {
-  color: var(--mdx-accent);
+  color: var(--accent);
   font-weight: 700;
 }
 
@@ -163,18 +82,18 @@
 
 /* Tip: accent rule on the left. */
 .mdx-callout--tip {
-  border-left: 3px solid var(--mdx-accent);
+  border-left: 3px solid var(--accent);
 }
 
-/* Warn: inverse-video title bar so it reads as louder without a new hue. */
+/* Warn: inverse-video title bar (spec #60), louder without a new hue. */
 .mdx-callout--warn {
-  border-color: var(--mdx-warn-bar);
+  border-color: var(--inverse-bg);
 }
 
 .mdx-callout--warn .mdx-callout__bar {
-  background: var(--mdx-warn-bar);
-  color: var(--mdx-warn-ink);
-  border-bottom-color: var(--mdx-warn-bar);
+  background: var(--inverse-bg);
+  color: var(--inverse-ink);
+  border-bottom-color: var(--inverse-bg);
 }
 
 .mdx-callout--warn .mdx-callout__glyph {
@@ -203,7 +122,7 @@
 }
 
 .mdx-table:focus-visible {
-  outline: 2px solid var(--mdx-ring);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -212,10 +131,19 @@
 .mdx-diagram {
   margin: 1.5rem 0;
   padding: 1rem;
-  border: 1px solid var(--mdx-line);
-  background: var(--mdx-panel);
-  box-shadow: 2px 2px 0 var(--mdx-shadow-ink);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: var(--shadow-hard);
   overflow-x: auto;
+}
+
+/* Diagram text in the site's mono font: the SVG names "JetBrains Mono", which
+   next/font serves under a hashed family name. Mermaid's own <style> uses id
+   selectors, hence !important. Layout was measured with a mono font of the
+   same advance width, so labels still fit. */
+.mdx-diagram__svg svg,
+.mdx-diagram__svg svg :is(text, tspan) {
+  font-family: var(--font-mono) !important;
 }
 
 .mdx-diagram__svg > svg {
@@ -224,26 +152,26 @@
   height: auto;
 }
 
-.mdx-diagram__svg--dark {
+.mdx-diagram__svg--light {
   display: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .mdx-diagram__svg--light {
-    display: none;
-  }
-
-  :root:not([data-theme="light"]) .mdx-diagram__svg--dark {
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .mdx-diagram__svg--light {
     display: block;
   }
+
+  :root:not([data-theme="dark"]) .mdx-diagram__svg--dark {
+    display: none;
+  }
 }
 
-:root[data-theme="dark"] .mdx-diagram__svg--light {
-  display: none;
-}
-
-:root[data-theme="dark"] .mdx-diagram__svg--dark {
+:root[data-theme="light"] .mdx-diagram__svg--light {
   display: block;
+}
+
+:root[data-theme="light"] .mdx-diagram__svg--dark {
+  display: none;
 }
 
 /* ---- Click-to-zoom images ---- */
@@ -253,10 +181,10 @@
   margin: 1.5rem 0;
   padding: 0;
   max-width: 100%;
-  border: 1px solid var(--mdx-line);
+  border: 1px solid var(--line);
   border-radius: 0;
-  background: var(--mdx-panel);
-  box-shadow: 2px 2px 0 var(--mdx-shadow-ink);
+  background: var(--panel);
+  box-shadow: var(--shadow-hard);
   cursor: zoom-in;
 }
 
@@ -273,7 +201,7 @@
 .mdx-toc a:focus-visible,
 .mdx-toc summary:focus-visible,
 .heading-anchor:focus-visible {
-  outline: 2px solid var(--mdx-ring);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -281,16 +209,16 @@
   padding: 0;
   max-width: min(96vw, 1400px);
   max-height: 94vh;
-  border: 1px solid var(--mdx-line);
+  border: 1px solid var(--line);
   border-radius: 0;
-  background: var(--mdx-panel);
-  color: var(--mdx-ink);
-  box-shadow: 2px 2px 0 var(--mdx-shadow-ink);
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow-hard);
   overflow: auto;
 }
 
 .mdx-zoom-dialog::backdrop {
-  background: rgba(11, 17, 24, 0.8);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
 }
 
 .mdx-zoom-dialog__bar {
@@ -301,10 +229,10 @@
   align-items: center;
   gap: 1rem;
   padding: 0.25rem 0.25rem 0.25rem 0.75rem;
-  font-family: var(--mdx-font-mono);
-  font-size: 0.8125rem;
-  background: var(--mdx-titlebar-bg);
-  color: var(--mdx-titlebar-ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  background: var(--titlebar-bg);
+  color: var(--titlebar-ink);
 }
 
 .mdx-zoom-dialog__bar span {
@@ -335,8 +263,8 @@
 /* ---- Table of contents ---- */
 
 .mdx-toc {
-  font-family: var(--mdx-font-mono);
-  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 
@@ -353,19 +281,19 @@
 .mdx-toc__list a {
   display: block;
   padding: 0.25rem 0;
-  color: var(--mdx-muted);
+  color: var(--muted);
   text-decoration: none;
 }
 
 .mdx-toc__list a:hover {
-  color: var(--mdx-link);
+  color: var(--link);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
 
 .mdx-toc__item--h2 a::before {
   content: "› ";
-  color: var(--mdx-accent);
+  color: var(--accent);
 }
 
 .mdx-toc__item--h3 a {
@@ -374,32 +302,32 @@
 
 .mdx-toc__heading {
   margin: 0 0 0.5rem;
-  color: var(--mdx-head);
+  color: var(--head);
   font-weight: 700;
   text-transform: lowercase;
 }
 
 .mdx-toc--inline {
   margin-block: 1.5rem;
-  border: 1px solid var(--mdx-line);
-  background: var(--mdx-panel);
+  border: 1px solid var(--line);
+  background: var(--panel);
 }
 
 .mdx-toc--inline summary {
   padding: 0.5rem 0.75rem;
-  color: var(--mdx-head);
+  color: var(--head);
   font-weight: 700;
   cursor: pointer;
 }
 
 .mdx-toc--inline .mdx-toc__count {
-  color: var(--mdx-muted);
+  color: var(--muted);
   font-weight: 400;
 }
 
 .mdx-toc--inline .mdx-toc__list {
   padding: 0 0.75rem 0.5rem;
-  border-top: 1px dashed var(--mdx-line);
+  border-top: 1px dashed var(--line);
 }
 
 .mdx-toc--aside {
@@ -418,6 +346,6 @@
     max-height: calc(100vh - 3rem);
     overflow-y: auto;
     padding-left: 1rem;
-    border-left: 1px dashed var(--mdx-line);
+    border-left: 1px dashed var(--line);
   }
 }
