@@ -86,9 +86,32 @@
   color-scheme: light;
 }
 
-/* `dark:` / `light:` variants key off the data-theme attribute. */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
-@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+/*
+ * `dark:` / `light:` variants match the palette blocks above: they key off
+ * data-theme when next-themes has set it, and with JS off (no attribute)
+ * fall back to the system setting, dark unless the system prefers light.
+ * Prefer tokens (bg-bg, text-ink, ...) over these variants where possible.
+ */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media not all and (prefers-color-scheme: light) {
+    &:where(:root:not([data-theme]), :root:not([data-theme]) *) {
+      @slot;
+    }
+  }
+}
+@custom-variant light {
+  &:where([data-theme="light"], [data-theme="light"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: light) {
+    &:where(:root:not([data-theme]), :root:not([data-theme]) *) {
+      @slot;
+    }
+  }
+}
 
 @theme inline {
   /* Semantic colours only: the default Tailwind palette is removed so

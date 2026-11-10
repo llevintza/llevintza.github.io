@@ -101,6 +101,28 @@ for (const k of keys) {
 
 const themes = { dark, light: { ...dark, ...lightExplicit } };
 
+// The theme-color meta in app/layout.tsx duplicates --bg; keep it in sync.
+// Skipped when checking a different stylesheet (argv[2]).
+if (!process.argv[2]) {
+  const layout = readFileSync(
+    fileURLToPath(new URL("../app/layout.tsx", import.meta.url)),
+    "utf8",
+  );
+  for (const [name, vars] of Object.entries(themes)) {
+    const m = layout.match(
+      new RegExp(
+        `prefers-color-scheme: ${name}\\)",\\s*color:\\s*"(#[0-9a-fA-F]{3,6})"`,
+      ),
+    );
+    if (!m || m[1].toLowerCase() !== vars.bg.toLowerCase()) {
+      console.error(
+        `✗ layout.tsx theme-color for ${name} is ${m?.[1] ?? "missing"}, expected --bg ${vars.bg}`,
+      );
+      failed = true;
+    }
+  }
+}
+
 for (const [name, vars] of Object.entries(themes)) {
   console.log(`\n${name}`);
   for (const { fg, bg, min, note } of PAIRS) {
