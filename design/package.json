@@ -2,7 +2,7 @@
   "name": "llevintza-design-mockups",
   "private": true,
   "type": "module",
-  "description": "Static design-direction mockups for issue #41 and the Playwright script that screenshots them.",
+  "description": "Static mockup of the chosen design direction (B, Engineer's Console) for issue #41, and the Playwright script that screenshots it.",
   "scripts": {
     "screenshots": "node screenshot.mjs",
     "a11y": "node screenshot.mjs --a11y-only"
