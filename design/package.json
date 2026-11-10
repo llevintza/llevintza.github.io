@@ -1,0 +1,16 @@
+{
+  "name": "llevintza-design-mockups",
+  "private": true,
+  "type": "module",
+  "description": "Static mockup of the chosen design direction (B, Engineer's Console) for issue #41, and the Playwright script that screenshots it.",
+  "scripts": {
+    "screenshots": "node screenshot.mjs",
+    "a11y": "node screenshot.mjs --a11y-only"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "playwright": "^1.56.0",
+    "sharp": "^0.35.5"
+  },
+  "packageManager": "pnpm@10.18.0"
+}
