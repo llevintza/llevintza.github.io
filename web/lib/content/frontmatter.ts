@@ -1,6 +1,9 @@
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 
+/** Tags become URLs (#16), so keep them lowercase and hyphenated. */
+const TAG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 /** A real calendar date written as YYYY-MM-DD (no time, no time zone). */
 const isoDate = z
   .string({ error: typeError("a date string in YYYY-MM-DD form") })
@@ -27,7 +30,10 @@ export const frontmatterSchema = z.strictObject(
       z
         .string({ error: typeError("a string") })
         .trim()
-        .min(1, "must not be empty"),
+        .regex(TAG_RE, {
+          error: (issue) =>
+            `must be lowercase and hyphenated (e.g. "next-js"), got ${JSON.stringify(issue.input)}`,
+        }),
       { error: typeError("a list of strings") },
     ),
     summary: z

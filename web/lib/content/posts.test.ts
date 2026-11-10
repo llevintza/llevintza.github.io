@@ -69,6 +69,15 @@ describe("frontmatter validation", () => {
     );
   });
 
+  it("requires lowercase, hyphenated tags", () => {
+    const source = post(
+      valid.replace("tags: [a, b]", "tags: [Next.js, ok-tag]"),
+    );
+    expect(() => parseFrontmatter("x.mdx", source)).toThrowError(
+      /tags.0: must be lowercase and hyphenated .*got "Next.js"/,
+    );
+  });
+
   it("rejects wrong types and unknown fields", () => {
     const source = post(`${valid.replace("tags: [a, b]", "tags: a")}\ntag: b`);
     expect(() => parseFrontmatter("x.mdx", source)).toThrowError(ContentError);

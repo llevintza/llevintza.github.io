@@ -10,12 +10,12 @@ export const mdxComponents: MDXComponents = {
   a: MdxLink,
 };
 
-/** Internal links go through next/link; external ones open as usual. */
+/** Internal links (not protocol-relative `//host`) go through next/link; external ones open as usual. */
 function MdxLink({ href = "", ...props }: ComponentPropsWithoutRef<"a">) {
-  if (href.startsWith("/")) {
+  if (href.startsWith("/") && !href.startsWith("//")) {
     return <Link href={href} {...props} />;
   }
-  const external = /^https?:\/\//.test(href);
+  const external = /^(https?:)?\/\//.test(href);
   return (
     <a
       href={href}
