@@ -36,10 +36,16 @@ export function AllRepos({ repos }: { repos: readonly PublicRepo[] }) {
                     {" · "}
                   </>
                 ) : null}
-                Updated{" "}
-                <time dateTime={repo.pushedAt}>
-                  {dateFormat.format(new Date(repo.pushedAt))}
-                </time>
+                {repo.pushedAt ? (
+                  <>
+                    Updated{" "}
+                    <time dateTime={repo.pushedAt}>
+                      {dateFormat.format(new Date(repo.pushedAt))}
+                    </time>
+                  </>
+                ) : (
+                  "No commits yet"
+                )}
                 {repo.liveUrl ? (
                   <>
                     {" · "}

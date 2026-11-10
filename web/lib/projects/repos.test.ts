@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type ApiRepo,
+  MAX_CACHE_AGE_MS,
   REPO_EXCLUDE,
   REPOS_API_URL,
   assertPublicOnly,
@@ -12,6 +13,11 @@ import {
   selectPublicRepos,
   serializeCache,
 } from "./repos";
+
+const NOW = new Date("2026-11-10T12:00:00Z");
+const now = () => NOW;
+const daysAgo = (days: number) =>
+  new Date(NOW.getTime() - days * 24 * 60 * 60 * 1000);
 
 const repo = (name: string, extra: Partial<ApiRepo> = {}): ApiRepo => ({
   name,
@@ -80,6 +86,7 @@ describe("selectPublicRepos", () => {
         description: null,
         language: null,
         pushedAt: "2026-01-01T00:00:00Z",
+        hasPages: false,
         repoUrl: "https://github.com/llevintza/secret",
       },
     ];
@@ -89,15 +96,21 @@ describe("selectPublicRepos", () => {
     ).toThrow(/llevintza\.github\.io/);
   });
 
-  it("sorts by last push, newest first, ties by name", () => {
+  it("sorts by last push, newest first, ties by name, never-pushed last", () => {
     const names = selectPublicRepos([
+      repo("empty", { pushed_at: null }),
       repo("older", { pushed_at: "2024-05-01T00:00:00Z" }),
       repo("newest", { pushed_at: "2026-11-01T00:00:00Z" }),
       repo("b-tie", { pushed_at: "2025-06-01T00:00:00Z" }),
       repo("a-tie", { pushed_at: "2025-06-01T00:00:00Z" }),
     ]).map((r) => r.name);
 
-    expect(names).toEqual(["newest", "a-tie", "b-tie", "older"]);
+    expect(names).toEqual(["newest", "a-tie", "b-tie", "older", "empty"]);
+  });
+
+  it("keeps a null pushed date for an empty repo instead of the epoch", () => {
+    const [r] = selectPublicRepos([repo("empty", { pushed_at: null })]);
+    expect(r.pushedAt).toBeNull();
   });
 
   it("links the Pages site only when the repo has Pages", () => {
@@ -108,10 +121,10 @@ describe("selectPublicRepos", () => {
 
     expect(withPages).toMatchObject({
       name: "site",
+      hasPages: true,
       repoUrl: "https://github.com/llevintza/site",
       liveUrl: "https://llevintza.github.io/site/",
     });
-    expect(without.liveUrl).toBeUndefined();
     expect(without).not.toHaveProperty("liveUrl");
   });
 
@@ -124,6 +137,7 @@ describe("selectPublicRepos", () => {
       description: "trimmed",
       language: null,
       pushedAt: "2026-01-01T00:00:00Z",
+      hasPages: false,
       repoUrl: "https://github.com/llevintza/x",
     });
   });
@@ -145,6 +159,7 @@ describe("getPublicRepos", () => {
       cachePath,
       logger,
       offline: false,
+      now,
     });
 
     expect(repos.map((r) => r.name)).toEqual(["a", "b"]);
@@ -153,8 +168,32 @@ describe("getPublicRepos", () => {
       REPOS_API_URL,
       expect.objectContaining({ headers: expect.any(Object) }),
     ]);
-    expect(await readFile(cachePath, "utf8")).toBe(serializeCache(repos));
+    expect(await readFile(cachePath, "utf8")).toBe(serializeCache(repos, NOW));
     expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  it("stores no URLs in the cache", async () => {
+    await getPublicRepos({
+      fetch: async () => json([repo("site", { has_pages: true })]),
+      cachePath,
+      logger: silentLogger(),
+      offline: false,
+      now,
+    });
+    const text = await readFile(cachePath, "utf8");
+    expect(text).not.toMatch(/https?:/);
+    expect(JSON.parse(text)).toEqual({
+      fetchedAt: NOW.toISOString(),
+      repos: [
+        {
+          name: "site",
+          description: "site description",
+          language: "TypeScript",
+          pushedAt: "2026-01-01T00:00:00Z",
+          hasPages: true,
+        },
+      ],
+    });
   });
 
   it("sends GITHUB_TOKEN as a bearer token when set", async () => {
@@ -165,6 +204,7 @@ describe("getPublicRepos", () => {
       cachePath,
       logger: silentLogger(),
       offline: false,
+      now,
     });
     const headers = fetchMock.mock.calls[0][1]?.headers as Record<
       string,
@@ -181,6 +221,7 @@ describe("getPublicRepos", () => {
       cachePath,
       logger: silentLogger(),
       offline: false,
+      now,
     });
     const headers = fetchMock.mock.calls[0][1]?.headers as Record<
       string,
@@ -205,6 +246,7 @@ describe("getPublicRepos", () => {
       cachePath,
       logger: silentLogger(),
       offline: false,
+      now,
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -212,9 +254,10 @@ describe("getPublicRepos", () => {
     expect(repos.map((r) => r.name).sort()).toEqual(["one", "two"]);
   });
 
-  it("does not rewrite an unchanged cache", async () => {
+  it("does not rewrite an unchanged, recent cache", async () => {
     const repos = selectPublicRepos([repo("same")]);
-    await writeFile(cachePath, serializeCache(repos));
+    const before = serializeCache(repos, daysAgo(0.5));
+    await writeFile(cachePath, before);
     const logger = silentLogger();
 
     await getPublicRepos({
@@ -222,9 +265,26 @@ describe("getPublicRepos", () => {
       cachePath,
       logger,
       offline: false,
+      now,
     });
 
     expect(logger.info).not.toHaveBeenCalled();
+    expect(await readFile(cachePath, "utf8")).toBe(before);
+  });
+
+  it("refreshes fetchedAt on an unchanged cache over a day old", async () => {
+    const repos = selectPublicRepos([repo("same")]);
+    await writeFile(cachePath, serializeCache(repos, daysAgo(2)));
+
+    await getPublicRepos({
+      fetch: async () => json([repo("same")]),
+      cachePath,
+      logger: silentLogger(),
+      offline: false,
+      now,
+    });
+
+    expect((await readCache(cachePath))?.fetchedAt).toBe(NOW.toISOString());
   });
 
   describe("fallback to the cache", () => {
@@ -234,7 +294,7 @@ describe("getPublicRepos", () => {
     ]);
 
     beforeEach(async () => {
-      await writeFile(cachePath, serializeCache(cached));
+      await writeFile(cachePath, serializeCache(cached, daysAgo(3)));
     });
 
     it.each([
@@ -274,6 +334,7 @@ describe("getPublicRepos", () => {
         cachePath,
         logger,
         offline: false,
+        now,
       });
 
       expect(repos).toEqual(cached);
@@ -293,6 +354,7 @@ describe("getPublicRepos", () => {
         cachePath,
         logger,
         offline: false,
+        now,
       });
       expect(repos).toEqual(cached);
       expect(logger.warn).toHaveBeenCalledWith(
@@ -300,7 +362,27 @@ describe("getPublicRepos", () => {
       );
     });
 
-    it("without calling the API when offline", async () => {
+    it("renders no repos when the cache is older than 14 days", async () => {
+      expect(MAX_CACHE_AGE_MS).toBe(14 * 24 * 60 * 60 * 1000);
+      await writeFile(cachePath, serializeCache(cached, daysAgo(15)));
+      const logger = silentLogger();
+
+      const repos = await getPublicRepos({
+        fetch: async () => json({}, { status: 503 }),
+        cachePath,
+        logger,
+        offline: false,
+        now,
+      });
+
+      expect(repos).toEqual([]);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("the cache is 15 days old"),
+      );
+    });
+
+    it("without calling the API when offline, at any cache age", async () => {
+      await writeFile(cachePath, serializeCache(cached, daysAgo(400)));
       const fetchMock = vi.fn();
       const logger = silentLogger();
       const repos = await getPublicRepos({
@@ -308,6 +390,7 @@ describe("getPublicRepos", () => {
         cachePath,
         logger,
         offline: true,
+        now,
       });
       expect(repos).toEqual(cached);
       expect(fetchMock).not.toHaveBeenCalled();
@@ -317,13 +400,54 @@ describe("getPublicRepos", () => {
     it("re-applies the exclude list to cached entries", async () => {
       await writeFile(
         cachePath,
-        serializeCache([
-          ...cached,
-          { ...cached[0], name: "llevintza.github.io" },
-        ]),
+        serializeCache(
+          [...cached, { ...cached[0], name: "llevintza.github.io" }],
+          daysAgo(1),
+        ),
       );
-      const repos = await readCache(cachePath);
-      expect(repos?.map((r) => r.name)).toEqual(["cached-new", "cached-old"]);
+      const cache = await readCache(cachePath);
+      expect(cache?.repos.map((r) => r.name).sort()).toEqual([
+        "cached-new",
+        "cached-old",
+      ]);
+    });
+
+    it("ignores URLs in a hand-edited cache and rebuilds them from the name", async () => {
+      await writeFile(
+        cachePath,
+        JSON.stringify({
+          fetchedAt: daysAgo(1).toISOString(),
+          repos: [
+            {
+              name: "tool",
+              description: null,
+              language: null,
+              pushedAt: "2026-01-01T00:00:00Z",
+              hasPages: true,
+              repoUrl: "https://evil.example/tool",
+              liveUrl: "https://evil.example/",
+            },
+          ],
+        }),
+      );
+      const repos = await getPublicRepos({
+        fetch: async () => json({}, { status: 500 }),
+        cachePath,
+        logger: silentLogger(),
+        offline: false,
+        now,
+      });
+      expect(repos).toEqual([
+        {
+          name: "tool",
+          description: null,
+          language: null,
+          pushedAt: "2026-01-01T00:00:00Z",
+          hasPages: true,
+          repoUrl: "https://github.com/llevintza/tool",
+          liveUrl: "https://llevintza.github.io/tool/",
+        },
+      ]);
     });
   });
 
@@ -334,6 +458,7 @@ describe("getPublicRepos", () => {
       cachePath: path.join(dir, "missing.json"),
       logger,
       offline: false,
+      now,
     });
     expect(repos).toEqual([]);
     expect(logger.warn).toHaveBeenCalledWith(
@@ -341,8 +466,18 @@ describe("getPublicRepos", () => {
     );
   });
 
-  it("treats a corrupt cache as missing", async () => {
-    await writeFile(cachePath, "{not json");
+  it.each([
+    ["corrupt JSON", "{not json"],
+    ["no fetchedAt", JSON.stringify({ repos: [] })],
+    [
+      "an old-format entry",
+      JSON.stringify({
+        fetchedAt: NOW.toISOString(),
+        repos: [{ name: "x", pushedAt: "2026-01-01T00:00:00Z" }],
+      }),
+    ],
+  ])("treats a cache with %s as missing", async (_label, text) => {
+    await writeFile(cachePath, text);
     expect(await readCache(cachePath)).toBeNull();
   });
 });

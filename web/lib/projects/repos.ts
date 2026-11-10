@@ -9,8 +9,13 @@ import path from "node:path";
  * `content/repos.cache.json` (committed) and logs a warning. A successful
  * fetch rewrites that file when the list changed.
  *
- * Set `REPOS_OFFLINE=1` to skip the API and build from the cache only
- * (hermetic e2e and Lighthouse runs).
+ * The cache is trusted for 14 days only (`fetchedAt`): a repo made private
+ * after that snapshot must not stay linked from the public site, so an older
+ * cache renders the empty state instead. The cache stores no URLs; repo and
+ * Pages links are always rebuilt from the validated repo name.
+ *
+ * Set `REPOS_OFFLINE=1` to skip the API and build from the cache only, at any
+ * age (hermetic e2e and Lighthouse runs; never set it for a deploy).
  */
 
 export const OWNER = "llevintza";
@@ -34,21 +39,33 @@ export const DEFAULT_CACHE_PATH = path.join(
 /** Follow at most this many `Link: rel="next"` pages. */
 const MAX_PAGES = 10;
 const TIMEOUT_MS = 15_000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+/** Older caches are not rendered (a repo may have gone private since). */
+export const MAX_CACHE_AGE_MS = 14 * DAY_MS;
+/** Refresh `fetchedAt` at most this often when the list is unchanged. */
+const CACHE_REFRESH_MS = DAY_MS;
 
-/** One public repo, as rendered on /projects/. */
-export type PublicRepo = {
+/** One public repo as stored in the cache: data only, no URLs. */
+export type CachedRepo = {
   name: string;
   description: string | null;
   language: string | null;
-  /** ISO 8601 timestamp of the last push. */
-  pushedAt: string;
+  /** ISO 8601 timestamp of the last push; null for an empty repo. */
+  pushedAt: string | null;
+  hasPages: boolean;
+};
+
+/** One public repo, as rendered on /projects/. */
+export type PublicRepo = CachedRepo & {
   repoUrl: string;
   /** GitHub Pages site, when the repo has one. */
   liveUrl?: string;
 };
 
 export type RepoCache = {
-  repos: PublicRepo[];
+  /** ISO 8601 time of the API fetch this list came from. */
+  fetchedAt: string;
+  repos: CachedRepo[];
 };
 
 /** The subset of the GitHub API repo object this module reads. */
@@ -74,6 +91,8 @@ export type GetPublicReposOptions = {
   offline?: boolean;
   /** Write a changed result back to the cache file (default true). */
   writeCache?: boolean;
+  /** Clock for the cache age check and `fetchedAt` (tests). */
+  now?: () => Date;
 };
 
 const REPO_NAME_RE = /^[\w.-]+$/;
@@ -101,26 +120,40 @@ export function isListable(repo: ApiRepo): boolean {
   );
 }
 
-export function toPublicRepo(repo: ApiRepo): PublicRepo {
+/** Adds the links, built only from the (validated) repo name. */
+export function withLinks(repo: CachedRepo): PublicRepo {
   return {
-    name: repo.name,
-    description: repo.description?.trim() || null,
-    language: repo.language || null,
-    pushedAt: repo.pushed_at ?? new Date(0).toISOString(),
+    ...repo,
     repoUrl: `https://github.com/${OWNER}/${repo.name}`,
-    ...(repo.has_pages
+    ...(repo.hasPages
       ? { liveUrl: `https://${OWNER}.github.io/${repo.name}/` }
       : {}),
   };
 }
 
-/** Newest push first; ties by name, so the order is stable. */
-export function sortByPushedDesc(repos: readonly PublicRepo[]): PublicRepo[] {
-  return [...repos].sort(
-    (a, b) =>
-      Date.parse(b.pushedAt) - Date.parse(a.pushedAt) ||
-      a.name.localeCompare(b.name),
-  );
+export function toPublicRepo(repo: ApiRepo): PublicRepo {
+  const pushed = repo.pushed_at ? Date.parse(repo.pushed_at) : NaN;
+  return withLinks({
+    name: repo.name,
+    description: repo.description?.trim() || null,
+    language: repo.language || null,
+    pushedAt: Number.isNaN(pushed) ? null : (repo.pushed_at as string),
+    hasPages: repo.has_pages === true,
+  });
+}
+
+/** Newest push first, never-pushed last; ties by name, so it's stable. */
+export function sortByPushedDesc<T extends CachedRepo>(
+  repos: readonly T[],
+): T[] {
+  const time = (r: CachedRepo) =>
+    r.pushedAt === null ? -Infinity : Date.parse(r.pushedAt);
+  return [...repos].sort((a, b) => {
+    const ta = time(a);
+    const tb = time(b);
+    if (ta !== tb) return tb > ta ? 1 : -1;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 /** Raw API list in, rendered list out. */
@@ -199,49 +232,95 @@ export async function fetchApiRepos(
   return all;
 }
 
-function isPublicRepo(value: unknown): value is PublicRepo {
+const nullableString = (v: unknown) => v === null || typeof v === "string";
+
+function isCachedRepo(value: unknown): value is CachedRepo {
   if (typeof value !== "object" || value === null) return false;
   const r = value as Record<string, unknown>;
   return (
     typeof r.name === "string" &&
-    typeof r.pushedAt === "string" &&
-    typeof r.repoUrl === "string"
+    nullableString(r.description) &&
+    nullableString(r.language) &&
+    (r.pushedAt === null ||
+      (typeof r.pushedAt === "string" &&
+        !Number.isNaN(Date.parse(r.pushedAt)))) &&
+    typeof r.hasPages === "boolean"
   );
 }
 
-/** The cached list, re-filtered against the exclude list. Null if unusable. */
-export async function readCache(
-  cachePath: string,
-): Promise<PublicRepo[] | null> {
+/**
+ * The cache file, validated: known fields only, names re-checked against the
+ * name pattern and the exclude list. Null if missing or unusable.
+ */
+export async function readCache(cachePath: string): Promise<RepoCache | null> {
   try {
-    const data: unknown = JSON.parse(await readFile(cachePath, "utf8"));
-    const repos = (data as Partial<RepoCache> | null)?.repos;
-    if (!Array.isArray(repos) || !repos.every(isPublicRepo)) return null;
-    return sortByPushedDesc(
-      repos.filter(
-        (r) => REPO_NAME_RE.test(r.name) && !REPO_EXCLUDE.includes(r.name),
-      ),
-    );
+    const data = JSON.parse(await readFile(cachePath, "utf8")) as unknown;
+    if (typeof data !== "object" || data === null) return null;
+    const { fetchedAt, repos } = data as Record<string, unknown>;
+    if (typeof fetchedAt !== "string" || Number.isNaN(Date.parse(fetchedAt))) {
+      return null;
+    }
+    if (!Array.isArray(repos) || !repos.every(isCachedRepo)) return null;
+    return {
+      fetchedAt,
+      repos: repos
+        .filter(
+          (r) => REPO_NAME_RE.test(r.name) && !REPO_EXCLUDE.includes(r.name),
+        )
+        .map(({ name, description, language, pushedAt, hasPages }) => ({
+          name,
+          description,
+          language,
+          pushedAt,
+          hasPages,
+        })),
+    };
   } catch {
     return null;
   }
 }
 
-export function serializeCache(repos: readonly PublicRepo[]): string {
-  const cache: RepoCache = { repos: [...repos] };
+/** Strips the links: the cache holds data only. */
+export function toCachedRepo({
+  name,
+  description,
+  language,
+  pushedAt,
+  hasPages,
+}: CachedRepo): CachedRepo {
+  return { name, description, language, pushedAt, hasPages };
+}
+
+export function serializeCache(
+  repos: readonly CachedRepo[],
+  fetchedAt: Date,
+): string {
+  const cache: RepoCache = {
+    fetchedAt: fetchedAt.toISOString(),
+    repos: repos.map(toCachedRepo),
+  };
   return `${JSON.stringify(cache, null, 2)}\n`;
 }
 
+/**
+ * Writes the cache when the list changed, or when `fetchedAt` is over a day
+ * old, so committed builds keep the fallback inside its 14-day window.
+ */
 async function writeCacheIfChanged(
   cachePath: string,
   repos: readonly PublicRepo[],
+  now: Date,
   logger: Logger,
 ): Promise<void> {
-  const next = serializeCache(repos);
   try {
-    const current = await readFile(cachePath, "utf8").catch(() => null);
-    if (current === next) return;
-    await writeFile(cachePath, next, "utf8");
+    const current = await readCache(cachePath);
+    const same =
+      current !== null &&
+      JSON.stringify(current.repos) ===
+        JSON.stringify(repos.map(toCachedRepo)) &&
+      now.getTime() - Date.parse(current.fetchedAt) < CACHE_REFRESH_MS;
+    if (same) return;
+    await writeFile(cachePath, serializeCache(repos, now), "utf8");
     logger.info(`[repos] Updated ${path.basename(cachePath)}.`);
   } catch (err) {
     logger.warn(`[repos] Could not write the cache: ${String(err)}`);
@@ -262,13 +341,16 @@ export async function getPublicRepos(
     logger = console,
     offline = process.env.REPOS_OFFLINE === "1",
     writeCache = true,
+    now = () => new Date(),
   } = options;
 
   let reason = "REPOS_OFFLINE=1";
   if (!offline) {
     try {
       const repos = selectPublicRepos(await fetchApiRepos(fetchImpl, token));
-      if (writeCache) await writeCacheIfChanged(cachePath, repos, logger);
+      if (writeCache) {
+        await writeCacheIfChanged(cachePath, repos, now(), logger);
+      }
       return repos;
     } catch (err) {
       reason =
@@ -278,14 +360,22 @@ export async function getPublicRepos(
     }
   }
 
-  const cached = await readCache(cachePath);
-  if (cached) {
-    if (!offline) {
+  const cache = await readCache(cachePath);
+  if (cache) {
+    const repos = sortByPushedDesc(cache.repos.map(withLinks));
+    if (offline) return repos;
+    const ageMs = now().getTime() - Date.parse(cache.fetchedAt);
+    const ageDays = Math.floor(ageMs / DAY_MS);
+    if (ageMs <= MAX_CACHE_AGE_MS) {
       logger.warn(
-        `[repos] warning: GitHub API ${reason}; using the cached repo list (${cached.length} repos).`,
+        `[repos] warning: GitHub API ${reason}; using the cached repo list (${repos.length} repos, fetched ${cache.fetchedAt}).`,
       );
+      return repos;
     }
-    return cached;
+    logger.warn(
+      `[repos] warning: GitHub API ${reason} and the cache is ${ageDays} days old (limit ${MAX_CACHE_AGE_MS / DAY_MS}); rendering no repos.`,
+    );
+    return [];
   }
   logger.warn(
     `[repos] warning: GitHub API unavailable (${reason}) and no usable cache; rendering no repos.`,

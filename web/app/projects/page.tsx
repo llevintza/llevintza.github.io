@@ -5,7 +5,7 @@ import { getPublicReposCached } from "@/lib/projects/repos";
 
 export const metadata: Metadata = {
   title: "Projects",
-  description: "Featured projects by Leo Levintza.",
+  description: "Featured projects and all public repos by Leo Levintza.",
 };
 
 export default async function ProjectsPage() {
