@@ -11,7 +11,7 @@ import { mdxComponents } from "@/components/mdx/mdx-components";
  * `app/blog/shiki.css` picks one from `data-theme` on `<html>`.
  */
 const shikiOptions: RehypeShikiOptions = {
-  themes: { light: "github-light", dark: "github-dark" },
+  themes: { light: "github-light-default", dark: "github-dark-default" },
   defaultColor: false,
 };
 
