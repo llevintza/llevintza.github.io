@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-11-10T05:06:02.346Z",
+  "source": "https://llevintza.github.io",
+  "paths": [
+    "/",
+    "/404.html",
+    "/about/",
+    "/blog/",
+    "/feed.xml",
+    "/projects/",
+    "/robots.txt",
+    "/sitemap.xml"
+  ],
+  "feed": {
+    "id": "https://llevintza.github.io/feed.xml",
+    "selfLink": "https://llevintza.github.io/feed.xml"
+  }
+}
