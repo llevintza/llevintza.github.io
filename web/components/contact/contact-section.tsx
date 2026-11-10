@@ -31,7 +31,7 @@ export function ContactSection() {
   const others = contactLinks.filter((link) => !link.primary);
 
   return (
-    <section aria-labelledby="get-in-touch" className={styles.section}>
+    <section aria-labelledby="get-in-touch">
       <h2 id="get-in-touch">Get in touch</h2>
       {primary.map((link) => (
         <p key={link.id}>

@@ -41,6 +41,7 @@
   --titlebar-bg: #d5dee7;
   --titlebar-ink: #0b1118;
   --shadow-ink: rgba(0, 0, 0, 0.6);
+  --contact-chip: #f4f7fa;
   color-scheme: dark;
 }
 
@@ -71,6 +72,7 @@
     --titlebar-bg: #2c3e50;
     --titlebar-ink: #f7f9fb;
     --shadow-ink: rgba(44, 62, 80, 0.35);
+    --contact-chip: #f4f7fa;
     color-scheme: light;
   }
 }
@@ -101,6 +103,7 @@
   --titlebar-bg: #2c3e50;
   --titlebar-ink: #f7f9fb;
   --shadow-ink: rgba(44, 62, 80, 0.35);
+  --contact-chip: #f4f7fa;
   color-scheme: light;
 }
 
