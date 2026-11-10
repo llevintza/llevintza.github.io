@@ -13,6 +13,11 @@ const printAt = (i: number, delayMs = 300) =>
  * all. Rows print in line by line once; with reduced motion they are all
  * there from the start. `mt-0` opts out of the base `* + section` spacing:
  * the hero grid's gap already separates it from the intro.
+ *
+ * Glyphs: stay inside the self-hosted font subsets (app/fonts/README.md,
+ * "Coverage"). A glyph outside them falls through to next/font's metric
+ * fallback (`local("Arial")`), which fails to load where Arial is missing
+ * (e.g. Linux CI) and breaks the e2e font check.
  */
 export function TerminalPanel() {
   const npmRow = building.length + 2;
@@ -31,7 +36,7 @@ export function TerminalPanel() {
           <span aria-hidden="true">zsh — leo@site: ~/building</span>
         </h2>
         <span aria-hidden="true" className="mt-0 tracking-widest">
-          [_][□][x]
+          [_][+][x]
         </span>
       </div>
 
@@ -83,7 +88,7 @@ export function TerminalPanel() {
         </p>
         <p className={`${styles.print} mt-0`} style={printAt(npmRow + 1)}>
           <span className="text-ok" aria-hidden="true">
-            ✓{" "}
+            [ok]{" "}
           </span>
           <span className="sr-only">Published: </span>v{npmPackage.version} ·{" "}
           {npmPackage.licence}
