@@ -40,6 +40,8 @@ export type About = {
   certifications: readonly Certification[];
   education: readonly Education[];
   languages: Languages;
+  /** One-line analytics note (ADR 0002, #58). */
+  privacyNote: string;
 };
 
 export const now: readonly RichLine[] = [
@@ -99,6 +101,8 @@ export const about: About = {
     fluent: ["English", "Romanian", "Russian"],
     basic: ["Italian", "German"],
   },
+  privacyNote:
+    "This site uses Umami, a cookie-free analytics service that stores no personal data. Aggregate stats are kept in the EU.",
 };
 
 /** "A", "A and B", "A, B, and C" (serial comma, as in the README). */
