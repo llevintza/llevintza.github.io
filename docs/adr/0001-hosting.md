@@ -24,6 +24,11 @@ publishes. These URLs are live today (checked with `curl -I` on 2026-11-09):
 
 No site on the account has a custom domain today (`gh api repos/llevintza/<repo>/pages` → `cname: null` for all five).
 
+**Shared-host precedence (constraint).** A project site claims `/<repo-name>/` ahead of the user site. So the new
+site must never route under `/email-icons/`, `/energlens/`, `/credit-desk-analytics/` or
+`/instrument-price-dashboard/`. No future repo with Pages turned on may be named after a user-site route (`blog`,
+`projects`, `about`, …), or it silently shadows that route. #37 can test for this.
+
 The `email-icons` URLs matter most. Email signatures that have already been sent embed
 `<img src="https://llevintza.github.io/email-icons/img/color/...">`. We can't edit those emails, so those URLs must keep
 returning images for years. The current Jekyll site also loads its contact icons from the same path
@@ -244,7 +249,7 @@ Why:
 - Vercel and Cloudflare are clearly better at previews and headers. But with `output: 'export'` most of their server
   features go unused, and their extra value only shows up with a custom domain, which is exactly what triggers the
   redirect risk.
-- It costs $0, needs no new production account, and makes the cutover (#38) one settings change.
+- It costs $0, needs no new production account, and makes the cutover (#38) one settings change, which can be undone (see [Rollback](#rollback)).
 
 ### If the owner wants a custom domain or another host anyway
 
@@ -261,6 +266,21 @@ Do it **without** putting a custom domain on the `llevintza.github.io` repo:
 4. Before relying on any redirect for email assets, send test signatures to Gmail, Outlook.com and Apple Mail (with
    Mail Privacy Protection on) and confirm the icons render through a 301 to an `https://` URL.
 
+### Rollback
+
+The source switch must stay reversible, so #38 implements these steps:
+
+1. **Back to Jekyll.** Before #38 deletes the Jekyll files from `main`, keep the last Jekyll commit on a named branch
+   (`jekyll-legacy`). To roll back, go to Settings → Pages → Source: "Deploy from a branch" → `jekyll-legacy` /
+   root. Switching back to `main` alone won't work once the Jekyll sources are gone.
+2. **Bad Next.js deploy after cutover.** Redeploy the last good ref through `workflow_dispatch` on the Pages deploy
+   workflow, so that workflow must have a `workflow_dispatch` trigger that takes a ref.
+3. **Blast radius.** Neither path touches `/email-icons/` or the project sites, which are published from their own
+   repos.
+4. **After any switch or rollback**, confirm these return 200 with `curl -I`: `/`, `/feed.xml`,
+   `/email-icons/img/color/linkedin.png`, `/energlens/`, `/credit-desk-analytics/` and
+   `/instrument-price-dashboard/`.
+
 ## Consequences
 
 - **Good:** no URL breaks at cutover, no new production vendor, no new cost, and previews become available.
@@ -268,7 +288,8 @@ Do it **without** putting a custom domain on the `llevintza.github.io` repo:
   to be a `<meta>` tag, not a header. The site stays on the `github.io` name.
 - **Neutral:** previews add one secret (a Cloudflare API token scoped to Pages) and one workflow. If the owner skips
   them, reviewers use downloadable artifacts instead.
-- **Follow-ups:** #38 switches the Pages source to "GitHub Actions" at cutover. #37 maps old URLs to static stubs.
+- **Follow-ups:** #38 switches the Pages source to "GitHub Actions" at cutover, keeping the
+  [Rollback](#rollback) path (`jekyll-legacy` branch, `workflow_dispatch` redeploy, 200 checks). #37 maps old URLs to static stubs.
   ADR 0002 picks the analytics script. If a custom domain is ever wanted, it gets its own ADR that includes the email
   proxy test above.
 
