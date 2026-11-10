@@ -36,7 +36,7 @@ deployments and server features.
 
 1. **Don't break any URL people or emails already use** (epic #36). Above all, `/email-icons/...` and the three
    project sites.
-2. **Per-PR previews** so reviewers (including Helm's GrokBot) can see a change before it merges.
+2. **Per-PR previews** so reviewers (including Helms, Arch and Rex) can see a change before it merges.
 3. **Cost:** stay at $0 for a personal site.
 4. **Low operational load:** one owner, few moving parts, no extra accounts or secrets unless they earn their place.
 5. **Server features** (redirects, headers, functions) are nice to have. A static export can't use most of them
@@ -71,7 +71,13 @@ unaffected.
     Upload** project (`wrangler pages deploy out --branch pr-N`), which gets a `*.pages.dev` URL with
     `X-Robots-Tag: noindex` ([CF Direct Upload][cf-direct], [CF previews][cf-previews]). This needs a Cloudflare
     API token stored as a GitHub Actions secret, never in git. Fork PRs don't receive secrets, so they get no
-    preview. Every PR in this repo comes from a branch, so that's acceptable.
+    preview. Every PR in this repo comes from a branch, so that's acceptable. That workflow must keep three
+    guardrails:
+    - Trigger only on `pull_request`, never `pull_request_target`. The latter would hand the token to untrusted PR
+      code.
+    - Use an API token scoped to Cloudflare Pages Edit on this one account only.
+    - Declare least-privilege `permissions:`, for example `contents: read`, plus `pull-requests: write` only if it
+      comments the preview link.
   - The simplest fallback is to attach `out/` as a workflow artifact so reviewers can download it and run it locally.
 - **Server features:** none. You can't set custom response headers (no CSP or HSTS control) and there are no
   server-side redirects. Redirects for moved Jekyll URLs (#37) would have to be static HTML stubs
