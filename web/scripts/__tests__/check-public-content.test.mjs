@@ -10,7 +10,6 @@ import {
   checkDir,
   loadPrivateRepos,
   privateReposFromTs,
-  privateReposFromYaml,
   scanText,
 } from "../check-public-content.mjs";
 
@@ -201,35 +200,15 @@ describe("private repo sources", () => {
     ]);
   });
 
-  it("reads private: true / access: private entries from featured.yml", () => {
-    const source = [
-      "# comment",
-      "- name: secret-project",
-      "  private: true",
-      "  access: On request",
-      "- name: other-secret",
-      "  access: private",
-      "- name: public-thing",
-      '  repo: "https://github.com/llevintza/public-thing"',
-      "  access: Public",
-    ].join("\n");
-    assert.deepEqual(privateReposFromYaml(source), [
-      "secret-project",
-      "other-secret",
-    ]);
-  });
-
   it("finds this repo's featured-projects file", () => {
     // Content-agnostic: projects may go public or private over time.
     const { source, names } = loadPrivateRepos(webDir);
-    assert.ok(source, "expected web/content/featured.ts or _data/featured.yml");
+    assert.ok(source, "expected web/content/featured.ts");
     assert.ok(Array.isArray(names));
     // Each name must sit in an entry that is itself marked private.
     const text = readFileSync(source, "utf8");
-    const entries = source.endsWith(".ts")
-      ? text.split(/[{}]/)
-      : text.split(/^-\s+/m);
-    const isPrivate = /access\s*:\s*["'`]?private|^\s*private\s*:\s*true/m;
+    const entries = text.split(/[{}]/);
+    const isPrivate = /access\s*:\s*["'`]?private/;
     for (const name of names) {
       const named = new RegExp(
         `name\\s*:\\s*["'\`]?${name}["'\`]?\\s*(?:,|$)`,

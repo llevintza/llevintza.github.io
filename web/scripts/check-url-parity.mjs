@@ -4,24 +4,17 @@
 //
 // Usage (from web/, after `pnpm build`):
 //   pnpm check:url-parity               check out/ against the committed baseline
-//   pnpm check:url-parity --refresh     re-snapshot the live site into the baseline
 //   pnpm check:url-parity --out <dir>   check another export directory
 //
-// The baseline is a committed snapshot, because after cutover the live site IS
-// the Next.js site. Refresh it only while Jekyll still serves production.
-// `--refresh` reads GH_TOKEN (optional) to find private repos with Pages sites.
-import {
-  existsSync,
-  readFileSync,
-  statSync,
-  writeFileSync,
-  appendFileSync,
-} from "node:fs";
+// The baseline is a committed snapshot of the Jekyll site, taken before the
+// cutover (2026-11-10). The live site is now the Next.js site and the Jekyll
+// source is gone, so the baseline is frozen: `--refresh` refuses to run,
+// because re-snapshotting would compare the export with itself.
+import { existsSync, readFileSync, statSync, appendFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   FALLBACK_PROJECT_PREFIXES,
-  buildBaseline,
   checkFeedIdentity,
   checkPath,
   exportedProjectPrefixes,
@@ -40,19 +33,10 @@ const outDir = path.resolve(
 );
 
 if (args.includes("--refresh")) {
-  const { baseline, prefixes, excluded } = await buildBaseline({
-    fetchFn: fetch,
-    githubToken: process.env.GH_TOKEN || process.env.GITHUB_TOKEN || undefined,
-    log: (m) => console.log(m),
-  });
-  // Private repo names stay out of git: the baseline stores kept paths only.
-  console.log(`Excluded ${prefixes.length} project-site prefixes.`);
-  if (excluded.length) console.log(`Dropped: ${excluded.join(", ")}`);
-  writeFileSync(baselineFile, JSON.stringify(baseline, null, 2) + "\n");
-  console.log(
-    `Wrote ${baseline.paths.length} paths to ${path.relative(process.cwd(), baselineFile)}`,
+  console.error(
+    "check-url-parity: the baseline is a frozen snapshot of the Jekyll site (removed after the 2026-11-10 cutover); --refresh would snapshot the Next.js site instead. Edit url-parity.baseline.json by hand to retire a URL on purpose.",
   );
-  process.exit(0);
+  process.exit(2);
 }
 
 const baseline = parseBaseline(readFileSync(baselineFile, "utf8"));

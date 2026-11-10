@@ -9,7 +9,7 @@ The mockup keeps these properties, which the build should keep too:
 - **The email-signature identity:** blue `#3498DB` (rules, borders, focus rings, large marks) and navy `rgb(44,62,80)` / `#2C3E50` (name, headings). `#3498DB` is only 3.15:1 on white, so light themes use a derived ink blue (`#1F6FA8` / `#1D6FA5`, about 5.4:1) for small link text. Every page passed axe-core WCAG 2 A/AA, colour contrast included, in both themes (see [Verify](#verify)).
 - **Themes:** follow `prefers-color-scheme`. A toggle in the header overrides it, and the choice is kept in `localStorage`.
 - **Reduced motion:** every animation and transition sits inside `@media (prefers-reduced-motion: no-preference)`. With reduced motion on, content renders in its final state.
-- **Real content only,** taken from `index.md`, `about.md`, `_data/featured.yml`, `_config.yml` and the public repo list. There are no posts yet, so the three post titles and the sample post are drafted from the public `aws-fastify-prometheus` README and are labelled "mockup" on the page. There is no phone number and no personal email. The private `instrument-price-dashboard` appears by name only, with no repo link.
+- **Real content only,** taken from the Jekyll site's `index.md`, `about.md`, `_data/featured.yml` and `_config.yml` (removed in #110; see the `jekyll-legacy` branch) and the public repo list. There are no posts yet, so the three post titles and the sample post are drafted from the public `aws-fastify-prometheus` README and are labelled "mockup" on the page. There is no phone number and no personal email. The private `instrument-price-dashboard` appears by name only, with no repo link.
 - **Contact icons** load from `https://llevintza.github.io/email-icons/img/color/` (linkedin, github, x, zoom). The GitHub and X icons are black, so dark themes put them on a light chip.
 - **Plain HTML and CSS,** plus one shared vanilla script (`mockups/_shared/site.js`: theme toggle, scroll reveal, TOC highlight). No CDN, no web fonts and no build step. Pages open straight from disk; only the contact icons need a network connection.
 
@@ -62,4 +62,4 @@ corepack pnpm a11y                               # axe checks at both widths, no
 
 PNGs are palette-quantised with `sharp`, which keeps the 12 at under 2 MB.
 
-`design/` is a standalone pnpm project and is not part of the Jekyll build (`_config.yml` excludes it).
+`design/` is a standalone pnpm project and is not part of the site build (`web/`).

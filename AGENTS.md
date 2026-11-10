@@ -4,8 +4,7 @@ Guidance for coding agents in this repo. Read [README.md](README.md), [CONTRIBUT
 
 ## What this repo is
 
-- **Live site today:** Jekyll (minima) at the repo root, served by GitHub Pages from `main` at https://llevintza.github.io/. Don't break it: `_config.yml`, `_data/`, `_includes/`, `*.md` pages.
-- **Rebuild in progress:** Next.js (App Router, TypeScript strict, MDX, `output: 'export'`, `trailingSlash: true`) in [`web/`](web/), a standalone pnpm project. It replaces Jekyll at cutover (#38). Jekyll excludes `web/`, `design/` and `docs/`.
+- **Live site:** Next.js (App Router, TypeScript strict, MDX, `output: 'export'`, `trailingSlash: true`) in [`web/`](web/), a standalone pnpm project, at https://llevintza.github.io/. [`deploy.yml`](.github/workflows/deploy.yml) builds `web/out` and deploys it to GitHub Pages (source "GitHub Actions") on pushes to `main` that touch `web/`, weekly on Mondays, and by hand. It replaced the Jekyll site at the cutover on 2026-11-10 (#38); the Jekyll source is gone.
 - **Project sites** under the same domain (`/email-icons/`, `/energlens/`, `/credit-desk-analytics/`, `/instrument-price-dashboard/`) are served from their own repos. Sent email signatures load icons from `/email-icons/`, so nothing here may break those URLs (see [ADR 0001](docs/adr/0001-hosting.md)).
 - The backlog is GitHub issues: epics #2, #6, #10, #14, #20, #25, #28, #32 and #36, with stories as checklist items. Decisions are recorded in `docs/adr/` and in issue comments.
 
@@ -15,7 +14,7 @@ Guidance for coding agents in this repo. Read [README.md](README.md), [CONTRIBUT
 - Private repos appear **by name only, never linked**. Their live site may be linked. A private project has no repo link, enforced by the type in `web/content/featured.ts`.
 - Featured project text mirrors the `## Building` table in the public `llevintza/llevintza` profile README. Use public sources only, never the private resume repo.
 - No credentials in git, not even placeholders or example defaults.
-- CI enforces most of this (`Public content guardrail`); the Jekyll site isn't scanned, so review it by hand.
+- CI enforces most of this (`Public content guardrail`).
 
 ## How changes land
 

@@ -5,6 +5,14 @@
 - **Issue:** #39, part of epic #36 (Migration and cutover from Jekyll)
 - **Sources checked:** 2026-11-09 (see [Sources](#sources)). Prices and limits change, so re-check them before acting on this record.
 
+## Status update (2026-11-10)
+
+- **Cutover done.** The switch ran on 2026-11-10 at 20:02 UTC (#38, [cutover runbook](../runbooks/cutover.md)). The Pages source is now "GitHub Actions" (`build_type=workflow`): `.github/workflows/deploy.yml` builds the Next.js export in `web/` and deploys it. Nothing builds Jekyll from `main` any more.
+- **Jekyll source removed.** The follow-up PR that deletes the Jekyll files (`_config.yml`, `_data/`, `_includes/`, `_posts/`, `assets/`, `Gemfile` and the root `*.md` pages) took them off `main`.
+- **Rollback.** Once that PR merges, the runbook's rollback (section 4, which rebuilds Jekyll from `main`) no longer applies as written: `main` has nothing for a branch build to serve. Going back to Jekyll then means either reverting that PR, or step 1 below: the last Jekyll commit (`597d012`) is kept on the `jekyll-legacy` branch, so Pages can deploy from that branch instead. Step 2 (redeploy a last good Next.js build) still applies.
+
+The rest of this record is kept as written when it was accepted.
+
 ## Context
 
 The site at `https://llevintza.github.io/` is Jekyll (minima). GitHub Pages builds it from `main` of

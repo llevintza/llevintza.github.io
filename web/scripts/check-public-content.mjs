@@ -148,36 +148,11 @@ export function privateReposFromTs(source) {
   return names;
 }
 
-/** Names of featured projects marked private in _data/featured.yml. */
-export function privateReposFromYaml(source) {
-  const names = [];
-  for (const entry of source.split(/^-\s+/m).slice(1)) {
-    const isPrivate =
-      /^\s*private\s*:\s*true\s*$/im.test(entry) ||
-      /^\s*access\s*:\s*["']?private["']?\s*$/im.test(entry);
-    const name = entry.match(/^(?:\s*)name\s*:\s*["']?([^"'\s#]+)/m);
-    if (isPrivate && name) names.push(name[1]);
-  }
-  return names;
-}
-
-/**
- * Private featured repo names: web/content/featured.ts if present, otherwise
- * the Jekyll site's _data/featured.yml.
- */
+/** Private featured repo names from web/content/featured.ts. */
 export function loadPrivateRepos(webDir) {
   const ts = path.join(webDir, "content", "featured.ts");
-  if (existsSync(ts)) {
-    return { source: ts, names: privateReposFromTs(readFileSync(ts, "utf8")) };
-  }
-  const yml = path.join(webDir, "..", "_data", "featured.yml");
-  if (existsSync(yml)) {
-    return {
-      source: yml,
-      names: privateReposFromYaml(readFileSync(yml, "utf8")),
-    };
-  }
-  return { source: null, names: [] };
+  if (!existsSync(ts)) return { source: null, names: [] };
+  return { source: ts, names: privateReposFromTs(readFileSync(ts, "utf8")) };
 }
 
 function* walk(dir) {
@@ -220,7 +195,7 @@ function main() {
   if (!source) {
     // Fail rather than skip, so a rename can't silently turn the rule off.
     console.error(
-      "check-public-content: neither web/content/featured.ts nor _data/featured.yml found; can't check private-repo links.",
+      "check-public-content: web/content/featured.ts not found; can't check private-repo links.",
     );
     process.exit(2);
   }

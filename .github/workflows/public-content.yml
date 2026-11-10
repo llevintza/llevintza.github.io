@@ -54,7 +54,7 @@ jobs:
             echo "web=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if printf '%s\n' "$changed" | grep -qE '^(web/|_data/featured\.yml$|\.github/workflows/public-content\.yml$)'; then
+          if printf '%s\n' "$changed" | grep -qE '^(web/|\.github/workflows/public-content\.yml$)'; then
             echo "web=true" >> "$GITHUB_OUTPUT"
           else
             echo "web/ unchanged in $range; skipping the build and check."
