@@ -6,3 +6,6 @@ export default function HomePage() {
     </main>
   );
 }
+
+// Deliberate lint error to prove CI fails (reverted next commit).
+export const deliberateLintError: any = 1;
