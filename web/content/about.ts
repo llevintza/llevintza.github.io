@@ -102,7 +102,7 @@ export const about: About = {
     basic: ["Italian", "German"],
   },
   privacyNote:
-    "This site uses Umami, a cookie-free analytics service that stores no personal data. Aggregate stats are kept in the EU.",
+    "This site uses Umami, a cookie-free analytics service that stores no personal data.",
 };
 
 /** "A", "A and B", "A, B, and C" (serial comma, as in the README). */

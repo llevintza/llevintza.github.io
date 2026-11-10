@@ -11,6 +11,7 @@ import {
   SITE_NAME,
   SITE_URL,
   TITLE_TEMPLATE,
+  siteVerification,
 } from "@/lib/site/metadata";
 import { fontVariables } from "@/lib/theme/fonts";
 
@@ -23,6 +24,8 @@ export const metadata: Metadata = {
   // Feed discovery on every page; buildMetadata repeats it for pages that set
   // their own `alternates`.
   alternates: { types: FEED_ALTERNATE_TYPES },
+  // Search Console meta tag, only when the deploy build sets the token (#58).
+  verification: siteVerification(),
 };
 
 // Browser UI colour follows the system setting. The hex values must equal

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   DEFAULT_OG_IMAGE,
@@ -9,6 +9,7 @@ import {
   absoluteUrl,
   buildMetadata,
   canonicalPath,
+  siteVerification,
 } from "./metadata";
 
 describe("canonicalPath", () => {
@@ -132,5 +133,33 @@ describe("feed discovery", () => {
     // buildMetadata must carry the feed link itself.
     const meta = buildMetadata({ title: "About", path: "/about/" });
     expect(meta.alternates?.types).toEqual(FEED_ALTERNATE_TYPES);
+  });
+});
+
+describe("siteVerification", () => {
+  // Made-up token; never commit a real one (it lives only in the Actions variable).
+  const FAKE_TOKEN = "fake-verification-token-for-tests";
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("is undefined without a token, so no meta tag renders", () => {
+    expect(siteVerification(undefined)).toBeUndefined();
+    expect(siteVerification("")).toBeUndefined();
+    expect(siteVerification("   ")).toBeUndefined();
+  });
+
+  it("sets the Google token when one is given", () => {
+    expect(siteVerification(FAKE_TOKEN)).toEqual({ google: FAKE_TOKEN });
+    expect(siteVerification(` ${FAKE_TOKEN} `)).toEqual({ google: FAKE_TOKEN });
+  });
+
+  it("reads NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION by default", () => {
+    vi.stubEnv("NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION", "");
+    expect(siteVerification()).toBeUndefined();
+
+    vi.stubEnv("NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION", FAKE_TOKEN);
+    expect(siteVerification()).toEqual({ google: FAKE_TOKEN });
   });
 });
