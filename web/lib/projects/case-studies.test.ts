@@ -9,8 +9,13 @@ import { ContentError } from "@/lib/content/frontmatter";
 import {
   getAllCaseStudies,
   parseCaseStudy,
+  findRepoLinks,
   readPngSize,
+  readWebpSize,
   SCREENSHOT_FORMATS,
+  type CaseStudy,
+  type PrivateCaseStudy,
+  type PublicCaseStudy,
   SCREENSHOT_WIDTHS,
 } from "./case-studies";
 
@@ -58,6 +63,26 @@ beforeAll(() => {
   }
 });
 
+/** A minimal lossy WebP (`VP8 `) header with the given size. */
+function webpHeader(width: number, height: number): Buffer {
+  const buf = Buffer.alloc(30);
+  buf.write("RIFF", 0, "ascii");
+  buf.writeUInt32LE(22, 4);
+  buf.write("WEBP", 8, "ascii");
+  buf.write("VP8 ", 12, "ascii");
+  buf.writeUInt16LE(width, 26);
+  buf.writeUInt16LE(height, 28);
+  return buf;
+}
+
+beforeAll(() => {
+  const dir = path.join(publicDir, "projects", "priv-app");
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, "demo.mp4"), "");
+  fs.writeFileSync(path.join(dir, "demo.en.vtt"), "WEBVTT\n");
+  fs.writeFileSync(path.join(dir, "demo-poster.webp"), webpHeader(1280, 720));
+});
+
 afterAll(() => {
   fs.rmSync(publicDir, { recursive: true, force: true });
 });
@@ -85,6 +110,16 @@ const validPrivate = [
   "slug: priv-app",
   "summary: Does private things.",
   "stack: [Go]",
+].join("\n");
+
+const videoYaml = [
+  "video:",
+  "  file: demo.mp4",
+  "  poster: demo-poster.webp",
+  "  captions: demo.en.vtt",
+  "  title: Walkthrough",
+  "  summary: Shows the app.",
+  "",
 ].join("\n");
 
 function parse(file: string, src: string) {
@@ -131,6 +166,79 @@ describe("parseCaseStudy", () => {
     expect(() => parse("priv-app.mdx", src)).toThrow(
       /repo: priv-app is private/,
     );
+  });
+
+  it("rejects a private repo link anywhere in the file", () => {
+    for (const link of [
+      "https://github.com/llevintza/priv-app",
+      "github.com/llevintza/Priv-App/blob/main/README.md",
+      "github.com%2Fllevintza%2Fpriv-app",
+    ]) {
+      const inBody = source(
+        validPrivate,
+        `${BODY}\nSee [the code](${link}).\n`,
+      );
+      expect(() => parse("priv-app.mdx", inBody)).toThrow(
+        /priv-app is private, so the file must not link its repo/,
+      );
+    }
+    const inVideo = source(
+      `${validPrivate}\n${videoYaml.replace("Shows the app.", "The code is at github.com/llevintza/priv-app")}`,
+    );
+    expect(() => parse("priv-app.mdx", inVideo)).toThrow(
+      /must not link its repo \(found github\.com\/llevintza\/priv-app\)/,
+    );
+    // Its live site and similarly named repos are fine.
+    const ok = source(
+      validPrivate,
+      `${BODY}\nhttps://llevintza.github.io/priv-app/ and https://github.com/llevintza/priv-app-client\n`,
+    );
+    expect(parse("priv-app.mdx", ok).access).toBe("private");
+  });
+
+  it("parses a video and reads its size from the poster", () => {
+    const study = parse(
+      "priv-app.mdx",
+      source(`${validPrivate}\n${videoYaml}`),
+    );
+    expect(study.video).toEqual({
+      src: "/projects/priv-app/demo.mp4",
+      poster: "/projects/priv-app/demo-poster.webp",
+      captions: "/projects/priv-app/demo.en.vtt",
+      width: 1280,
+      height: 720,
+      title: "Walkthrough",
+      summary: "Shows the app.",
+    });
+  });
+
+  it("validates the video fields and files", () => {
+    const missing = source(
+      `${validPrivate}\n${videoYaml.replace("demo.mp4", "gone.mp4")}`,
+    );
+    expect(() => parse("priv-app.mdx", missing)).toThrow(
+      /video: missing gone\.mp4 in public\/projects\/priv-app\//,
+    );
+    const bad = source(
+      `${validPrivate}\n${videoYaml
+        .replace("demo.mp4", "Demo.mov")
+        .replace("  summary: Shows the app.\n", "")
+        .replace(
+          "title: Walkthrough",
+          "title: Walkthrough\n  autoplay: true",
+        )}`,
+    );
+    let message = "";
+    try {
+      parse("priv-app.mdx", bad);
+    } catch (e) {
+      message = (e as Error).message;
+    }
+    expect(message).toContain(
+      "video.file: must be a lowercase file name ending in .mp4",
+    );
+    expect(message).toContain("video.summary: is required");
+    expect(message).toContain("unknown field(s): autoplay");
   });
 
   it("rejects a public repo that differs from the featured entry", () => {
@@ -234,6 +342,60 @@ describe("parseCaseStudy", () => {
   });
 });
 
+describe("findRepoLinks", () => {
+  it("finds the repo in URL-encoded and JSON-escaped spellings only", () => {
+    const text = [
+      "https://github.com/llevintza/priv-app",
+      "https:\\/\\/github.com\\/llevintza\\/priv-app",
+      "github.com/llevintza/priv-app.git",
+      "github.com/llevintza/priv-app-client",
+      "github.com/someone/priv-app",
+    ].join(" ");
+    expect(findRepoLinks(text, "priv-app")).toHaveLength(3);
+  });
+});
+
+describe("readWebpSize", () => {
+  it("reads lossy WebP and rejects other data", () => {
+    expect(readWebpSize(webpHeader(640, 360))).toEqual({
+      width: 640,
+      height: 360,
+    });
+    expect(readWebpSize(pngHeader(10, 20))).toBeNull();
+  });
+});
+
+describe("CaseStudy type", () => {
+  it("makes repo required on public and impossible on private studies", () => {
+    const base = {
+      title: "T",
+      slug: "t",
+      summary: "S",
+      stack: ["Go"],
+      screenshots: [],
+      permalink: "/projects/t/",
+      file: "t.mdx",
+      body: "",
+    };
+    const pub: PublicCaseStudy = {
+      ...base,
+      access: "public",
+      repo: "https://x",
+    };
+    // @ts-expect-error a public case study must have a repo
+    const noRepo: PublicCaseStudy = { ...base, access: "public" };
+    const priv: PrivateCaseStudy = { ...base, access: "private" };
+    const leak: PrivateCaseStudy = {
+      ...base,
+      access: "private",
+      // @ts-expect-error a private case study can't carry a repo link
+      repo: "https://x",
+    };
+    const studies: CaseStudy[] = [pub, noRepo, priv, leak];
+    expect(studies.filter((s) => s.access === "private")).toHaveLength(2);
+  });
+});
+
 describe("readPngSize", () => {
   it("reads IHDR and rejects non-PNG data", () => {
     expect(readPngSize(pngHeader(10, 20))).toEqual({ width: 10, height: 20 });
@@ -255,9 +417,21 @@ describe("content/projects", () => {
   it("never links a private repo", () => {
     for (const study of studies.filter((s) => s.access === "private")) {
       expect(study.repo).toBeUndefined();
-      expect(study.body).not.toMatch(
-        new RegExp(`github\\.com/llevintza/${study.slug}\\b`),
-      );
+      const raw = fs.readFileSync(study.file, "utf8");
+      expect(findRepoLinks(raw, study.slug)).toEqual([]);
     }
+  });
+
+  it("has a page for allocator-memo-builder, a private project, with its video", () => {
+    const study = studies.find((s) => s.slug === "allocator-memo-builder");
+    expect(study?.access).toBe("private");
+    expect(study?.repo).toBeUndefined();
+    expect(study?.video).toMatchObject({
+      src: "/projects/allocator-memo-builder/walkthrough.mp4",
+      poster: "/projects/allocator-memo-builder/walkthrough-poster.webp",
+      captions: "/projects/allocator-memo-builder/walkthrough.en.vtt",
+      width: 1280,
+      height: 720,
+    });
   });
 });
