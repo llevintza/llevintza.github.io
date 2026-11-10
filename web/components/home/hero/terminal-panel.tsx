@@ -11,7 +11,8 @@ const printAt = (i: number, delayMs = 300) =>
  * A console window listing what Leo is building now (#60 §5). Text only:
  * private repos are named and never linked, so the panel has no links at
  * all. Rows print in line by line once; with reduced motion they are all
- * there from the start.
+ * there from the start. `mt-0` opts out of the base `* + section` spacing:
+ * the hero grid's gap already separates it from the intro.
  */
 export function TerminalPanel() {
   const npmRow = building.length + 2;
@@ -19,7 +20,7 @@ export function TerminalPanel() {
   return (
     <section
       aria-labelledby="hero-building-title"
-      className="border border-line bg-panel shadow-hard"
+      className="mt-0 border border-line bg-panel shadow-hard"
     >
       <div className="flex items-center justify-between gap-4 bg-titlebar-bg px-3 py-2 font-pixel text-chrome text-titlebar-ink">
         <h2
