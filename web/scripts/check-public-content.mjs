@@ -69,7 +69,7 @@ const RULES = [
   {
     id: "tel-sms-link",
     // In an href (HTML attribute or JSON payload), or followed by a number.
-    re: /["'=]\s*(?:tel|sms):|\b(?:tel|sms):\/{0,2}\s*\+?[\d(]/gi,
+    re: /(?<=["'=]\s*)(?:tel|sms):[^"'\s<>\\]*|\b(?:tel|sms):\/{0,2}\s*\+?[\d(][\d\s().-]*/gi,
   },
   { id: "signal-link", re: /\b(?:signal\.me|signal\.group|sgnl\.link)\b/gi },
   { id: "mailto-link", re: /\bmailto:/gi },
