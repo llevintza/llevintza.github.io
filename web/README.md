@@ -1,6 +1,6 @@
 # web/: Next.js rebuild
 
-The Next.js version of https://llevintza.github.io/, built as a static export. It lives here until cutover; the Jekyll site at the repo root keeps serving until then.
+The source of https://llevintza.github.io/, built as a static export and deployed to GitHub Pages by `.github/workflows/deploy.yml`. It replaced the Jekyll site at the cutover on 2026-11-10 (#38).
 
 Stack: Next.js (App Router), TypeScript (`strict`), ESLint (flat config: `next/core-web-vitals` + TypeScript) and Prettier, with pnpm. The visual design isn't chosen yet, so the pages are unstyled placeholders.
 
@@ -23,7 +23,7 @@ pnpm dev          # http://localhost:3000
 | `pnpm typecheck`                    | `next typegen` (route types), then `tsc --noEmit`                |
 | `pnpm format` / `pnpm format:check` | Prettier write / check                                           |
 
-`next.config.ts` sets `output: 'export'`, `trailingSlash: true` (URLs match the Jekyll site) and `images.unoptimized` (static export has no image optimizer).
+`next.config.ts` sets `output: 'export'`, `trailingSlash: true` (URLs keep the old Jekyll site's shape) and `images.unoptimized` (static export has no image optimizer).
 
 ## Repo list cache
 

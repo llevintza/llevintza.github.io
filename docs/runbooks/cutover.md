@@ -110,6 +110,8 @@ Pages' CDN caches pages for up to 10 minutes (`cache-control: max-age=600`). If 
 
 Use this if the deploy fails and can't be fixed quickly, or if any verification check fails.
 
+> **After the Jekyll removal PR merges, this rollback no longer works as written:** `main` has no Jekyll source left for step 2 to build. To roll back to Jekyll then, first revert that PR on `main` (through a revert PR, like any other change) so the Jekyll files are back, then run the steps below. A bad Next.js deploy doesn't need Jekyll: redeploy the last good build instead (ADR 0001, Rollback step 2).
+
 ```sh
 # 1. Stop Actions deploys first, so a push can't redeploy the new site.
 gh variable delete PAGES_DEPLOY_ENABLED -R $REPO
@@ -133,6 +135,6 @@ If you set `NEXT_PUBLIC_UMAMI_WEBSITE_ID` for the cutover, you can leave it: not
 ## 5. After a successful switch
 
 - [ ] Leave it for a day or two and re-run `pnpm verify:live --urls-from "$HOME/jekyll-sitemap-pre-cutover.xml"`. Keep that snapshot until the Jekyll removal PR merges: Jekyll generates the sitemap at build time, so it can't be recovered from git.
-- [ ] **Follow-up PR: remove the Jekyll files** (`_config.yml`, `_data/`, `_includes/`, `_posts/`, `assets/` if unused, `Gemfile`, `index.md`, `blog.md`, `projects.md`, `about.md`). Update the README "Writing a post" and Jekyll local-preview sections for the new site (#38 acceptance), and drop Jekyll references from `AGENTS.md`. After it merges, the rollback in section 4 no longer works (there is nothing to build), so merge it only once you're confident.
+- [x] **Follow-up PR: remove the Jekyll files** (`_config.yml`, `_data/`, `_includes/`, `_posts/`, `assets/` if unused, `Gemfile`, `index.md`, `blog.md`, `projects.md`, `about.md`). Update the README "Writing a post" and Jekyll local-preview sections for the new site (#38 acceptance), and drop Jekyll references from `AGENTS.md`. After it merges, the rollback in section 4 no longer works (there is nothing to build), so merge it only once you're confident.
 - [x] **#23: weekly rebuild.** It's already in `deploy.yml` (`schedule:` Mondays 04:17 UTC) and shares the `pages` concurrency group, so it can't race a push. Before the switch it only builds. After it, confirm the next Monday run deploys: `gh run list -R $REPO --workflow deploy.yml --event schedule --limit 1`. If the cron stops after a quiet spell, re-enable it with `gh workflow enable deploy.yml -R $REPO`.
 - [ ] Update ADR 0001 and #38 with the date of the switch, then close #38 and, once its other stories are done, epic #36.

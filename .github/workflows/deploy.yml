@@ -4,11 +4,11 @@ name: Deploy site
 #
 # The deploy job is gated: it runs only when the repo variable
 # PAGES_DEPLOY_ENABLED is 'true' AND the Pages source is "GitHub Actions".
-# Until the cutover (#38, docs/runbooks/cutover.md) neither is set, so this
-# workflow builds and uploads the artifact but Jekyll keeps serving the site.
+# Both have been set since the cutover on 2026-11-10 (#38,
+# docs/runbooks/cutover.md); unset either one and this workflow only builds.
 # Pull requests run the build only; they never deploy. A weekly scheduled
 # run (#23) rebuilds from main so the repo list and dates stay fresh without
-# a push; it is gated the same way, so before the cutover it only builds.
+# a push; it is gated the same way.
 on:
   push:
     branches: [main]

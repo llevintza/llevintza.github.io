@@ -4,7 +4,7 @@ Every change reaches `main` through a feature branch and a pull request. Commit 
 
 ## Setup
 
-The root `package.json` holds repo tooling only (husky and commitlint). It is not the Jekyll site, and any app added later keeps its own separate package.
+The root `package.json` holds repo tooling only (husky and commitlint). The site is the separate pnpm project in [`web/`](web/README.md), with its own `package.json` and lockfile.
 
 ```sh
 corepack enable        # or install the pnpm version pinned in package.json's "packageManager"
