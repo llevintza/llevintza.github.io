@@ -4,7 +4,7 @@ Every change reaches `main` through a feature branch and a pull request. Commit 
 
 ## Setup
 
-The root `package.json` holds repo tooling only (husky and commitlint). It is not the site and not the Next.js app in `web/`, which is its own pnpm project.
+The root `package.json` holds repo tooling only (husky and commitlint). It is not the Jekyll site, and any app added later keeps its own separate package.
 
 ```sh
 corepack enable        # or install the pnpm version pinned in package.json's "packageManager"
@@ -78,6 +78,6 @@ It requires no approvals, because all agents post on GitHub under the owner's ac
 
 ### Reviews and merging
 
-- Because every agent posts as the owner, each PR comment and thread reply written by an agent starts with a role tag such as `[PR Author]` or `[Tech Coordinator]`, so readers can tell who is speaking.
+- Because every agent posts as the owner, each PR comment and thread reply written by an agent starts with a role tag such as `[PR Author]` or `[Max]`, so readers can tell who is speaking.
 - The PR author fixes or answers each review thread, replies with the tag, and resolves it.
-- The Tech Coordinator bot reviews and merges. Authors don't merge their own PRs.
+- Rex, Helms and Arch review (content-only PRs need only Rex); Max merges once the gate is clear. Authors don't merge their own PRs.
