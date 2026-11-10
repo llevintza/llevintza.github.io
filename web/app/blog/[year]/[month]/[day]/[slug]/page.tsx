@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { TableOfContents } from "@/components/mdx/toc";
+import { Prose } from "@/components/prose/prose";
 import { TagList } from "@/components/ui/tag";
 import { renderMdx } from "@/lib/content/mdx";
 import {
@@ -83,7 +84,7 @@ export default async function PostPage({ params }: Props) {
           <TagList tags={post.tags} />
         </header>
         {showToc ? <TableOfContents toc={toc} variant="inline" /> : null}
-        {content}
+        <Prose className="mt-6">{content}</Prose>
       </article>
       {showToc ? (
         <div className="post-layout__aside">
