@@ -1,21 +1,16 @@
-"use client";
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  type CSSProperties,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 
-import { m, useReducedMotion, type Variants } from "motion/react";
-import type { ReactNode } from "react";
+import { cn } from "@/components/ui/cn";
 
 import styles from "./motion.module.css";
-import { duration, ease, revealOffset, staggerStep } from "./tokens";
-import { useRevealOnScroll } from "./use-reveal-on-scroll";
-
-const groupVariants: Variants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: staggerStep } },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: revealOffset / 2, transition: { duration: 0 } },
-  visible: { opacity: 1, y: 0, transition: { duration: duration.base, ease } },
-};
+import { revealAttributes, revealStyle } from "./reveal-attributes";
 
 type StaggerProps = {
   children: ReactNode;
@@ -28,37 +23,33 @@ type StaggerProps = {
 
 /**
  * Reveals its `<StaggerItem>` children one after another ("print" rhythm)
- * when the group scrolls into view. Same rules as `<Reveal>`: visible at
- * rest, only below-the-fold groups animate, off under reduced motion.
+ * when the group scrolls into view. Same rules as `<Reveal>`: a Server
+ * Component driven by CSS transitions and the page's `<ScrollReveal />`,
+ * visible at rest, only below-the-fold groups animate, off under reduced
+ * motion.
  */
 export function Stagger({
   children,
   className,
-  as = "div",
+  as: Tag = "div",
   once,
   amount,
 }: StaggerProps) {
-  const { ref, phase, reduce } = useRevealOnScroll<HTMLElement>({
-    once,
-    amount,
-  });
-
-  if (reduce) {
-    const Tag = as;
-    return <Tag className={className}>{children}</Tag>;
-  }
-
-  const MotionTag = m[as];
+  let index = 0;
   return (
-    <MotionTag
-      ref={ref as never}
-      className={cx(className)}
-      initial={false}
-      animate={phase}
-      variants={groupVariants}
+    <Tag
+      className={cn(styles.stagger, className)}
+      style={revealStyle}
+      {...revealAttributes({ once, amount })}
     >
-      {children}
-    </MotionTag>
+      {Children.map(children, (child) =>
+        isValidElement(child) && child.type === StaggerItem
+          ? cloneElement(child as ReactElement<StaggerItemProps>, {
+              index: index++,
+            })
+          : child,
+      )}
+    </Tag>
   );
 }
 
@@ -67,27 +58,23 @@ type StaggerItemProps = {
   className?: string;
   /** Use `li` inside `<Stagger as="ul">` or `as="ol"`. */
   as?: "div" | "li";
+  /** Position in the group; set by `<Stagger>`. */
+  index?: number;
 };
 
 /** One step of a `<Stagger>` group. */
 export function StaggerItem({
   children,
   className,
-  as = "div",
+  as: Tag = "div",
+  index = 0,
 }: StaggerItemProps) {
-  const reduce = useReducedMotion();
-  if (reduce) {
-    const Tag = as;
-    return <Tag className={className}>{children}</Tag>;
-  }
-  const MotionTag = m[as];
   return (
-    <MotionTag className={cx(className)} variants={itemVariants}>
+    <Tag
+      className={cn(styles.staggerItem, className)}
+      style={{ "--i": index } as CSSProperties}
+    >
       {children}
-    </MotionTag>
+    </Tag>
   );
-}
-
-function cx(className?: string) {
-  return className ? `${styles.reveal} ${className}` : styles.reveal;
 }

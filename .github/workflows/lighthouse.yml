@@ -87,7 +87,7 @@ jobs:
           REPOS_OFFLINE: "1"
 
       # `pnpm lhci` runs @lhci/cli (pinned in package.json) through pnpm dlx.
-      - name: Collect (3 runs per URL, mobile)
+      - name: Collect (5 runs per URL, mobile)
         if: steps.changes.outputs.web == 'true'
         run: pnpm lhci collect
 
@@ -189,7 +189,7 @@ jobs:
               '',
               rows.length ? [header, sep, ...rows].join('\n') : '_No Lighthouse results: see the run log._',
               '',
-              `Median of 3 mobile runs per URL. [HTML reports (artifact)](${artifactUrl}) · [Run](${runUrl}) · commit ${context.payload.pull_request.head.sha.slice(0, 7)}`,
+              `Median of 5 mobile runs per URL. [HTML reports (artifact)](${artifactUrl}) · [Run](${runUrl}) · commit ${context.payload.pull_request.head.sha.slice(0, 7)}`,
             ].join('\n');
 
             const { owner, repo } = context.repo;

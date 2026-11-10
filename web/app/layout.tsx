@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
+import { Umami } from "@/components/analytics/umami";
 import { SiteFooter } from "@/components/site/footer";
 import { SiteHeader } from "@/components/site/header";
 import { ThemeProvider } from "@/components/theme/theme-provider";
@@ -45,6 +46,8 @@ export default function RootLayout({
           {children}
           <SiteFooter />
         </ThemeProvider>
+        {/* Renders only when the deploy build sets the website ID (#58). */}
+        <Umami />
       </body>
     </html>
   );

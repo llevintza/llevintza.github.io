@@ -69,7 +69,7 @@ module.exports = {
     collect: {
       staticDistDir: "./out",
       url: urls,
-      numberOfRuns: 3,
+      numberOfRuns: 5,
       // Mobile emulation is Lighthouse's default; don't override formFactor.
     },
     assert: {
