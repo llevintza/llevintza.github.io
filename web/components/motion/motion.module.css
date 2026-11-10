@@ -93,17 +93,59 @@
   }
 }
 
+/* ---- Scroll reveal ------------------------------------------------- */
+
+/*
+ * `<Reveal>` and `<Stagger>` (Server Components) carry `data-reveal`, which
+ * `<ScrollReveal>` sets to `hidden` for blocks that start below the fold and
+ * to `visible` once they scroll in. At rest (server HTML, no JS, reduced
+ * motion) the attribute is empty and nothing here hides anything.
+ *
+ * The timing comes from `tokens.ts` through custom properties that
+ * `<Reveal>` and `<Stagger>` set (`revealStyle`): `--reveal-duration`,
+ * `--reveal-ease`, `--reveal-offset` (half of it for stagger items) and
+ * `--stagger-step`. Hiding is instant (`transition: none`); only the reveal
+ * is animated.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal,
+  .staggerItem {
+    transition:
+      opacity var(--reveal-duration) var(--reveal-ease),
+      transform var(--reveal-duration) var(--reveal-ease);
+  }
+
+  .staggerItem {
+    transition-delay: calc(var(--i, 0) * var(--stagger-step));
+  }
+
+  .reveal[data-reveal="hidden"],
+  [data-reveal="hidden"] > .staggerItem {
+    opacity: 0;
+    transition: none;
+  }
+
+  .reveal[data-reveal="hidden"] {
+    transform: translateY(var(--reveal-offset));
+  }
+
+  [data-reveal="hidden"] > .staggerItem {
+    transform: translateY(calc(var(--reveal-offset) / 2));
+  }
+}
+
 /* ---- Print ---------------------------------------------------------- */
 
 /*
- * Print the finished state. `.reveal` marks Motion-driven wrappers
- * (`Reveal`, `Stagger`, `StaggerItem`): a block still hidden below the fold
- * would otherwise print blank. `!important` beats Motion's inline styles.
+ * Print the finished state: a block still hidden below the fold would
+ * otherwise print blank.
  */
 @media print {
-  .reveal {
+  .reveal,
+  .staggerItem {
     opacity: 1 !important;
     transform: none !important;
+    transition: none !important;
   }
 
   .typed .char,

@@ -1,6 +1,7 @@
 export { MotionProvider } from "./motion-provider";
 export { PageTransition } from "./page-transition";
 export { Reveal } from "./reveal";
+export { ScrollReveal } from "./scroll-reveal";
 export { Stagger, StaggerItem } from "./stagger";
 export { TerminalLines } from "./terminal-lines";
 export { terminalLinesDuration, typedTextDuration } from "./timing";
