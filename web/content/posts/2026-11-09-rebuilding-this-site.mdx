@@ -11,11 +11,31 @@ So I'm rebuilding it with the Next.js App Router and TypeScript in strict mode. 
 
 ## Posts are MDX files
 
-Each post is an `.mdx` file in the repo. Frontmatter (title, date, tags, summary) is validated with zod when the site builds, so a missing field or a malformed date fails the build instead of shipping a broken page. Code blocks are highlighted at build time with Shiki, in a light and a dark theme, so no highlighting JavaScript reaches the browser.
+Each post is an `.mdx` file in the repo, and everything about it is settled when the site builds:
+
+```mermaid
+flowchart TD
+  accTitle: How a post is built
+  accDescr: An MDX file is validated, rendered and highlighted at build time, then written out as static HTML for GitHub Pages.
+  A[post.mdx] --> B{frontmatter valid?}
+  B -- no --> X[build fails]
+  B -- yes --> C[MDX to HTML]
+  C --> D[Shiki and Mermaid]
+  D --> E[out/ static HTML]
+  E --> F[GitHub Pages]
+```
+
+Frontmatter (title, date, tags, summary) is validated with zod when the site builds, so a missing field or a malformed date fails the build instead of shipping a broken page. Code blocks are highlighted at build time with Shiki, in a light and a dark theme, so no highlighting JavaScript reaches the browser.
 
 ## Keeping the URLs
 
 Links to the old site should keep working. Jekyll was configured with `permalink: /blog/:year/:month/:day/:title/`, and the new site builds the same shape from the post's date and file name:
+
+| Source file                          | Jekyll URL                               | Next.js URL                              |
+| ------------------------------------ | ---------------------------------------- | ---------------------------------------- |
+| `2026-11-09-rebuilding-this-site.md` | `/blog/2026/11/09/rebuilding-this-site/` | `/blog/2026/11/09/rebuilding-this-site/` |
+
+In code:
 
 ```ts
 interface PostParams {
@@ -30,5 +50,41 @@ function permalinkFor({ year, month, day, slug }: PostParams): string {
   return `/blog/${year}/${month}/${day}/${slug}/`;
 }
 ```
+
+<Callout type="note" title="Trailing slashes">
+  The export uses `trailingSlash: true`, so `/blog/` is written as
+  `blog/index.html`. GitHub Pages serves that for both `/blog` and `/blog/`,
+  just as it did for Jekyll.
+</Callout>
+
+## Writing richer posts
+
+Plain Markdown covers most of what I write, but a few extras make longer posts easier to follow. All of them are rendered when the site builds, so none of them adds JavaScript to the page except image zoom.
+
+### Callouts
+
+A `<Callout>` sets a remark apart from the text around it, in one of three flavours:
+
+<Callout type="tip">
+  Run `pnpm build && pnpm start` to check the real static export locally before
+  pushing.
+</Callout>
+
+<Callout type="warn" title="Drafts">
+  A post with `draft: true` is built in development only. It never reaches the
+  public site.
+</Callout>
+
+### Diagrams
+
+Fenced `mermaid` code blocks, like the build pipeline above, are turned into SVG at build time in a light and a dark version. The page shows the one that matches the theme, and the Mermaid library itself never reaches the browser.
+
+### Images
+
+Images load lazily, keep their space while they load, and open full size when you select them. Press <kbd>Esc</kbd> to close.
+
+![A terminal window showing pnpm build writing a static export to the out folder](/images/posts/rebuilding-this-site/static-export.svg)
+
+## What's next
 
 The Jekyll site keeps serving until the new one reaches parity. More on the design once it lands.

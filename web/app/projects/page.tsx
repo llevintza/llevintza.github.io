@@ -1,15 +1,18 @@
+import { AllRepos } from "@/components/projects/all-repos";
 import { getFeaturedProjects } from "@/lib/projects/featured";
+import { getPublicReposCached } from "@/lib/projects/repos";
 import { buildMetadata } from "@/lib/site/metadata";
 
 export const metadata = buildMetadata({
   title: "Projects",
-  description: "Featured projects by Leo Levintza.",
+  description: "Featured projects and all public repos by Leo Levintza.",
   path: "/projects/",
   image: "page",
 });
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
   const projects = getFeaturedProjects();
+  const repos = await getPublicReposCached();
 
   return (
     <main>
@@ -48,7 +51,7 @@ export default function ProjectsPage() {
         </p>
       </section>
 
-      {/* TODO(#22): "All public repos" section goes here, below Featured. */}
+      <AllRepos repos={repos} />
     </main>
   );
 }
