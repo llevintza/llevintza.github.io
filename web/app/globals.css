@@ -368,13 +368,17 @@
     margin-block-start: 2.5rem;
   }
 
-  /* Sections (e.g. the About page) are spaced like a heading break. */
-  :where(main) :where(*) + :where(section, aside) {
-    margin-block-start: 2.5rem;
-  }
-
   :where(main) :where(h1, h2, h3, h4) + :where(*) {
     margin-block-start: 1rem;
+  }
+
+  /*
+   * Sections and articles (About sections, project entries) are spaced like
+   * a heading break, also straight after the page h1. Kept after the rule
+   * above so it wins.
+   */
+  :where(main) :where(*) + :where(section, article, aside) {
+    margin-block-start: 2.5rem;
   }
 
   /* Heading markers used by the opt-in `heading-marker` utility. */
