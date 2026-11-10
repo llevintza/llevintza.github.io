@@ -79,6 +79,8 @@ export default function AboutPage() {
         </section>
 
         <ContactSection />
+
+        <p className="mt-10 mb-12 text-sm text-muted">{about.privacyNote}</p>
       </article>
     </main>
   );

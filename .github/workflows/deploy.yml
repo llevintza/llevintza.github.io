@@ -70,8 +70,11 @@ jobs:
       - name: Build
         env:
           # Empty until Leo sets the Actions variable (ADR 0002, #58); the
-          # site then ships without the analytics script.
-          NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${{ vars.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}
+          # site then ships without the analytics script. Only builds that
+          # can deploy (non-PR runs on main, same condition as the deploy
+          # job) get it: same-repo PR runs can read `vars` too, and ADR 0002
+          # keeps the ID out of preview builds.
+          NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.NEXT_PUBLIC_UMAMI_WEBSITE_ID || '' }}
           # Read-only token so the build can list public repos (#22, #45,
           # #65). Optional there: without it the API is unauthenticated
           # (60 requests/hour) and the build falls back to its repo cache.
