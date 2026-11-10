@@ -26,7 +26,8 @@ import {
    only inside `@media (prefers-reduced-motion: no-preference)`.
 2. **Visible at rest.** The server HTML shows everything. Nothing is hidden
    until JavaScript has run, and the CSS animations finish on their own, so
-   if JS fails or is disabled the content is simply there.
+   if JS fails or is disabled the content is simply there. Print always shows
+   the finished state, even for blocks still waiting below the fold.
 3. **No layout shift.** Only `opacity` and `transform` animate. Boxes keep
    their size from the first paint (typed text is in the DOM from the start,
    the cursor's space is reserved). Lighthouse CLS measured 0 on every page.
@@ -157,6 +158,13 @@ Returns `{}` under reduced motion, so only the CSS colour change remains.
 **Colour changes are not Motion.** Inverse-video title bars, link hovers
 and the active nav item switch instantly in CSS with no `transition`
 (spec #60 §5 and §6).
+
+## Tests
+
+`timing.test.ts` (vitest, `pnpm test`) covers the timing helpers. The
+reduced-motion, no-JS and no-layout-shift guarantees were checked by hand
+with Playwright and Lighthouse (see PR #68). They should move into the e2e
+suite once it lands (#34).
 
 ## Adding something new
 

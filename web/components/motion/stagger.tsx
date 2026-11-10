@@ -3,6 +3,7 @@
 import { m, useReducedMotion, type Variants } from "motion/react";
 import type { ReactNode } from "react";
 
+import styles from "./motion.module.css";
 import { duration, ease, revealOffset, staggerStep } from "./tokens";
 import { useRevealOnScroll } from "./use-reveal-on-scroll";
 
@@ -51,7 +52,7 @@ export function Stagger({
   return (
     <MotionTag
       ref={ref as never}
-      className={className}
+      className={cx(className)}
       initial={false}
       animate={phase}
       variants={groupVariants}
@@ -81,8 +82,12 @@ export function StaggerItem({
   }
   const MotionTag = m[as];
   return (
-    <MotionTag className={className} variants={itemVariants}>
+    <MotionTag className={cx(className)} variants={itemVariants}>
       {children}
     </MotionTag>
   );
+}
+
+function cx(className?: string) {
+  return className ? `${styles.reveal} ${className}` : styles.reveal;
 }

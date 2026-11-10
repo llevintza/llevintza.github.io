@@ -1,6 +1,7 @@
 import { Children, type CSSProperties, type ReactNode } from "react";
 
 import styles from "./motion.module.css";
+import { terminalLinesDefaults } from "./timing";
 
 type TerminalLinesProps = {
   /** Each child is one row; rows "print" one after another. */
@@ -23,8 +24,8 @@ type TerminalLinesProps = {
  */
 export function TerminalLines({
   children,
-  startDelay = 0,
-  lineDelay = 80,
+  startDelay = terminalLinesDefaults.startDelay,
+  lineDelay = terminalLinesDefaults.lineDelay,
   as: Tag = "div",
   className,
   lineClassName,
@@ -51,20 +52,4 @@ export function TerminalLines({
       ))}
     </Tag>
   );
-}
-
-/** Total time in ms until the last of `count` rows has printed. */
-export function terminalLinesDuration(
-  count: number,
-  { startDelay = 0, lineDelay = 80 } = {},
-) {
-  return startDelay + Math.max(0, count - 1) * lineDelay;
-}
-
-/** Time in ms until `TypedText` has finished typing `text`. */
-export function typedTextDuration(
-  text: string,
-  { startDelay = 200, charDelay = 45 } = {},
-) {
-  return startDelay + Array.from(text).length * charDelay;
 }

@@ -92,3 +92,23 @@
     animation: none;
   }
 }
+
+/* ---- Print ---------------------------------------------------------- */
+
+/*
+ * Print the finished state. `.reveal` marks Motion-driven wrappers
+ * (`Reveal`, `Stagger`, `StaggerItem`): a block still hidden below the fold
+ * would otherwise print blank. `!important` beats Motion's inline styles.
+ */
+@media print {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .typed .char,
+  .lines > .line,
+  .typed .cursor {
+    animation: none !important;
+  }
+}

@@ -3,6 +3,7 @@
 import { m, type Variants } from "motion/react";
 import type { ReactNode } from "react";
 
+import styles from "./motion.module.css";
 import { duration, ease, revealOffset } from "./tokens";
 import { useRevealOnScroll } from "./use-reveal-on-scroll";
 
@@ -36,7 +37,7 @@ export function Reveal({ children, className, once, amount }: RevealProps) {
   return (
     <m.div
       ref={ref}
-      className={className}
+      className={cx(className)}
       initial={false}
       animate={phase}
       variants={variants}
@@ -44,4 +45,8 @@ export function Reveal({ children, className, once, amount }: RevealProps) {
       {children}
     </m.div>
   );
+}
+
+function cx(className?: string) {
+  return className ? `${styles.reveal} ${className}` : styles.reveal;
 }

@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 
 import styles from "./motion.module.css";
+import { typedTextDefaults } from "./timing";
 
 type TypedTextProps = {
   /** One line of text. Typing assumes a monospace font (it steps in `ch`). */
@@ -23,8 +24,8 @@ type TypedTextProps = {
  */
 export function TypedText({
   text,
-  startDelay = 200,
-  charDelay = 45,
+  startDelay = typedTextDefaults.startDelay,
+  charDelay = typedTextDefaults.charDelay,
   cursor = "blink",
   className,
 }: TypedTextProps) {
