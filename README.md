@@ -61,7 +61,7 @@ The Next.js site in `web/` is checked on every PR and push to `main` by the **Pu
 - a phone number, in international (`+…`) or US format, with or without separators;
 - a `tel:` or `sms:` link, or a Signal link (`signal.me`, `signal.group`, `sgnl.link`);
 - a personal email address: any `mailto:` link, or any address at a consumer mail domain (Gmail, Outlook, iCloud, Yahoo, Proton and similar);
-- a link to `github.com/llevintza/<name>` for a featured project marked private (`access: "private"` in `web/content/featured.ts`, or `private: true` in `_data/featured.yml` until that file exists). Private projects appear by name only; their live site may still be linked.
+- a link to `github.com/llevintza/<name>` for a featured project marked private (`access: "private"` in `web/content/featured.ts`, or `private: true` in `_data/featured.yml` until that file exists), or for a repo on the script's always-private list (`ALWAYS_PRIVATE_REPOS`, starting with this site's own repo). Private projects appear by name only; their live site may still be linked.
 
 It covers the Next.js export only; the Jekyll site served today is not scanned, so until cutover the rules above are kept by review.
 

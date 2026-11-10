@@ -17,6 +17,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const OWNER = "llevintza";
+// Private repos that are never featured but must not be linked either.
+export const ALWAYS_PRIVATE_REPOS = ["llevintza.github.io"];
 const SCANNED_EXTENSIONS = new Set([".html", ".xml", ".txt"]);
 
 // Consumer mail providers. Work or custom domains are only caught via mailto:.
@@ -69,7 +71,7 @@ const RULES = [
   {
     id: "tel-sms-link",
     // In an href (HTML attribute or JSON payload), or followed by a number.
-    re: /(?<=["'=]\s*)(?:tel|sms):[^"'\s<>\\]*|\b(?:tel|sms):\/{0,2}\s*\+?[\d(][\d\s().-]*/gi,
+    re: /(?<=["'=]\s*)(?:tel|sms):[^"'<>\\]*|\b(?:tel|sms):\/{0,2}\s*\+?[\d(](?:[\d\s().-]*[\d)])?/gi,
   },
   { id: "signal-link", re: /\b(?:signal\.me|signal\.group|sgnl\.link)\b/gi },
   { id: "mailto-link", re: /\bmailto:/gi },
@@ -214,6 +216,7 @@ function main() {
   }
 
   const { source, names } = loadPrivateRepos(webDir);
+  const privateRepos = [...new Set([...names, ...ALWAYS_PRIVATE_REPOS])];
   if (!source) {
     // Fail rather than skip, so a rename can't silently turn the rule off.
     console.error(
@@ -222,10 +225,10 @@ function main() {
     process.exit(2);
   }
   console.log(
-    `Private featured repos (${path.relative(process.cwd(), source)}): ${names.join(", ") || "none"}`,
+    `Private repos (${path.relative(process.cwd(), source)} + always-private): ${privateRepos.join(", ")}`,
   );
 
-  const { files, findings } = checkDir(outDir, { privateRepos: names });
+  const { files, findings } = checkDir(outDir, { privateRepos });
   if (files.length === 0) {
     console.error(
       `check-public-content: no .html/.xml/.txt files under ${outDir}.`,

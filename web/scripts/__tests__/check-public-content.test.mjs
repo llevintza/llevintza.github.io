@@ -6,6 +6,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
+  ALWAYS_PRIVATE_REPOS,
   checkDir,
   loadPrivateRepos,
   privateReposFromTs,
@@ -70,6 +71,19 @@ describe("phone numbers", () => {
 });
 
 describe("links and email", () => {
+  it("reports the full tel:/sms: value without trailing prose", () => {
+    const matches = (text) =>
+      scanText(text)
+        .filter((f) => f.rule === "tel-sms-link")
+        .map((f) => f.match);
+    assert.deepEqual(matches('<a href="tel:+1 555 555 0100">x</a>'), [
+      "tel:+1 555 555 0100",
+    ]);
+    assert.deepEqual(matches("<p>Call tel: 555 0100. Then wait.</p>"), [
+      "tel: 555 0100",
+    ]);
+  });
+
   it("flags tel: and sms: hrefs, including JSON payloads", () => {
     assert.ok(
       rulesIn('<a href="tel:+14155552671">x</a>').includes("tel-sms-link"),
@@ -154,6 +168,16 @@ describe("private repo links", () => {
     });
   }
 
+  it("always treats this site's own repo as private", () => {
+    assert.ok(ALWAYS_PRIVATE_REPOS.includes("llevintza.github.io"));
+    const text =
+      '<a href="https://github.com/llevintza/llevintza.github.io/edit/main/x.md">edit</a>';
+    assert.deepEqual(
+      scanText(text, { privateRepos: ALWAYS_PRIVATE_REPOS }).map((f) => f.rule),
+      ["private-repo-link"],
+    );
+  });
+
   it("has no repo rule without private names", () => {
     assert.deepEqual(
       scanText("https://github.com/llevintza/secret-project"),
@@ -200,8 +224,22 @@ describe("private repo sources", () => {
     const { source, names } = loadPrivateRepos(webDir);
     assert.ok(source, "expected web/content/featured.ts or _data/featured.yml");
     assert.ok(Array.isArray(names));
+    // Each name must sit in an entry that is itself marked private.
     const text = readFileSync(source, "utf8");
-    for (const name of names) assert.ok(text.includes(name), name);
+    const entries = source.endsWith(".ts")
+      ? text.split(/[{}]/)
+      : text.split(/^-\s+/m);
+    const isPrivate = /access\s*:\s*["'`]?private|^\s*private\s*:\s*true/m;
+    for (const name of names) {
+      const named = new RegExp(
+        `name\\s*:\\s*["'\`]?${name}["'\`]?\\s*(?:,|$)`,
+        "m",
+      );
+      assert.ok(
+        entries.some((e) => named.test(e) && isPrivate.test(e)),
+        `${name} is not in an entry marked private`,
+      );
+    }
   });
 });
 
