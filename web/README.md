@@ -38,3 +38,17 @@ A failed weekly run opens (or comments on) one issue titled `Broken links detect
 brew install lychee
 lychee --config lychee.toml --root-dir "$PWD/web/out" 'web/out/**/*.html'
 ```
+
+## Lighthouse
+
+CI (`.github/workflows/lighthouse.yml`, check **Lighthouse budgets**) runs Lighthouse on every PR against the static export and fails when a budget is missed: Performance ≥ 95, Accessibility = 100, Best Practices ≥ 95, SEO = 100. It tests `/`, `/projects/` and the newest blog post (3 mobile runs each, median), then posts a sticky `[Lighthouse]` comment with the scores and a link to the HTML reports artifact. The config is `lighthouserc.cjs`.
+
+Run it locally (needs Chrome installed):
+
+```sh
+pnpm build
+pnpm lhci autorun   # collect, assert, write reports
+open .lighthouseci/reports/*.report.html
+```
+
+`pnpm lhci` runs a pinned `@lhci/cli` through `pnpm dlx`, so it adds no dependency. Reports stay local (`upload.target: filesystem`); nothing goes to public storage.
