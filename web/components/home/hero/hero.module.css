@@ -8,8 +8,8 @@
  * hero. The name and intro are never animated: they are the LCP candidates
  * and must paint with the first frame.
  *
- * TODO(#9): swap these keyframes for the shared motion primitives once they
- * land.
+ * The prompt typing and the row "print" use the shared primitives in
+ * components/motion (#9); only the mesh drift is hero-specific.
  */
 
 /* --- Dithered mesh background ------------------------------------------- */
@@ -86,54 +86,16 @@
   }
 }
 
-/* --- Prompt typing ------------------------------------------------------- */
-
-.typed {
-  display: inline-block;
-  overflow: hidden;
-  white-space: nowrap;
-  vertical-align: bottom;
-}
-
 /* --- Motion (no motion preference only) --------------------------------- */
 
 @media (prefers-reduced-motion: no-preference) {
   .field {
     animation: drift 24s ease-in-out infinite alternate;
   }
-
-  .typed {
-    /* --chars is set inline to the command length. */
-    animation: type 0.9s 0.2s steps(var(--chars, 13), end) both;
-  }
-
-  /* One-shot "print": rows appear line by line, no fade, no movement. */
-  .print {
-    animation: print 1ms both;
-    animation-delay: calc(var(--delay, 0ms) + var(--i, 0) * 90ms);
-  }
 }
 
 @keyframes drift {
   to {
     transform: translate3d(4%, -3%, 0) scale(1.06);
-  }
-}
-
-@keyframes type {
-  from {
-    inline-size: 0;
-  }
-  to {
-    inline-size: calc(var(--chars, 13) * 1ch);
-  }
-}
-
-@keyframes print {
-  from {
-    visibility: hidden;
-  }
-  to {
-    visibility: visible;
   }
 }
