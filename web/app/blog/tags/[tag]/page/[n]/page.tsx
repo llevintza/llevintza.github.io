@@ -12,8 +12,7 @@ import {
 import { Pagination, PostList } from "@/lib/content/post-list";
 import { getAllPosts } from "@/lib/content/posts";
 import { groupPostsByTag, tagHref } from "@/lib/content/tags";
-
-const SITE_URL = "https://llevintza.github.io";
+import { buildMetadata } from "@/lib/site/metadata";
 
 type Props = PageProps<"/blog/tags/[tag]/page/[n]">;
 
@@ -41,13 +40,11 @@ async function findPage(params: Props["params"]) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { tag, page } = await findPage(params);
-  return {
+  return buildMetadata({
     title: `Posts tagged #${tag}, page ${page.page}`,
     description: `Blog posts by Leo Levintza tagged #${tag}, page ${page.page} of ${page.totalPages}.`,
-    alternates: {
-      canonical: new URL(pageHref(tagHref(tag), page.page), SITE_URL).href,
-    },
-  };
+    path: pageHref(tagHref(tag), page.page),
+  });
 }
 
 export default async function TagPageN({ params }: Props) {

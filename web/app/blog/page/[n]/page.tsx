@@ -13,8 +13,7 @@ import {
 import { Pagination, PostList } from "@/lib/content/post-list";
 import { getAllPosts, type Post } from "@/lib/content/posts";
 import { BLOG_BASE } from "@/lib/content/tags";
-
-const SITE_URL = "https://llevintza.github.io";
+import { buildMetadata } from "@/lib/site/metadata";
 
 type Props = PageProps<"/blog/page/[n]">;
 
@@ -38,13 +37,11 @@ async function findPage(params: Props["params"]): Promise<Page<Post>> {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = await findPage(params);
-  return {
+  return buildMetadata({
     title: `Blog, page ${page.page}`,
     description: `Posts by Leo Levintza, page ${page.page} of ${page.totalPages}.`,
-    alternates: {
-      canonical: new URL(pageHref(BLOG_BASE, page.page), SITE_URL).href,
-    },
-  };
+    path: pageHref(BLOG_BASE, page.page),
+  });
 }
 
 export default async function BlogPageN({ params }: Props) {

@@ -1,18 +1,16 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { getAllTags } from "@/lib/content/posts";
 import { BLOG_BASE, tagHref } from "@/lib/content/tags";
+import { buildMetadata } from "@/lib/site/metadata";
 
 import "@/lib/content/post-list.css";
 
-const SITE_URL = "https://llevintza.github.io";
-
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "Tags",
   description: "Every tag used on Leo Levintza's blog.",
-  alternates: { canonical: new URL(`${BLOG_BASE}tags/`, SITE_URL).href },
-};
+  path: `${BLOG_BASE}tags/`,
+});
 
 export default function TagsPage() {
   const tags = getAllTags();

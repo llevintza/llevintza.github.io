@@ -1,18 +1,16 @@
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { paginate } from "@/lib/content/pagination";
 import { Pagination, PostList } from "@/lib/content/post-list";
 import { getAllPosts } from "@/lib/content/posts";
+import { buildMetadata } from "@/lib/site/metadata";
 import { BLOG_BASE } from "@/lib/content/tags";
 
-const SITE_URL = "https://llevintza.github.io";
-
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "Blog",
   description: "Posts by Leo Levintza, newest first.",
-  alternates: { canonical: new URL(BLOG_BASE, SITE_URL).href },
-};
+  path: BLOG_BASE,
+});
 
 export default function BlogPage() {
   const page = paginate(getAllPosts(), 1, BLOG_BASE);
