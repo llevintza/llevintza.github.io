@@ -10,8 +10,7 @@ import {
   getAllCaseStudies,
   parseCaseStudy,
   findRepoLinks,
-  readPngSize,
-  readWebpSize,
+  readImageSize,
   SCREENSHOT_FORMATS,
   type CaseStudy,
   type PrivateCaseStudy,
@@ -355,16 +354,6 @@ describe("findRepoLinks", () => {
   });
 });
 
-describe("readWebpSize", () => {
-  it("reads lossy WebP and rejects other data", () => {
-    expect(readWebpSize(webpHeader(640, 360))).toEqual({
-      width: 640,
-      height: 360,
-    });
-    expect(readWebpSize(pngHeader(10, 20))).toBeNull();
-  });
-});
-
 describe("CaseStudy type", () => {
   it("makes repo required on public and impossible on private studies", () => {
     const base = {
@@ -396,10 +385,20 @@ describe("CaseStudy type", () => {
   });
 });
 
-describe("readPngSize", () => {
-  it("reads IHDR and rejects non-PNG data", () => {
-    expect(readPngSize(pngHeader(10, 20))).toEqual({ width: 10, height: 20 });
-    expect(readPngSize(Buffer.from("not a png at all, really"))).toBeNull();
+describe("readImageSize", () => {
+  it("reads PNG and WebP sizes and rejects other types or data", () => {
+    expect(readImageSize(pngHeader(10, 20), ["png"])).toEqual({
+      width: 10,
+      height: 20,
+    });
+    expect(readImageSize(webpHeader(640, 360), ["webp", "png"])).toEqual({
+      width: 640,
+      height: 360,
+    });
+    expect(readImageSize(webpHeader(640, 360), ["png"])).toBeNull();
+    expect(
+      readImageSize(Buffer.from("not an image at all, really"), ["png"]),
+    ).toBeNull();
   });
 });
 

@@ -96,3 +96,27 @@ git add content/diagrams/
 ```
 
 Old cache files aren't removed automatically. Delete the folder and rebuild to prune them. Mermaid's long decimals are rounded to 2 places when an SVG is written, so the public-content guardrail doesn't mistake coordinates for phone numbers.
+
+## Case study video
+
+A case study can embed one self-hosted walkthrough video (#111). `content/projects/allocator-memo-builder.mdx` shows it:
+
+```yaml
+video:
+  file: walkthrough.mp4 # public/projects/<slug>/
+  poster: walkthrough-poster.webp # WebP or PNG; gives the player its size
+  captions: walkthrough.en.vtt # optional WebVTT, English; needed when there's narration
+  title: Video walkthrough # visible heading and the player's accessible name
+  summary: What the video shows, in words.
+```
+
+The files live in `public/projects/<slug>/`. The build fails if one is missing, if a field is unknown, or, for a private project, if any of the text links its repo. `CaseStudyVideo` renders native controls with `preload="none"`, and no autoplay or loop.
+
+**Media policy.** Git history is permanent. Every re-encode adds its full size to the repo, and anything pushed to a PR branch stays in GitHub's object store even after an amend or force-push. So:
+
+- **Budget:** about 6 MB per video, one rendition only: H.264 (yuv420p) MP4 with `-movflags +faststart`, plus a WebP poster. Lower the frame rate before the bitrate if UI text must stay readable. Keep audio only if it carries meaning, such as narration, and caption it.
+- **Review before the first push.** The public-content guardrail checks text, not pixels or sound. Do all of this before the file is ever pushed:
+  - look at every frame (`ffmpeg -i in.mp4 -vf fps=1/2 frames/%03d.png`): keys, tokens, emails, usernames, home-dir paths, browser tabs, bookmarks, notifications, real fund or company data, and private repo URLs;
+  - check the narration against the captions, and that neither names a URL, repo path or private name;
+  - check the container metadata: `ffprobe -show_entries format_tags:stream_tags in.mp4`.
+- Report the review in the PR: frames reviewed, findings and what was cut, plus final size, duration and resolution.

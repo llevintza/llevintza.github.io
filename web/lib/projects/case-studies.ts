@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { imageSize } from "image-size";
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 
@@ -325,7 +326,10 @@ function resolveVideo(
   if (missing.length > 0) {
     return `missing ${missing.join(", ")} in public${urlDir}/`;
   }
-  const size = readImageSize(fs.readFileSync(path.join(diskDir, video.poster)));
+  const size = readImageSize(
+    fs.readFileSync(path.join(diskDir, video.poster)),
+    POSTER_EXTENSIONS,
+  );
   if (!size)
     return `public${urlDir}/${video.poster} is not a valid PNG or WebP`;
   return {
@@ -383,7 +387,9 @@ function resolveScreenshot(
 
   const largest = SCREENSHOT_WIDTHS[SCREENSHOT_WIDTHS.length - 1];
   const pngName = `${shot.file}-${largest}.png`;
-  const size = readPngSize(fs.readFileSync(path.join(diskDir, pngName)));
+  const size = readImageSize(fs.readFileSync(path.join(diskDir, pngName)), [
+    "png",
+  ]);
   if (!size) return `public${urlDir}/${pngName} is not a valid PNG`;
 
   const srcSet = (format: string) =>
@@ -399,60 +405,22 @@ function resolveScreenshot(
   };
 }
 
-const PNG_SIGNATURE = Buffer.from([
-  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-]);
-
-/** Width and height from a PNG's IHDR chunk, or null if it isn't a PNG. */
-export function readPngSize(
+/**
+ * Width and height of a PNG or WebP via `image-size` (also used by
+ * mdx-image), or null if the data isn't an image of an allowed type.
+ */
+export function readImageSize(
   data: Buffer,
+  types: readonly string[],
 ): { width: number; height: number } | null {
-  if (
-    data.length < 24 ||
-    !data.subarray(0, 8).equals(PNG_SIGNATURE) ||
-    data.toString("ascii", 12, 16) !== "IHDR"
-  ) {
+  try {
+    const { type, width, height } = imageSize(data);
+    return type && types.includes(type) && width && height
+      ? { width, height }
+      : null;
+  } catch {
     return null;
   }
-  return { width: data.readUInt32BE(16), height: data.readUInt32BE(20) };
-}
-
-/** Width and height of a WebP (lossy, lossless or extended), or null. */
-export function readWebpSize(
-  data: Buffer,
-): { width: number; height: number } | null {
-  if (
-    data.length < 30 ||
-    data.toString("ascii", 0, 4) !== "RIFF" ||
-    data.toString("ascii", 8, 12) !== "WEBP"
-  ) {
-    return null;
-  }
-  switch (data.toString("ascii", 12, 16)) {
-    case "VP8 ":
-      return {
-        width: data.readUInt16LE(26) & 0x3fff,
-        height: data.readUInt16LE(28) & 0x3fff,
-      };
-    case "VP8L": {
-      const bits = data.readUInt32LE(21);
-      return {
-        width: (bits & 0x3fff) + 1,
-        height: ((bits >> 14) & 0x3fff) + 1,
-      };
-    }
-    case "VP8X":
-      return {
-        width: data.readUIntLE(24, 3) + 1,
-        height: data.readUIntLE(27, 3) + 1,
-      };
-    default:
-      return null;
-  }
-}
-
-function readImageSize(data: Buffer) {
-  return readPngSize(data) ?? readWebpSize(data);
 }
 
 const cache = new Map<string, CaseStudy[]>();
