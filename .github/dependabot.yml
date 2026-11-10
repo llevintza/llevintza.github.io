@@ -16,6 +16,9 @@
 version: 2
 
 updates:
+  # Not covered on purpose: design/ (mockup screenshot tooling) and the root
+  # Gemfile (local Jekyll preview). Neither ships to the site.
+
   # Root tooling: commitlint and husky (pnpm-lock.yaml).
   - package-ecosystem: npm
     directory: /
