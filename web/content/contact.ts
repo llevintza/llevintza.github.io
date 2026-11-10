@@ -1,6 +1,7 @@
 // Contact links: the single typed source for every place the site shows them
 // (the About page "Get in touch" section and the site footer).
-// Mirrors `contacts:` in the Jekyll `_config.yml`.
+// Ported from `contacts:` in the Jekyll `_config.yml` (removed in #110; see
+// the `jekyll-legacy` branch). This file is now the only source.
 // Public-site rule: no phone number and no email address, ever.
 
 /**

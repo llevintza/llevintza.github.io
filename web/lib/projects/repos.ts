@@ -27,7 +27,10 @@ import path from "node:path";
 
 export const OWNER = "llevintza";
 
-/** Mirrors `repo_exclude` in the Jekyll `_config.yml`. */
+/**
+ * Ported from `repo_exclude` in the Jekyll `_config.yml` (removed in #110;
+ * see the `jekyll-legacy` branch). This list is now the only source.
+ */
 export const REPO_EXCLUDE: readonly string[] = [
   "llevintza", // profile README repo
   "llevintza.github.io", // this site

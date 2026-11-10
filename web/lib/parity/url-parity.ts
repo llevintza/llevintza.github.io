@@ -1,36 +1,19 @@
-// URL parity between the live Jekyll site and the Next.js static export (#37).
+// URL parity between the pre-cutover Jekyll site and the Next.js static
+// export (#37). The Jekyll URLs are a frozen snapshot in
+// scripts/url-parity.baseline.json.
 // Pure helpers: scripts/check-url-parity.mjs does the I/O and calls these.
 // Node runs this file directly (type stripping), so it must stay free of
 // imports and of TypeScript syntax that needs transforming (enums, namespaces).
 
-export const SITE_ORIGIN = "https://llevintza.github.io";
-export const GITHUB_OWNER = "llevintza";
-
 // Project sites served from other repos under the same host (ADR 0001). A
-// project site claims `/<repo>/` ahead of the user site, so these prefixes are
-// never part of this site's URLs. `--refresh` adds the repos the GitHub API
-// reports with `has_pages`; this list is the fallback when the API is out of reach.
+// project site claims `/<repo>/` ahead of the user site, so the export must
+// not put routes under these prefixes.
 export const FALLBACK_PROJECT_PREFIXES: readonly string[] = [
   "/email-icons/",
   "/energlens/",
   "/credit-desk-analytics/",
   "/instrument-price-dashboard/",
 ];
-
-// URLs the Jekyll site serves that the sitemap doesn't list.
-export const SEED_PATHS: readonly string[] = [
-  "/",
-  "/blog/",
-  "/projects/",
-  "/about/",
-  "/feed.xml",
-  "/sitemap.xml",
-  "/robots.txt",
-  "/404.html",
-];
-
-// GitHub Pages serves /404.html with status 404, so it can't be probed by status.
-const ALWAYS_KEEP = new Set(["/404.html"]);
 
 export type FeedIdentity = { id: string; selfLink: string };
 
@@ -50,17 +33,6 @@ export type ParityResult = {
   file: string | null;
 };
 
-type FetchLike = (
-  url: string,
-  init?: { headers?: Record<string, string>; redirect?: "follow" | "manual" },
-) => Promise<{
-  ok: boolean;
-  status: number;
-  headers?: { get(name: string): string | null };
-  text(): Promise<string>;
-  json(): Promise<unknown>;
-}>;
-
 const decodeXml = (s: string) =>
   s
     .replace(/&lt;/g, "<")
@@ -68,12 +40,6 @@ const decodeXml = (s: string) =>
     .replace(/&quot;/g, '"')
     .replace(/&apos;/g, "'")
     .replace(/&amp;/g, "&");
-
-export function extractSitemapLocs(xml: string): string[] {
-  return [...xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/g)].map((m) =>
-    decodeXml(m[1]),
-  );
-}
 
 function attr(tag: string, name: string): string | null {
   const m = tag.match(new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`));
@@ -103,41 +69,6 @@ export function parseFeed(xml: string): {
     identity: id && selfLink ? { id: decodeXml(id), selfLink: selfLink } : null,
     entryLinks,
   };
-}
-
-// An absolute or root-relative URL → its path on this site, or null when it
-// points at another host.
-export function toSitePath(url: string, origin = SITE_ORIGIN): string | null {
-  let parsed: URL;
-  try {
-    parsed = new URL(url, origin);
-  } catch {
-    return null;
-  }
-  if (parsed.origin !== new URL(origin).origin) return null;
-  return decodeURI(parsed.pathname) || "/";
-}
-
-export function isProjectSitePath(
-  path: string,
-  prefixes: readonly string[],
-): boolean {
-  return prefixes.some((p) => path === p.slice(0, -1) || path.startsWith(p));
-}
-
-// Repo names with GitHub Pages on → `/<name>/` prefixes. The user-site repo
-// (`<owner>.github.io`) is this site, not a prefix.
-export function pagesPrefixes(
-  repos: readonly { name: string; has_pages?: boolean }[],
-  owner = GITHUB_OWNER,
-): string[] {
-  return repos
-    .filter((r) => r.has_pages && r.name.toLowerCase() !== `${owner}.github.io`)
-    .map((r) => `/${r.name}/`);
-}
-
-export function mergePrefixes(...lists: readonly (readonly string[])[]) {
-  return [...new Set(lists.flat())].sort();
 }
 
 // The file in `out/` that must exist for GitHub Pages to serve `path`:
@@ -224,16 +155,6 @@ export function parseBaseline(raw: string): Baseline {
   };
 }
 
-// The `rel="next"` URL from a GitHub API `Link` header, if any.
-export function nextPageUrl(link: string | null): string | null {
-  if (!link) return null;
-  for (const part of link.split(",")) {
-    const m = part.match(/<([^>]+)>\s*;\s*rel="next"/);
-    if (m) return m[1];
-  }
-  return null;
-}
-
 // Project-site prefixes that have a file or directory in the export. Those
 // routes would be shadowed by the project site. `exists` takes a path
 // relative to `out/` (no leading slash).
@@ -242,107 +163,6 @@ export function exportedProjectPrefixes(
   exists: (relPath: string) => boolean,
 ): string[] {
   return prefixes.filter((p) => exists(p.replace(/^\/+|\/+$/g, "")));
-}
-
-// Paths whose first segment is a project-site repo name: a Pages repo with
-// that name would shadow the route (ADR 0001).
-export function shadowedPaths(
-  paths: readonly string[],
-  prefixes: readonly string[],
-): string[] {
-  return paths.filter((p) => isProjectSitePath(p, prefixes));
-}
-
-// Builds the baseline from the live site. `fetchFn` is injected for tests.
-/**
- * @deprecated Nothing calls this since the Jekyll site was removed (#110):
- * the baseline is a frozen pre-cutover snapshot and `check:url-parity
- * --refresh` refuses to run. Kept, with its tests, as the record of how
- * url-parity.baseline.json was built.
- */
-export async function buildBaseline(opts: {
-  fetchFn: FetchLike;
-  origin?: string;
-  owner?: string;
-  githubToken?: string;
-  now?: Date;
-  log?: (msg: string) => void;
-}): Promise<{ baseline: Baseline; prefixes: string[]; excluded: string[] }> {
-  const origin = opts.origin ?? SITE_ORIGIN;
-  const owner = opts.owner ?? GITHUB_OWNER;
-  const log = opts.log ?? (() => {});
-  const { fetchFn } = opts;
-
-  const getText = async (url: string) => {
-    const res = await fetchFn(url, { redirect: "follow" });
-    if (!res.ok) throw new Error(`GET ${url} → ${res.status}`);
-    return res.text();
-  };
-
-  let apiPrefixes: string[] = [];
-  try {
-    const headers: Record<string, string> = {
-      accept: "application/vnd.github+json",
-    };
-    if (opts.githubToken) headers.authorization = `Bearer ${opts.githubToken}`;
-    // With a token, /user/repos also lists the owner's private repos whose
-    // Pages sites are public.
-    const url = opts.githubToken
-      ? "https://api.github.com/user/repos?per_page=100&affiliation=owner"
-      : `https://api.github.com/users/${owner}/repos?per_page=100&type=owner`;
-    const repos: { name: string; has_pages?: boolean }[] = [];
-    // Follow `Link: rel="next"` so an owner with more than 100 repos is covered.
-    for (let next: string | null = url; next;) {
-      const res = await fetchFn(next, { headers });
-      if (!res.ok) throw new Error(`GitHub API → ${res.status}`);
-      repos.push(...((await res.json()) as typeof repos));
-      next = nextPageUrl(res.headers?.get("link") ?? null);
-    }
-    apiPrefixes = pagesPrefixes(repos, owner);
-  } catch (err) {
-    log(
-      `warning: GitHub API unavailable (${(err as Error).message}); using the fallback project-site list only`,
-    );
-  }
-  const prefixes = mergePrefixes(FALLBACK_PROJECT_PREFIXES, apiPrefixes);
-
-  const candidates = new Set<string>();
-  const sitemap = await getText(`${origin}/sitemap.xml`);
-  for (const loc of extractSitemapLocs(sitemap)) {
-    const p = toSitePath(loc, origin);
-    if (p) candidates.add(p);
-  }
-  const feedXml = await getText(`${origin}/feed.xml`);
-  const feed = parseFeed(feedXml);
-  for (const link of feed.entryLinks) {
-    const p = toSitePath(link, origin);
-    if (p) candidates.add(p);
-  }
-  for (const seed of SEED_PATHS) {
-    if (ALWAYS_KEEP.has(seed)) {
-      candidates.add(seed);
-      continue;
-    }
-    const res = await fetchFn(`${origin}${seed}`, { redirect: "follow" });
-    if (res.ok) candidates.add(seed);
-    else log(`skip ${seed}: live site answers ${res.status}`);
-  }
-
-  const excluded = shadowedPaths([...candidates], prefixes);
-  const paths = [...candidates]
-    .filter((p) => !excluded.includes(p))
-    .sort((a, b) => a.localeCompare(b));
-
-  return {
-    baseline: {
-      generatedAt: (opts.now ?? new Date()).toISOString(),
-      source: origin,
-      paths,
-      feed: feed.identity,
-    },
-    prefixes,
-    excluded,
-  };
 }
 
 export function formatTable(results: readonly ParityResult[]): string {

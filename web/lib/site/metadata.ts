@@ -11,7 +11,8 @@ export const SITE_NAME = "Leo Levintza";
 export const SITE_AUTHOR = "Leo Levintza";
 
 /**
- * The Jekyll `_config.yml` description. The Atom feed keeps it as its
+ * Ported from the `description` in the Jekyll `_config.yml` (removed in #110;
+ * see the `jekyll-legacy` branch). The Atom feed keeps it as its
  * `<subtitle>`, so the feed reads the same as the one jekyll-feed published.
  */
 export const SITE_TAGLINE =

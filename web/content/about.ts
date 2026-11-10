@@ -1,5 +1,6 @@
 // About-page content, mirrored from the public profile README
-// (github.com/llevintza/llevintza) and the Jekyll `about.md`.
+// (github.com/llevintza/llevintza). First ported from the Jekyll `about.md`
+// (removed in #110; see the `jekyll-legacy` branch).
 // Public sources only. `now` and `selectedWork` are also meant for the
 // home-page highlights (#13), so keep them free of page-specific markup.
 

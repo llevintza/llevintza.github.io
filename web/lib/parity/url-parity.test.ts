@@ -1,30 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   alternateOutFile,
-  buildBaseline,
   checkFeedIdentity,
   checkPath,
   exportedProjectPrefixes,
-  extractSitemapLocs,
-  isProjectSitePath,
-  nextPageUrl,
-  pagesPrefixes,
   parseBaseline,
   parseFeed,
   pathToOutFile,
-  toSitePath,
 } from "./url-parity";
 
 const ORIGIN = "https://llevintza.github.io";
-
-const SITEMAP = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url><loc>${ORIGIN}/about/</loc></url>
-<url><loc>${ORIGIN}/blog/</loc></url>
-<url><loc>${ORIGIN}/</loc></url>
-<url><loc>${ORIGIN}/energlens/</loc></url>
-<url><loc>https://example.com/elsewhere/</loc></url>
-</urlset>`;
 
 const FEED = `<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom">
 <link href="${ORIGIN}/feed.xml" rel="self" type="application/atom+xml" />
@@ -92,38 +77,7 @@ describe("checkPath", () => {
   });
 });
 
-describe("site paths and project-site prefixes", () => {
-  it("keeps only this host", () => {
-    expect(toSitePath(`${ORIGIN}/about/`)).toBe("/about/");
-    expect(toSitePath("/blog/")).toBe("/blog/");
-    expect(toSitePath("https://example.com/x/")).toBeNull();
-    expect(toSitePath("http://[bad")).toBeNull();
-  });
-
-  it("matches a prefix with and without its trailing slash", () => {
-    const prefixes = ["/energlens/"];
-    expect(isProjectSitePath("/energlens/", prefixes)).toBe(true);
-    expect(isProjectSitePath("/energlens", prefixes)).toBe(true);
-    expect(isProjectSitePath("/energlens/x.png", prefixes)).toBe(true);
-    expect(isProjectSitePath("/energlensx/", prefixes)).toBe(false);
-  });
-
-  it("turns has_pages repos into prefixes, skipping the user site", () => {
-    expect(
-      pagesPrefixes([
-        { name: "llevintza.github.io", has_pages: true },
-        { name: "demo", has_pages: true },
-        { name: "lib", has_pages: false },
-      ]),
-    ).toEqual(["/demo/"]);
-  });
-});
-
 describe("feed parsing", () => {
-  it("reads sitemap locs", () => {
-    expect(extractSitemapLocs(SITEMAP)).toContain(`${ORIGIN}/about/`);
-  });
-
   it("reads the feed identity and entry permalinks", () => {
     const feed = parseFeed(FEED);
     expect(feed.identity).toEqual({
@@ -167,87 +121,6 @@ describe("parseBaseline", () => {
   });
 });
 
-describe("buildBaseline", () => {
-  const respond = (status: number, body: unknown = "") => ({
-    ok: status >= 200 && status < 300,
-    status,
-    text: async () => String(body),
-    json: async () => body,
-  });
-
-  function fakeFetch(
-    api: number | unknown[] = [{ name: "demo", has_pages: true }],
-  ) {
-    return vi.fn(async (url: string) => {
-      if (url.startsWith("https://api.github.com/"))
-        return typeof api === "number" ? respond(api) : respond(200, api);
-      const path = url.slice(ORIGIN.length);
-      if (path === "/sitemap.xml") return respond(200, SITEMAP);
-      if (path === "/feed.xml") return respond(200, FEED);
-      if (path === "/robots.txt") return respond(404);
-      return respond(200, "<html></html>");
-    });
-  }
-
-  it("collects sitemap, feed and seed paths, minus project sites", async () => {
-    const fetchFn = fakeFetch([
-      { name: "demo", has_pages: true },
-      { name: "about", has_pages: true },
-    ]);
-    const { baseline, prefixes, excluded } = await buildBaseline({
-      fetchFn,
-      now: new Date("2026-11-10T00:00:00Z"),
-    });
-    expect(baseline.generatedAt).toBe("2026-11-10T00:00:00.000Z");
-    expect(prefixes).toContain("/demo/");
-    expect(prefixes).toContain("/email-icons/");
-    // A Pages repo named after a route shadows it.
-    expect(excluded).toEqual(
-      expect.arrayContaining(["/energlens/", "/about/"]),
-    );
-    expect(baseline.paths).toEqual(
-      expect.arrayContaining([
-        "/",
-        "/blog/",
-        "/feed.xml",
-        "/sitemap.xml",
-        "/404.html",
-        "/blog/2026/01/02/hello-world/",
-      ]),
-    );
-    expect(baseline.paths).not.toContain("/robots.txt");
-    expect(baseline.paths).not.toContain("/energlens/");
-    expect(baseline.paths).not.toContain("/about/");
-    expect(baseline.feed?.id).toBe(`${ORIGIN}/feed.xml`);
-  });
-
-  it("falls back to the committed prefix list when the API fails", async () => {
-    const log = vi.fn();
-    const { prefixes, baseline } = await buildBaseline({
-      fetchFn: fakeFetch(403),
-      log,
-    });
-    expect(prefixes).toEqual([
-      "/credit-desk-analytics/",
-      "/email-icons/",
-      "/energlens/",
-      "/instrument-price-dashboard/",
-    ]);
-    expect(baseline.paths).toContain("/blog/");
-    expect(log).toHaveBeenCalledWith(expect.stringContaining("fallback"));
-  });
-
-  it("sends the token to the authenticated repos endpoint", async () => {
-    const fetchFn = fakeFetch();
-    await buildBaseline({ fetchFn, githubToken: "test-token" });
-    const apiCall = fetchFn.mock.calls.find(([u]) =>
-      String(u).startsWith("https://api.github.com/"),
-    ) as unknown as [string, { headers: Record<string, string> }];
-    expect(apiCall[0]).toContain("/user/repos");
-    expect(apiCall[1].headers.authorization).toBe("Bearer test-token");
-  });
-});
-
 describe("exportedProjectPrefixes", () => {
   it("reports an out/<prefix>/ tree, checked relative to out/", () => {
     const seen: string[] = [];
@@ -259,41 +132,5 @@ describe("exportedProjectPrefixes", () => {
       exportedProjectPrefixes(["/email-icons/", "/energlens/"], exists),
     ).toEqual(["/email-icons/"]);
     expect(seen).toEqual(["email-icons", "energlens"]);
-  });
-});
-
-describe("GitHub API pagination", () => {
-  it("reads the next page from a Link header", () => {
-    expect(
-      nextPageUrl(
-        '<https://api.github.com/user/repos?page=2>; rel="next", <https://api.github.com/user/repos?page=3>; rel="last"',
-      ),
-    ).toBe("https://api.github.com/user/repos?page=2");
-    expect(nextPageUrl('<https://x/?page=1>; rel="prev"')).toBeNull();
-    expect(nextPageUrl(null)).toBeNull();
-  });
-
-  it("collects has_pages repos across pages", async () => {
-    const page2 = "https://api.github.com/users/llevintza/repos?page=2";
-    const fetchFn = vi.fn(async (url: string) => {
-      const ok = (body: unknown, link: string | null = null) => ({
-        ok: true,
-        status: 200,
-        headers: { get: (n: string) => (n === "link" ? link : null) },
-        text: async () => String(body),
-        json: async () => body,
-      });
-      if (url === page2) return ok([{ name: "later", has_pages: true }]);
-      if (url.startsWith("https://api.github.com/"))
-        return ok(
-          [{ name: "first", has_pages: true }],
-          `<${page2}>; rel="next"`,
-        );
-      if (url.endsWith("/sitemap.xml")) return ok(SITEMAP);
-      if (url.endsWith("/feed.xml")) return ok(FEED);
-      return ok("<html></html>");
-    });
-    const { prefixes } = await buildBaseline({ fetchFn });
-    expect(prefixes).toEqual(expect.arrayContaining(["/first/", "/later/"]));
   });
 });
