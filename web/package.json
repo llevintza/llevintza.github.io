@@ -14,6 +14,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check:live-sites": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-live-sites.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
