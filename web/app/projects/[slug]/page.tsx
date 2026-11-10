@@ -97,8 +97,7 @@ export default async function CaseStudyPage({ params }: Props) {
 
         {study.access === "private" ? (
           <p>
-            The source is private: email me your GitHub username for read-only
-            access.
+            The source is private. Read-only access is available on request.
           </p>
         ) : null}
       </article>
