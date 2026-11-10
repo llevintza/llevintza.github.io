@@ -1,6 +1,7 @@
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { type AddressInfo } from "node:net";
 import http from "node:http";
+import https from "node:https";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -10,7 +11,9 @@ import {
   REPO_EXCLUDE,
   REPOS_API_URL,
   assertPublicOnly,
+  escapeAnnotation,
   getPublicRepos,
+  MAX_RESPONSE_BYTES,
   nodeFetch,
   readCache,
   selectPublicRepos,
@@ -610,17 +613,84 @@ describe("nodeFetch", () => {
   });
 
   it("is what getPublicRepos uses by default, not the global fetch", async () => {
+    await writeFile(cachePath, serializeCache([], daysAgo(1)));
     const globalFetch = vi.spyOn(globalThis, "fetch");
+    const httpsGet = vi.spyOn(https, "get").mockImplementation(() => {
+      throw new Error("stubbed node:https");
+    });
+    const logger = silentLogger();
     try {
-      await getPublicRepos({
-        cachePath,
-        logger: silentLogger(),
-        offline: true,
-        now,
-      }).catch(() => undefined);
+      await getPublicRepos({ cachePath, logger, offline: false, now });
+      expect(httpsGet).toHaveBeenCalledOnce();
+      expect(String(httpsGet.mock.calls[0][0])).toBe(REPOS_API_URL);
       expect(globalFetch).not.toHaveBeenCalled();
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("stubbed node:https"),
+      );
     } finally {
+      httpsGet.mockRestore();
       globalFetch.mockRestore();
     }
+  });
+
+  it("rejects a response body over the size cap", async () => {
+    const big = http.createServer((_req, res) => {
+      res.writeHead(200);
+      res.end(Buffer.alloc(MAX_RESPONSE_BYTES + 1));
+    });
+    await new Promise<void>((resolve) => big.listen(0, "127.0.0.1", resolve));
+    const port = (big.address() as AddressInfo).port;
+    try {
+      await expect(
+        nodeFetch(`http://127.0.0.1:${port}/`, { headers: {} }),
+      ).rejects.toThrow(/larger than/);
+    } finally {
+      big.closeAllConnections();
+      await new Promise((resolve) => big.close(resolve));
+    }
+  });
+
+  it("returns a redirect as is instead of following it", async () => {
+    const redirect = http.createServer((_req, res) => {
+      res.writeHead(301, { location: "http://127.0.0.1:1/elsewhere" });
+      res.end();
+    });
+    await new Promise<void>((resolve) =>
+      redirect.listen(0, "127.0.0.1", resolve),
+    );
+    const port = (redirect.address() as AddressInfo).port;
+    try {
+      const res = await nodeFetch(`http://127.0.0.1:${port}/`, { headers: {} });
+      expect(res.status).toBe(301);
+    } finally {
+      redirect.closeAllConnections();
+      await new Promise((resolve) => redirect.close(resolve));
+    }
+  });
+});
+
+describe("escapeAnnotation", () => {
+  it("escapes %, CR and LF so an error can't inject a workflow command", () => {
+    expect(escapeAnnotation("50% off\r\n::error::boom")).toBe(
+      "50%25 off%0D%0A::error::boom",
+    );
+  });
+
+  it("is applied to annotated warnings", async () => {
+    await writeFile(cachePath, serializeCache([], daysAgo(1)));
+    const logger = silentLogger();
+    await getPublicRepos({
+      fetch: async () => {
+        throw new Error("bad\n::error::injected");
+      },
+      cachePath,
+      logger,
+      offline: false,
+      now,
+      annotate: true,
+    });
+    const line = logger.warn.mock.calls[0][0] as string;
+    expect(line).not.toContain("\n");
+    expect(line).toContain("bad%0A::error::injected");
   });
 });

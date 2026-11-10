@@ -203,10 +203,16 @@ export function assertPublicOnly(
 
 class ApiError extends Error {}
 
+/** A response body over this size is dropped (the list is ~100 KB/page). */
+export const MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
+
 /**
  * A GET over `node:http(s)`, returning a standard `Response`. Unlike the
  * global `fetch`, which Next.js patches, it never reads or writes
  * `.next/cache/fetch-cache`, so every build sees the live API.
+ *
+ * It does not follow redirects: a 3xx is returned as is, which the caller
+ * treats as an error, so the token is never sent to another host.
  */
 export const nodeFetch: FetchLike = (url, { headers, signal }) =>
   new Promise<Response>((resolve, reject) => {
@@ -214,7 +220,17 @@ export const nodeFetch: FetchLike = (url, { headers, signal }) =>
     const client = target.protocol === "http:" ? http : https;
     const req = client.get(target, { headers, signal }, (res) => {
       const chunks: Buffer[] = [];
-      res.on("data", (chunk: Buffer) => chunks.push(chunk));
+      let size = 0;
+      res.on("data", (chunk: Buffer) => {
+        size += chunk.length;
+        if (size > MAX_RESPONSE_BYTES) {
+          req.destroy(
+            new Error(`response larger than ${MAX_RESPONSE_BYTES} bytes`),
+          );
+          return;
+        }
+        chunks.push(chunk);
+      });
       res.on("error", reject);
       res.on("end", () => {
         try {
@@ -356,7 +372,8 @@ export function serializeCache(
 
 /**
  * Writes the cache when the list changed, or when `fetchedAt` is over a day
- * old, so committed builds keep the fallback inside its 14-day window.
+ * old, so a committed refresh keeps the fallback inside its 14-day window
+ * (past it, a fallback build warns that the cache is stale).
  */
 async function writeCacheIfChanged(
   cachePath: string,
@@ -380,6 +397,17 @@ async function writeCacheIfChanged(
 }
 
 /**
+ * Escapes text for a GitHub Actions workflow command, so a newline or `%` in
+ * an upstream error message can't end the annotation or start another one.
+ */
+export function escapeAnnotation(text: string): string {
+  return text
+    .replaceAll("%", "%25")
+    .replaceAll("\r", "%0D")
+    .replaceAll("\n", "%0A");
+}
+
+/**
  * The rendered list of public repos. Falls back to the cache, at any age, on
  * an API problem. Throws only when there is no usable cache either, so the
  * build fails instead of publishing an empty list.
@@ -400,7 +428,7 @@ export async function getPublicRepos(
   const warn = (message: string) =>
     logger.warn(
       annotate
-        ? `::warning title=Repo list::${message}`
+        ? `::warning title=Repo list::${escapeAnnotation(message)}`
         : `[repos] warning: ${message}`,
     );
 
