@@ -1,14 +1,13 @@
-// Screenshot every page of every design direction.
+// Screenshot every page of the chosen design direction (B, Engineer's Console; see README).
 //   pnpm install && pnpm exec playwright install chromium   (first run only)
-//   pnpm screenshots                 -> design/screenshots/<direction>/<page>-<width>-<theme>.png
-//   pnpm screenshots -- --only=a     -> one direction
+//   pnpm screenshots                 -> design/screenshots/b-engineers-console/<page>-<width>-<theme>.png
 //   pnpm a11y                        -> axe-core checks only (no PNGs)
 // Pages load over file://, so no server is needed. PNGs are palette-quantised with sharp.
 
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import sharp from 'sharp';
-import { mkdir, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -17,7 +16,6 @@ const mockups = join(here, 'mockups');
 const outRoot = join(here, 'screenshots');
 
 const args = process.argv.slice(2);
-const only = args.find((a) => a.startsWith('--only='))?.slice(7);
 const a11yOnly = args.includes('--a11y-only');
 
 const PAGES = ['home', 'post', 'projects'];
@@ -27,11 +25,8 @@ const VIEWPORTS = [
 ];
 const THEMES = ['light', 'dark'];
 
-const directions = (await readdir(mockups, { withFileTypes: true }))
-  .filter((d) => d.isDirectory() && /^[a-z]-/.test(d.name))
-  .map((d) => d.name)
-  .filter((name) => !only || name.startsWith(`${only}-`))
-  .sort();
+// Directions A and C were dropped after the #41 decision; they remain in git history at b1b9665.
+const directions = ['b-engineers-console'];
 
 // Let animations settle: scroll through the page so scroll-reveal fires, then
 // wait for every finite animation and transition to finish.
