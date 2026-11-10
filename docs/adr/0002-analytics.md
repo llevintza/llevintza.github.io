@@ -190,7 +190,7 @@ transfer size and the uncompressed size.
 | Cost now (2026-11-09) | $0 | $0 | $9/mo (no free tier) | $0 + server | **$0** (Hobby, 100K events) | $0 + server + DB |
 | No cookies / no banner | Yes | Yes | Yes | Yes | Yes | Yes |
 | Data location | N/A | Cloudflare global (US co.) | EU (DE, Hetzner) | Self-chosen | **EU region selectable** | Self-chosen |
-| Script (gzip / raw) | 0 | 10.3 / 31.9 KB | **1.3 / 2.8 KB** | 1.3 / 2.8 KB | 4.1 / 9.2 KB | 4.1 / 9.2 KB |
+| Script (gzip / raw) | 0 | 10.3 / 31.9 KB | **1.3 / 2.8 KB** measured (`js/script.js`); vendor states 2.5 KB gzip | same as hosted | 4.1 / 9.2 KB | 4.1 / 9.2 KB |
 | Lighthouse >= 95 risk | None | Low | Very low | Very low | Very low | Very low |
 | Static GitHub Pages, no proxy | N/A | Yes (manual snippet) | Yes | Needs server | Yes | Needs server |
 | Needs custom domain / CF proxy | No | No (proxy only for auto-inject) | No | Server domain | No | Server domain |
@@ -236,11 +236,14 @@ Text only. No code changes are made in this ADR.
    shows a website ID. It is a public identifier that ends up in page source,
    not a secret.
 2. Store the ID as a GitHub Actions **variable** (not a secret, and not
-   committed), e.g. `NEXT_PUBLIC_UMAMI_WEBSITE_ID`. Pass it to the build step of
-   the Pages workflow.
-3. In `web/app/layout.tsx`, render the script only when that variable is set
-   and `NODE_ENV === 'production'`, so local dev and preview builds send
-   nothing. Use `next/script` with `strategy="afterInteractive"`, or a plain
+   committed), e.g. `NEXT_PUBLIC_UMAMI_WEBSITE_ID`. Pass it **only** to the
+   build step of the Pages deploy job, not to CI or preview builds.
+3. In `web/app/layout.tsx`, render the script only when
+   `NEXT_PUBLIC_UMAMI_WEBSITE_ID` is set. That is the main guard: CI and
+   preview builds don't have the variable, so they render no script. Also keep
+   a `NODE_ENV === 'production'` check, which only silences `next dev`, because
+   `next build` always runs with `NODE_ENV=production`. `data-domains` (below)
+   is the backstop. Use `next/script` with `strategy="afterInteractive"`, or a plain
    `<script defer>`, pointing at `https://cloud.umami.is/script.js` with:
    - `data-website-id` set from the variable,
    - `data-domains="llevintza.github.io"` so forks and previews don't report,
