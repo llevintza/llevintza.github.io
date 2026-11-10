@@ -6,3 +6,12 @@ Gemfile.lock
 vendor/
 .bundle/
 .DS_Store
+
+# Next.js app (web/) and Node tooling
+node_modules/
+web/.next/
+web/out/
+web/next-env.d.ts
+web/*.tsbuildinfo
+test-results/
+playwright-report/
