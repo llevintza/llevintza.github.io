@@ -14,7 +14,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check:contrast": "node scripts/check-contrast.mjs"
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "lhci": "pnpm dlx @lhci/cli@0.16.0"
   },
   "dependencies": {
     "geist": "^1.9.2",
