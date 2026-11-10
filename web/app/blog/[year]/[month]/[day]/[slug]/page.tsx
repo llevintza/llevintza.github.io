@@ -11,6 +11,8 @@ import {
 
 import "../../../../shiki.css";
 
+const SITE_URL = "https://llevintza.github.io";
+
 type Props = PageProps<"/blog/[year]/[month]/[day]/[slug]">;
 
 // Static export: only the permalinks listed below exist.
@@ -39,7 +41,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: post.title,
     description: post.summary,
-    alternates: { canonical: post.permalink },
+    // Absolute, because the root layout has no `metadataBase` yet (#29).
+    alternates: { canonical: new URL(post.permalink, SITE_URL).href },
   };
 }
 
