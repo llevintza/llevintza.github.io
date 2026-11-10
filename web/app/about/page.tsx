@@ -1,12 +1,13 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { about, formatLanguages, type RichLine } from "@/content/about";
+import { buildMetadata } from "@/lib/site/metadata";
 
-export const metadata: Metadata = {
-  title: `About · ${about.name}`,
+export const metadata = buildMetadata({
+  title: "About",
   description:
     "Leo Levintza, Principal Software Engineer: distributed systems, cloud-native backends, and agentic AI tooling for the SDLC.",
-};
+  path: "/about/",
+});
 
 function Line({ line }: { line: RichLine }) {
   return (

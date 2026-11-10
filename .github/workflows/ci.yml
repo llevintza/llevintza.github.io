@@ -110,3 +110,12 @@ jobs:
       - name: Build
         if: steps.changes.outputs.web == 'true'
         run: pnpm build
+
+      # Report-only until cutover. TODO(#38): drop continue-on-error so a
+      # missing URL blocks the merge. It runs in this job because it needs the
+      # export the Build step just wrote. A separate job would rebuild it or
+      # pass it along as an artifact. The table goes to the step summary.
+      - name: URL parity
+        if: steps.changes.outputs.web == 'true'
+        continue-on-error: true
+        run: pnpm check:url-parity
