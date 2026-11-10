@@ -52,7 +52,7 @@ export const metrics: readonly Metric[] = [
     source: 4,
   },
   { value: "100+", label: "project .NET estate", source: 4 },
-  { value: "100x", label: "slide preparation time", source: 5 },
+  { value: "100x", label: "cut slide preparation time", source: 5 },
 ];
 
 export type Highlights = {
