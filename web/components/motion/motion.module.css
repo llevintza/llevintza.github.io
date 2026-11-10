@@ -1,0 +1,94 @@
+/*
+ * CSS-only console motion (design spec #60, §6): one-shot typing, block
+ * cursor, staggered "print" of terminal rows.
+ *
+ * Every rule here describes the finished, static state first. Animations are
+ * added only inside `prefers-reduced-motion: no-preference`, and they run to
+ * completion without JavaScript, so text can never get stuck hidden.
+ * Only `opacity` and `transform` are animated.
+ */
+
+/* ---- Typed text ---------------------------------------------------- */
+
+.typed {
+  position: relative;
+  display: inline-block;
+  white-space: pre;
+  /* Reserve room for the cursor at the end of the line up front. */
+  padding-inline-end: 1ch;
+}
+
+.cursor {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+  inline-size: 0.6em;
+  block-size: 1.1em;
+  margin-block-start: -0.55em;
+  background-color: var(--accent);
+  /* Rest state: parked after the last character. */
+  transform: translateX(calc(var(--chars) * 1ch));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /*
+   * Each character (and row) runs one hold-then-show animation that lasts
+   * until its own appearance time, rather than a tiny animation after a long
+   * delay: browsers can stop ticking idle pages, and a delayed 1ms animation
+   * was seen to stall at opacity 0. An animation that is already running
+   * always reaches its end state.
+   */
+  .typed .char {
+    animation: type-in calc(var(--delay) + var(--i) * var(--step)) steps(1, end)
+      both;
+  }
+
+  .typed .cursor {
+    animation:
+      cursor-travel calc(var(--chars) * var(--step)) steps(var(--chars), end)
+        var(--delay) both,
+      blink 1s steps(1, end) calc(var(--delay) + var(--chars) * var(--step))
+        infinite;
+  }
+
+  .typed .cursorNoBlink {
+    animation: cursor-travel calc(var(--chars) * var(--step))
+      steps(var(--chars), end) var(--delay) both;
+  }
+
+  .lines > .line {
+    animation: type-in calc(var(--delay) + var(--i) * var(--step)) steps(1, end)
+      both;
+  }
+}
+
+@keyframes type-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cursor-travel {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(var(--chars) * 1ch));
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* High-contrast mode: keep the cursor, drop the blink. */
+@media (prefers-contrast: more) {
+  .typed .cursor {
+    animation: none;
+  }
+}
