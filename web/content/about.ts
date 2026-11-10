@@ -6,7 +6,8 @@
 /** A line of text with an optional inline internal link. */
 export type RichLine = {
   text: string;
-  link?: { label: string; href: string };
+  /** Internal links only; external URLs need rel/target handling. */
+  link?: { label: string; href: `/${string}` };
   /** Text after the link, e.g. a closing parenthesis. */
   after?: string;
 };

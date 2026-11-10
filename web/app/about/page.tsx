@@ -3,7 +3,7 @@ import Link from "next/link";
 import { about, formatLanguages, type RichLine } from "@/content/about";
 
 export const metadata: Metadata = {
-  title: "About · Leo Levintza",
+  title: `About · ${about.name}`,
   description:
     "Leo Levintza, Principal Software Engineer: distributed systems, cloud-native backends, and agentic AI tooling for the SDLC.",
 };
