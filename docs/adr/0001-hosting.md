@@ -293,8 +293,10 @@ The source switch must stay reversible, so #38 implements these steps:
 
 - **Good:** no URL breaks at cutover, no new production vendor, no new cost, and previews become available.
 - **Bad:** the public site depends on keeping GitHub Pro, because the source repo is private. A downgrade unpublishes
-  it (and `/instrument-price-dashboard/`); making the repo public again would remove that dependency. No real HTTP redirects or custom headers. Moved Jekyll URLs (#37) need HTML redirect stubs, and a CSP has
-  to be a `<meta>` tag, not a header. The site stays on the `github.io` name.
+  it (and `/instrument-price-dashboard/`). Making this repo public again would remove that dependency for the user
+  site, but `/instrument-price-dashboard/` would still need Pro while its repo is private. There are no real HTTP
+  redirects or custom headers. Moved Jekyll URLs (#37) need HTML redirect stubs, and a CSP has to be a `<meta>` tag,
+  not a header. The site stays on the `github.io` name.
 - **Neutral:** previews add one secret (a Cloudflare API token scoped to Pages) and one workflow. If the owner skips
   them, reviewers use downloadable artifacts instead.
 - **Follow-ups:** #38 switches the Pages source to "GitHub Actions" at cutover, keeping the
