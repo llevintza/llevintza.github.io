@@ -31,6 +31,12 @@ Frontmatter (title, date, tags, summary) is validated with zod when the site bui
 
 Links to the old site should keep working. Jekyll was configured with `permalink: /blog/:year/:month/:day/:title/`, and the new site builds the same shape from the post's date and file name:
 
+| Source file                          | Jekyll URL                               | Next.js URL                              |
+| ------------------------------------ | ---------------------------------------- | ---------------------------------------- |
+| `2026-11-09-rebuilding-this-site.md` | `/blog/2026/11/09/rebuilding-this-site/` | `/blog/2026/11/09/rebuilding-this-site/` |
+
+In code:
+
 ```ts
 interface PostParams {
   year: string;

@@ -119,6 +119,8 @@
 }
 
 .mdx-callout__bar {
+  /* A title bar spans the window, not globals.css's 72ch text measure. */
+  max-inline-size: none;
   display: flex;
   gap: 0.5ch;
   align-items: baseline;
@@ -177,6 +179,32 @@
 
 .mdx-callout--warn .mdx-callout__glyph {
   color: inherit;
+}
+
+/* ---- Tables: a focusable scroll region around a real table ---- */
+
+.mdx-table {
+  max-inline-size: 100%;
+  overflow-x: auto;
+}
+
+/* globals.css makes a bare table in <main> a scrolling block box as a
+   stopgap; inside the region the table lays out as a table again. */
+.mdx-table > table {
+  display: table;
+  inline-size: auto;
+  max-inline-size: none;
+  overflow: visible;
+}
+
+/* Paths and identifiers stay on one line; the region scrolls instead. */
+.mdx-table code {
+  white-space: nowrap;
+}
+
+.mdx-table:focus-visible {
+  outline: 2px solid var(--mdx-ring);
+  outline-offset: 2px;
 }
 
 /* ---- Mermaid diagrams: two pre-rendered SVGs, one per theme ---- */
