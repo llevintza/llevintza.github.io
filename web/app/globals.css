@@ -319,6 +319,14 @@
     max-inline-size: var(--container-measure);
   }
 
+  /*
+   * Code blocks line up with the text column: 72ch of the 16px body font,
+   * expressed in the 14px code font (same mono, so the ratio is exact).
+   */
+  :where(main) :where(pre) {
+    max-inline-size: calc(var(--container-measure) * 16 / 14);
+  }
+
   h1,
   h2,
   h3,
@@ -357,6 +365,11 @@
   }
 
   :where(main) :where(*) + :where(h1, h2, h3, h4) {
+    margin-block-start: 2.5rem;
+  }
+
+  /* Sections (e.g. the About page) are spaced like a heading break. */
+  :where(main) :where(*) + :where(section, aside) {
     margin-block-start: 2.5rem;
   }
 
