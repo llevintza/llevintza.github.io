@@ -24,7 +24,7 @@ import { SKIP, visit } from "unist-util-visit";
  */
 
 /** Bump to invalidate every cached SVG after changing how they're produced. */
-const RENDERER_VERSION = 1;
+const RENDERER_VERSION = 2;
 
 const FONT_FAMILY =
   '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
@@ -34,7 +34,9 @@ const shared = {
   securityLevel: "strict",
   fontFamily: FONT_FAMILY,
   // Plain SVG <text> labels instead of <foreignObject> HTML: they scale and
-  // print reliably and don't depend on page CSS.
+  // print reliably and don't pick up page CSS. Mermaid 11 reads this from the
+  // top level; the flowchart key is kept for older diagram types.
+  htmlLabels: false,
   flowchart: { htmlLabels: false, curve: "basis" },
   theme: "base",
 } as const;

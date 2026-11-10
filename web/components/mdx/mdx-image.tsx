@@ -16,11 +16,12 @@ export function localImageSize(
   src: string,
 ): { width: number; height: number } | undefined {
   if (!src.startsWith("/") || src.startsWith("//")) return undefined;
-  const file = path.join(PUBLIC_DIR, decodeURI(src.split(/[?#]/)[0]!));
-  if (!file.startsWith(PUBLIC_DIR + path.sep) || !fs.existsSync(file)) {
-    return undefined;
-  }
   try {
+    // decodeURI throws on a bad escape such as `/100%.png`.
+    const file = path.join(PUBLIC_DIR, decodeURI(src.split(/[?#]/)[0]!));
+    if (!file.startsWith(PUBLIC_DIR + path.sep) || !fs.existsSync(file)) {
+      return undefined;
+    }
     const { width, height } = imageSize(fs.readFileSync(file));
     return width && height ? { width, height } : undefined;
   } catch {

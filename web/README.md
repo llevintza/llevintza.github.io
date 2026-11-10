@@ -72,6 +72,8 @@ Diagrams are rendered to SVG **at build time**, once with the light theme and on
 
 When you add or change a diagram, or bump Mermaid or the theme:
 
+`mermaid` is pinned exactly in `devDependencies` (a test checks it matches the version mermaid-isomorphic renders with), because a Mermaid bump changes every hash. A Mermaid update, including a Dependabot PR, needs this local re-render too, or CI fails with `DiagramCacheMissError`.
+
 ```sh
 pnpm exec playwright install chromium   # once per machine
 pnpm build                              # renders the new SVGs

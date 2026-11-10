@@ -13,6 +13,7 @@ import {
   DiagramCacheMissError,
   diagramHash,
   loadDiagram,
+  mermaidVersion,
   rehypeMermaid,
 } from "./mermaid";
 
@@ -94,5 +95,14 @@ describe("compactSvg", () => {
     expect(
       compactSvg('<path d="M427.8046875,10L771.8203125,0.5"/><g id="a1.2">'),
     ).toBe('<path d="M427.8,10L771.82,0.5"/><g id="a1.2">');
+  });
+});
+
+describe("mermaidVersion", () => {
+  it("matches the mermaid pinned in package.json, so bumps are deliberate", async () => {
+    const pkg = (await import("../../package.json")).default as {
+      devDependencies: Record<string, string>;
+    };
+    expect(mermaidVersion()).toBe(pkg.devDependencies.mermaid);
   });
 });
