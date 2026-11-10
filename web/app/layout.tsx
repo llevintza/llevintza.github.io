@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
+import { SiteFooter } from "@/components/site/footer";
+import { SiteHeader } from "@/components/site/header";
 import { ThemeProvider } from "@/components/theme/theme-provider";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
+  FEED_ALTERNATE_TYPES,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_URL,
@@ -17,6 +19,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: SITE_NAME, template: TITLE_TEMPLATE },
   description: SITE_DESCRIPTION,
+  // Feed discovery on every page; buildMetadata repeats it for pages that set
+  // their own `alternates`.
+  alternates: { types: FEED_ALTERNATE_TYPES },
 };
 
 // Browser UI colour follows the system setting. The hex values must equal
@@ -36,11 +41,9 @@ export default function RootLayout({
     <html lang="en" className={fontVariables} suppressHydrationWarning>
       <body className="min-h-dvh bg-bg font-prose text-ink">
         <ThemeProvider>
-          {/* Temporary placement; the site header (#8) will own this. */}
-          <div className="flex justify-end px-4 pt-4">
-            <ThemeToggle />
-          </div>
+          <SiteHeader />
           {children}
+          <SiteFooter />
         </ThemeProvider>
       </body>
     </html>

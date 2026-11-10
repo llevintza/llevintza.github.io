@@ -77,20 +77,29 @@ test.describe("theme", () => {
 });
 
 test.describe("phone navigation", () => {
-  // TODO(#8): enable once the site header and mobile nav land.
-  // https://github.com/llevintza/llevintza.github.io/issues/8
-  test.fixme("nav reaches every top-level page", async ({ page }, testInfo) => {
+  // The header (#8) collapses the nav into a <details> "menu" below md.
+  test("nav reaches every top-level page", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "phone", "phone viewport only");
+    const header = page.locator("header");
     for (const target of TOP_LEVEL) {
+      const url = new RegExp(`${target.replace(/\//g, "\\/")}$`);
       await page.goto("/");
-      const nav = page.getByRole("navigation").first();
-      // A collapsed mobile menu sits behind a toggle button.
-      const menu = page.getByRole("button", { name: /menu|navigation/i });
-      if (await menu.isVisible()) await menu.click();
-      await nav.locator(`a[href="${target}"]`).first().click();
-      await expect(page).toHaveURL(
-        new RegExp(`${target.replace(/\//g, "\\/")}$`),
-      );
+      if (target === "/") {
+        // Home is the brand link, not a menu item.
+        await header.locator('a[href="/"]').first().click();
+      } else {
+        await header.locator("summary", { hasText: "menu" }).click();
+        const nav = page.getByRole("navigation", { name: "Main" });
+        await nav.locator(`a[href="${target}"]`).click();
+        // The menu closes after navigating; reopen it to check the active link.
+        await expect(page).toHaveURL(url);
+        await header.locator("summary", { hasText: "menu" }).click();
+        await expect(nav.locator(`a[href="${target}"]`)).toHaveAttribute(
+          "aria-current",
+          "page",
+        );
+      }
+      await expect(page).toHaveURL(url);
       await expect(page.locator("h1:visible")).toHaveCount(1);
     }
   });

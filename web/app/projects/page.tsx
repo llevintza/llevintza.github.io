@@ -1,4 +1,5 @@
 import { AllRepos } from "@/components/projects/all-repos";
+import { StackList } from "@/components/ui/tag";
 import { getFeaturedProjects } from "@/lib/projects/featured";
 import { getPublicReposCached } from "@/lib/projects/repos";
 import { buildMetadata } from "@/lib/site/metadata";
@@ -26,11 +27,7 @@ export default async function ProjectsPage() {
           >
             <h2 id={`project-${project.name}`}>{project.name}</h2>
             <p>{project.description}</p>
-            <ul aria-label="Stack">
-              {project.stack.map((tech) => (
-                <li key={tech}>{tech}</li>
-              ))}
-            </ul>
+            <StackList items={project.stack} />
             <p>
               {project.liveUrl ? (
                 <>

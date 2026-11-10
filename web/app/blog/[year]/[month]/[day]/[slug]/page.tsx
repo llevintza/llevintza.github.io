@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { TableOfContents } from "@/components/mdx/toc";
+import { TagList } from "@/components/ui/tag";
 import { renderMdx } from "@/lib/content/mdx";
 import {
   getAllPosts,
@@ -80,13 +81,7 @@ export default async function PostPage({ params }: Props) {
             <span>{post.readingTime.minutes} min read</span>
             {post.draft ? " · Draft" : null}
           </p>
-          {post.tags.length > 0 ? (
-            <ul aria-label="Tags">
-              {post.tags.map((tag) => (
-                <li key={tag}>{tag}</li>
-              ))}
-            </ul>
-          ) : null}
+          <TagList tags={post.tags} />
         </header>
         {showToc ? <TableOfContents toc={toc} variant="inline" /> : null}
         {content}

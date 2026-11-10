@@ -21,9 +21,17 @@ Guidance for coding agents in this repo. Read [README.md](README.md), [CONTRIBUT
 
 - Feature branch `<type>/<issue>-<slug>` → PR against `main`. Never push to `main`.
 - Conventional Commits for every commit and the PR title (husky and commitlint locally, checked in CI). PR body: summary, `Closes #N`, verification (commands and results), screenshots for visual changes.
-- Required checks on `main` (commit and PR-title lint, web build, Lighthouse budgets, public content guardrail) are listed in [CONTRIBUTING.md](CONTRIBUTING.md#what-main-requires). All review conversations must be resolved; 0 approvals are required.
+- Required checks on `main` (commit and PR-title lint, web build, Lighthouse budgets, Playwright, public content guardrail) are listed in [CONTRIBUTING.md](CONTRIBUTING.md#what-main-requires). All review conversations must be resolved; 0 approvals are required.
 - Roles: **Rex**, **Arch** and **Helms** review in parallel; Helms owns technical direction; **Max** merges once the gate is clear. Docs-only PRs (no ADR, strategy, workflow, Dockerfile or code changes) need only Rex. Agents never merge. Every agent posts as the owner on GitHub, so prefix agent comments with a role tag (e.g. `[PR Author]`) and never use `gh pr review --approve`.
 - After opening a PR, watch it: answer or fix every review comment, resolve the thread, merge `origin/main` on conflicts. Don't rebase or force-push a branch under review, especially one other PRs are stacked on.
+- **Signal READY for Max.** When the PR is ready, the author posts a top-level comment that starts with `[PR Author] READY for Max`, with the head SHA and a one-line checklist. Max starts the merge on that signal. Post it only when all of these hold:
+  - every review thread and conversation is resolved;
+  - the required checks are green on the current head, and the PR is mergeable (`mergeStateStatus` CLEAN);
+  - the required reviews are in on the current head, per the Roles line: Rex alone for docs-only PRs; otherwise Rex, Arch and Helms, with Arch on ADRs, strategy docs and code, Helms on ADRs, and Helms's `[workflows]` sign-off when the PR changes a workflow, CI or build config (including a Dockerfile or deploy/Pages config);
+  - for `ux-review` PRs, the owner has approved the UX.
+
+  After a push that changes the PR's own files, post a fresh READY only once the conditions hold again on the new head. A merge-only update from `origin/main` (no new changes from the PR) keeps the earlier reviews: reviewers still re-check the new head, but Rex's re-check doesn't block READY or merge. Arch's re-check is still required if that update touches an ADR or strategy doc, and Helms's `[workflows]` sign-off if it changes a workflow, CI or build config. Never post READY while anything is pending.
+
 - **Visual changes** need Playwright screenshots at 390×844 and 1440×900, light and dark, the `ux-review` label, and the owner's UX approval before merge. Screenshots go on the orphan branch `ux-screenshots` under `pr-<n>/`.
 
 ## Working in `web/`

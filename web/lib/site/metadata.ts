@@ -7,6 +7,30 @@ export const SITE_URL = "https://llevintza.github.io";
 
 export const SITE_NAME = "Leo Levintza";
 
+/** Author of every post and of the feed. */
+export const SITE_AUTHOR = "Leo Levintza";
+
+/**
+ * The Jekyll `_config.yml` description. The Atom feed keeps it as its
+ * `<subtitle>`, so the feed reads the same as the one jekyll-feed published.
+ */
+export const SITE_TAGLINE =
+  "Principal Software Engineer · Distributed Systems · Cloud-Native Backends · Agentic AI Tooling & AI-Augmented SDLC · New York Metro Area";
+
+/** The Atom feed, at the URL jekyll-feed used (#17). */
+export const FEED_PATH = "/feed.xml";
+
+/**
+ * `<link rel="alternate" type="application/atom+xml">` for feed discovery.
+ * Next.js replaces a parent's `alternates` with a page's, so both the root
+ * layout and `buildMetadata` set it.
+ */
+export const FEED_ALTERNATE_TYPES = {
+  "application/atom+xml": [
+    { url: new URL(FEED_PATH, SITE_URL).href, title: SITE_NAME },
+  ],
+};
+
 /** `<title>` template for every page below the root (`About · Leo Levintza`). */
 export const TITLE_TEMPLATE = `%s · ${SITE_NAME}`;
 
@@ -62,9 +86,10 @@ export function absoluteUrl(path: string): string {
 }
 
 /**
- * Per-page metadata: title, description, one absolute canonical, and the
- * Open Graph and Twitter tags, including a 1200x630 image with its absolute
- * URL, size, type and alt (see lib/og for how images are made).
+ * Per-page metadata: title, description, one absolute canonical, the feed
+ * discovery link, and the Open Graph and Twitter tags, including a 1200x630
+ * image with its absolute URL, size, type and alt (see lib/og for how images
+ * are made).
  */
 export function buildMetadata({
   title,
@@ -91,7 +116,7 @@ export function buildMetadata({
     // `absolute` for the home page so the template doesn't double the name.
     title: title ?? { absolute: SITE_NAME },
     description,
-    alternates: { canonical: url },
+    alternates: { canonical: url, types: FEED_ALTERNATE_TYPES },
     openGraph: {
       title: fullTitle,
       description,

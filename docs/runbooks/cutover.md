@@ -8,7 +8,7 @@
 
 ## How the gate works
 
-`deploy.yml` runs on every push to `main` that touches `web/**` (and by hand). Its `build` job always builds `web/out` and uploads it as the Pages artifact. Its `deploy` job runs only when **both** of these hold:
+`deploy.yml` runs on every push to `main` that touches `web/**`, weekly on a schedule (Mondays 04:17 UTC, #23), and by hand. Its `build` job always builds `web/out` and uploads it as the Pages artifact. Its `deploy` job runs only when **both** of these hold:
 
 1. The repo variable `PAGES_DEPLOY_ENABLED` is `true`. Until it is, the job is skipped.
 2. The Pages source is "GitHub Actions" (`build_type=workflow`). With the current source, "Deploy from a branch" (`build_type=legacy`), GitHub serves Jekyll from `main` and ignores the artifact.
@@ -134,5 +134,5 @@ If you set `NEXT_PUBLIC_UMAMI_WEBSITE_ID` for the cutover, you can leave it: not
 
 - [ ] Leave it for a day or two and re-run `pnpm verify:live --urls-from "$HOME/jekyll-sitemap-pre-cutover.xml"`. Keep that snapshot until the Jekyll removal PR merges: Jekyll generates the sitemap at build time, so it can't be recovered from git.
 - [ ] **Follow-up PR: remove the Jekyll files** (`_config.yml`, `_data/`, `_includes/`, `_posts/`, `assets/` if unused, `Gemfile`, `index.md`, `blog.md`, `projects.md`, `about.md`). Update the README "Writing a post" and Jekyll local-preview sections for the new site (#38 acceptance), and drop Jekyll references from `AGENTS.md`. After it merges, the rollback in section 4 no longer works (there is nothing to build), so merge it only once you're confident.
-- [ ] **#23: add the scheduled rebuild** (a `schedule:` cron in `deploy.yml`) so the GitHub-sourced project data stays fresh. It shares the `pages` concurrency group, so it can't race a push.
+- [x] **#23: weekly rebuild.** It's already in `deploy.yml` (`schedule:` Mondays 04:17 UTC) and shares the `pages` concurrency group, so it can't race a push. Before the switch it only builds. After it, confirm the next Monday run deploys: `gh run list -R $REPO --workflow deploy.yml --event schedule --limit 1`. If the cron stops after a quiet spell, re-enable it with `gh workflow enable deploy.yml -R $REPO`.
 - [ ] Update ADR 0001 and #38 with the date of the switch, then close #38 and, once its other stories are done, epic #36.

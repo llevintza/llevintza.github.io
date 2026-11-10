@@ -56,7 +56,10 @@ describe("buildAtomFeed", () => {
     ]);
     expect(feed.title["#text"]).toBe("Leo Levintza");
     expect(feed.author.name).toBe("Leo Levintza");
-    expect(feed.subtitle).toMatch(/^Principal Software Engineer/);
+    // jekyll-feed's subtitle, from the Jekyll `_config.yml` description.
+    expect(feed.subtitle).toBe(
+      "Principal Software Engineer · Distributed Systems · Cloud-Native Backends · Agentic AI Tooling & AI-Augmented SDLC · New York Metro Area",
+    );
   });
 
   it("writes one entry per post with absolute permalink, dates, summary and tags", () => {
