@@ -1,0 +1,99 @@
+/* Minimal, token-driven styles. The console theme (#61, #62) and the shared
+   components (#8) will restyle this; every colour reads a CSS variable with a
+   fallback from the direction B token table. */
+
+.section {
+  --contact-brand: var(--brand, #3498db);
+  --contact-on-brand: var(--on-brand, #ffffff);
+  --contact-primary-bg: var(--accent, #1d6fa5);
+  --contact-ink: var(--ink, #1f2a36);
+  --contact-line: var(--line, rgba(44, 62, 80, 0.2));
+  --contact-panel: var(--panel, #ffffff);
+  --contact-focus: var(--focus, #3498db);
+  --contact-chip: var(--chip, #f4f7fa);
+}
+
+.primary,
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+.primary {
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--contact-on-brand);
+  background: var(--contact-primary-bg);
+  border: 1px solid var(--contact-primary-bg);
+}
+
+.primary:hover {
+  border-color: var(--contact-brand);
+  text-decoration: underline;
+}
+
+.links {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.link {
+  padding: 0.45rem 0.7rem;
+  color: var(--contact-ink);
+  background: var(--contact-panel);
+  border: 1px solid var(--contact-line);
+}
+
+.link:hover {
+  border-color: var(--contact-brand);
+}
+
+.primary:focus-visible,
+.link:focus-visible {
+  outline: 3px solid var(--contact-focus);
+  outline-offset: 2px;
+}
+
+.icon {
+  flex: none;
+  box-sizing: border-box;
+  border-radius: 3px;
+}
+
+/* Dark themes: the black GitHub and X logos sit on a light chip. */
+:global([data-theme="dark"]) .section {
+  --contact-primary-bg: var(--accent, #1f6fa8);
+  --contact-ink: var(--ink, #d5dee7);
+  --contact-line: var(--line, rgba(213, 222, 231, 0.2));
+  --contact-panel: var(--panel, #111c28);
+  --contact-focus: var(--focus, #5dade2);
+}
+
+:global([data-theme="dark"]) .chip {
+  padding: 1px;
+  background: var(--contact-chip);
+}
+
+/* No explicit theme yet (before next-themes lands): follow the system. */
+@media (prefers-color-scheme: dark) {
+  :global(html:not([data-theme])) .section {
+    --contact-primary-bg: var(--accent, #1f6fa8);
+    --contact-ink: var(--ink, #d5dee7);
+    --contact-line: var(--line, rgba(213, 222, 231, 0.2));
+    --contact-panel: var(--panel, #111c28);
+    --contact-focus: var(--focus, #5dade2);
+  }
+
+  :global(html:not([data-theme])) .chip {
+    padding: 1px;
+    background: var(--contact-chip);
+  }
+}
