@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leo Levintza · Direction C: Bold Gradient</title>
+<link rel="stylesheet" href="style.css">
+<script src="../_shared/site.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="home.html"><i aria-hidden="true">LL</i><span>Leo Levintza</span></a>
+    <nav class="nav" aria-label="Main"><a href="post.html">Blog</a><a href="projects.html">Projects</a><a href="#">About</a></nav>
+    <button class="theme-btn" type="button" data-theme-toggle aria-label="Toggle theme"><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero mesh-band">
+    <div class="wrap">
+      <span class="kicker"><b>Principal</b>Software Engineer · New York Metro Area</span>
+      <h1><span class="line"><span>Leo</span></span><span class="line"><span>Levintza</span></span></h1>
+      <ul class="chips" aria-label="Focus areas">
+        <li>Distributed Systems</li><li>Cloud-Native Backends</li><li>Agentic AI Tooling</li><li>AI-Augmented SDLC</li>
+      </ul>
+      <p class="bio">I design and build distributed, cloud-native backend systems, most recently for buy-side firms: a quantitative hedge fund, a global alternative asset manager, and a large US asset manager. Lately I embed agentic AI tooling (Claude Code, GitHub Copilot CLI, Sourcegraph Cody) into the SDLC: legacy discovery, documentation, code-review agents, and evaluation frameworks for AI-assisted delivery.</p>
+      <div class="ctas">
+        <a class="btn btn-primary" href="projects.html">Explore projects →</a>
+        <a class="btn btn-glass" href="https://scheduler.zoom.us/llevintza/availability"><img src="https://llevintza.github.io/email-icons/img/color/zoom.png" alt="" width="20" height="20">Book a call</a>
+      </div>
+      <ul class="contacts" aria-label="Contact"><li><a href="https://www.linkedin.com/in/llevintza/"><img src="https://llevintza.github.io/email-icons/img/color/linkedin.png" alt="" width="20" height="20">LinkedIn</a></li><li><a href="https://github.com/llevintza"><img src="https://llevintza.github.io/email-icons/img/color/github.png" alt="" width="20" height="20">GitHub</a></li><li><a href="https://x.com/llevintza"><img src="https://llevintza.github.io/email-icons/img/color/x.png" alt="" width="20" height="20">X</a></li></ul>
+    </div>
+    <span class="scroll-hint" aria-hidden="true"></span>
+  </section>
+
+  <section class="overlap" aria-label="At a glance">
+    <div class="wrap tiles">
+      <div class="tile glass" data-reveal>
+        <h3>Now</h3>
+        <ul>
+          <li>Embedding agentic AI into the SDLC: code-review agents, agent evaluation frameworks, MCP servers and Claude Agent SDK pipelines</li>
+          <li>Founding and architecting open-source platforms in Go, TypeScript and Python</li>
+        </ul>
+      </div>
+      <div class="tile glass" data-reveal>
+        <h3>Selected work</h3>
+        <div class="stats">
+          <div class="stat"><b>6 wks</b><span>legacy discovery, down from 3-6 months, with agentic AI tooling</span></div>
+          <div class="stat"><b>90%</b><span>less CPU/memory after decomposing a retail data-graph service</span></div>
+          <div class="stat"><b>5k/s</b><span>events per instance, F# Kafka-to-EventStore replication</span></div>
+          <div class="stat"><b>100x</b><span>faster slide preparation with an OOXML reporting framework</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-featured">
+    <div class="wrap">
+      <div class="sec-head"><h2 id="h-featured">Featured <em>projects</em></h2><a href="projects.html">All projects →</a></div>
+      <div class="cards">
+        <article class="card" data-reveal>
+          <h3>instrument-price-dashboard <span class="tag">Private</span></h3>
+          <p>Dashboard over daily closing prices: a layered .NET 10 API serving price series with return, volatility and drawdown stats, and a React front end for search, charting and ticker comparison. Milestones M1-M3 shipped.</p>
+          <ul class="stack"><li>.NET 10</li><li>React 19</li><li>TanStack Query</li><li>Recharts</li><li>SignalR</li></ul>
+          <p class="links"><a href="https://llevintza.github.io/instrument-price-dashboard/">Live site</a><span>Source on request</span></p>
+        </article>
+        <article class="card" data-reveal>
+          <h3><a href="https://github.com/llevintza/credit-desk-analytics">credit-desk-analytics</a></h3>
+          <p>Front-office analytics for a structured-credit desk: very large position grids, fund performance and deal exploration. Built spec-first and tuned for load and render speed. Phases 0-6 shipped.</p>
+          <ul class="stack"><li>.NET 10</li><li>Angular</li><li>Postgres</li><li>AG Grid</li><li>Playwright</li></ul>
+          <p class="links"><a href="https://llevintza.github.io/credit-desk-analytics/">Live site</a><a href="https://github.com/llevintza/credit-desk-analytics">Source</a></p>
+        </article>
+        <article class="card" data-reveal>
+          <h3><a href="https://github.com/llevintza/energlens">energlens</a></h3>
+          <p>Utility-bill analytics across properties, with a Claude-powered PDF extraction CLI. Zero-cost demo deployment.</p>
+          <ul class="stack"><li>Python/FastAPI</li><li>SQLAlchemy 2.0</li><li>React 19</li><li>Claude API</li></ul>
+          <p class="links"><a href="https://llevintza.github.io/energlens/">Live site</a><a href="https://github.com/llevintza/energlens">Source</a></p>
+        </article>
+        <article class="card" data-reveal>
+          <h3><a href="https://github.com/llevintza/unlistd">unlistd</a></h3>
+          <p>Self-hosted data-broker PII removal pipeline that keeps profiles, keys and audit trails in your own AWS account. Early MVP.</p>
+          <ul class="stack"><li>TypeScript</li><li>Next.js</li><li>Prisma</li><li>AWS CDK</li><li>SQS/Lambda/Fargate</li></ul>
+          <p class="links"><a href="https://github.com/llevintza/unlistd">Source</a></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-posts" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head"><h2 id="h-posts">Latest <em>posts</em></h2><a href="post.html">All posts →</a></div>
+      <ul class="posts">
+        <li class="glass" data-reveal><time datetime="2026-11-02">Nov 2, 2026</time><a href="post.html">Prometheus metrics for a Fastify API in one plugin</a><p>Automatic HTTP metrics, route filtering and an optional CloudWatch bridge.</p></li>
+        <li class="glass" data-reveal><time datetime="2026-10-19">Oct 19, 2026</time><a href="post.html">A human approval gate for a codebase agent</a><p>How claude-codebase-agent explores a repo, plans, and waits for a yes.</p></li>
+        <li class="glass" data-reveal><time datetime="2026-10-05">Oct 5, 2026</time><a href="post.html">Rendering very large position grids fast</a><p>Notes from tuning credit-desk-analytics for load and render speed.</p></li>
+      </ul>
+      <p class="note">Mockup: sample post titles drawn from the featured projects. No posts are published yet.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer mesh-band">
+  <div class="wrap">
+    <div>
+      <h2>Book a call.</h2>
+      <p>Distributed systems, cloud-native backends, agentic AI in the SDLC. © 2026 Leo Levintza</p>
+    </div>
+    <ul class="contacts" aria-label="Contact"><li><a href="https://www.linkedin.com/in/llevintza/"><img src="https://llevintza.github.io/email-icons/img/color/linkedin.png" alt="" width="20" height="20">LinkedIn</a></li><li><a href="https://github.com/llevintza"><img src="https://llevintza.github.io/email-icons/img/color/github.png" alt="" width="20" height="20">GitHub</a></li><li><a href="https://x.com/llevintza"><img src="https://llevintza.github.io/email-icons/img/color/x.png" alt="" width="20" height="20">X</a></li><li><a href="https://scheduler.zoom.us/llevintza/availability"><img src="https://llevintza.github.io/email-icons/img/color/zoom.png" alt="" width="20" height="20">Book a Zoom call</a></li></ul>
+  </div>
+</footer>
+</body>
+</html>

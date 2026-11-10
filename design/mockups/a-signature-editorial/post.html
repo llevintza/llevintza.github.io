@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prometheus metrics for a Fastify API in one plugin · Leo Levintza</title>
+<link rel="stylesheet" href="style.css">
+<script src="../_shared/site.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="home.html">Leo Levintza<span></span></a>
+    <nav class="nav" aria-label="Main">
+      <a href="post.html" aria-current="page">Blog</a>
+      <a href="projects.html">Projects</a>
+      <a href="#">About</a>
+    </nav>
+    <button class="theme-btn" type="button" data-theme-toggle aria-label="Toggle theme">
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+  <header class="post-head">
+    <div class="eyebrow">Blog · Observability</div>
+    <h1>Prometheus metrics for a Fastify API in one plugin</h1>
+    <div class="rule" aria-hidden="true"></div>
+    <div class="meta"><time datetime="2026-11-02">Nov 2, 2026</time><span>6 min read</span><span>TypeScript · Fastify · Prometheus</span><span>Sample post (mockup)</span></div>
+  </header>
+
+  <div class="post-layout">
+    <article class="prose">
+      <p class="lede">A new service needs the same four numbers on day one: request rate, error rate, latency and response size. <code>@llevintza/fastify-prometheus-metrics</code> collects them automatically, so a new Fastify API exposes them before it has any business logic.</p>
+
+      <h2 id="why">Why a plugin</h2>
+      <p>Hand-rolled metrics drift. One team names the histogram <code>http_duration</code>, another <code>request_ms</code>, and the dashboards stop lining up. A plugin fixes the names, labels and buckets in one place and lets each service override them on purpose.</p>
+
+      <h2 id="install">Install and register</h2>
+      <p>The package is published to GitHub Packages under the <code>@llevintza</code> scope.</p>
+<pre><code><span class="tok-c"># Point the scope at GitHub Packages, then install</span>
+echo <span class="tok-s">"@llevintza:registry=https://npm.pkg.github.com"</span> &gt;&gt; ~/.npmrc
+pnpm add @llevintza/fastify-prometheus-metrics</code></pre>
+      <p>Registering it with no options is enough to get the default HTTP metrics at <code>/metrics</code>:</p>
+<pre><code><span class="tok-k">import</span> Fastify <span class="tok-k">from</span> <span class="tok-s">'fastify'</span>;
+<span class="tok-k">import</span> fastifyPrometheusPlugin <span class="tok-k">from</span> <span class="tok-s">'@llevintza/fastify-prometheus-metrics'</span>;
+
+<span class="tok-k">const</span> fastify = <span class="tok-f">Fastify</span>();
+
+<span class="tok-k">await</span> fastify.<span class="tok-f">register</span>(fastifyPrometheusPlugin, {
+  excludeRoutes: [<span class="tok-s">'/health'</span>, <span class="tok-s">'/metrics'</span>],
+  defaultLabels: { service: <span class="tok-s">'my-api'</span>, version: <span class="tok-s">'1.0.0'</span> },
+});
+
+<span class="tok-k">await</span> fastify.<span class="tok-f">listen</span>({ port: <span class="tok-n">3000</span> });
+<span class="tok-c">// Metrics: http://localhost:3000/metrics</span></code></pre>
+
+      <h3 id="buckets">Choosing histogram buckets</h3>
+      <p>The default latency buckets suit a typical JSON API. For a service with a long tail, pass your own, for example <code>[1, 5, 15, 50, 100, 500, 1000, 5000]</code> milliseconds, so the p99 lands inside a bucket instead of the overflow.</p>
+
+      <h2 id="channels">Release channels</h2>
+      <p>Versions are cut automatically from the branch a change lands on:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Branch</th><th scope="col">Release</th><th scope="col">Example</th><th scope="col">Use case</th></tr></thead>
+          <tbody>
+            <tr><td><code>main</code></td><td>Stable</td><td><code>1.0.0</code></td><td>Production</td></tr>
+            <tr><td><code>release/*</code></td><td>Beta</td><td><code>1.1.0-beta.1</code></td><td>Pre-release testing</td></tr>
+            <tr><td><code>feature/*</code></td><td>Alpha</td><td><code>1.1.0-alpha.2</code></td><td>Feature development</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout" role="note">
+        <strong>The CloudWatch bridge is optional</strong>
+        <p>Export to CloudWatch only where you already ship metrics to AWS. Everywhere else, including local development, the plugin serves a plain Prometheus endpoint.</p>
+      </div>
+
+      <h2 id="wrap-up">Wrap-up</h2>
+      <p>One <code>register</code> call gives a new service the metrics an on-call engineer reaches for first. The source, changelog and full option list are on <a href="https://github.com/llevintza/aws-fastify-prometheus">GitHub</a>.</p>
+    </article>
+
+    <nav class="toc" aria-label="Table of contents">
+      <details open>
+        <summary>On this page</summary>
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#why">Why a plugin</a></li>
+          <li><a href="#install">Install and register</a></li>
+          <li><a href="#buckets">Choosing histogram buckets</a></li>
+          <li><a href="#channels">Release channels</a></li>
+          <li><a href="#wrap-up">Wrap-up</a></li>
+        </ol>
+      </details>
+    </nav>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="sig"><strong>Leo Levintza</strong><i aria-hidden="true"></i><span>© 2026 · Built in the open</span></div>
+    <ul class="contacts" aria-label="Contact">
+      <li><a href="https://www.linkedin.com/in/llevintza/"><img src="https://llevintza.github.io/email-icons/img/color/linkedin.png" alt="" width="18" height="18">LinkedIn</a></li>
+      <li><a href="https://github.com/llevintza"><img src="https://llevintza.github.io/email-icons/img/color/github.png" alt="" width="18" height="18">GitHub</a></li>
+      <li><a href="https://x.com/llevintza"><img src="https://llevintza.github.io/email-icons/img/color/x.png" alt="" width="18" height="18">X</a></li>
+      <li><a href="https://scheduler.zoom.us/llevintza/availability"><img src="https://llevintza.github.io/email-icons/img/color/zoom.png" alt="" width="18" height="18">Book a Zoom call</a></li>
+    </ul>
+  </div>
+</footer>
+</body>
+</html>
