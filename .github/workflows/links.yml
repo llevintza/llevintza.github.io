@@ -14,9 +14,12 @@ on:
 permissions:
   contents: read
 
+# Superseded PR runs are cancelled. Push, schedule and manual runs each get their
+# own group and are never cancelled, so a merge during the Monday run can't cancel
+# it (a cancelled run doesn't count as failure(), so no issue would open).
 concurrency:
-  group: links-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: links-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   links:
