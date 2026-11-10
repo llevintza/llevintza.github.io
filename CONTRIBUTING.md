@@ -1,0 +1,83 @@
+# Contributing
+
+Every change reaches `main` through a feature branch and a pull request. Commit messages and PR titles follow [Conventional Commits](https://www.conventionalcommits.org/), and both are checked locally and in CI.
+
+## Setup
+
+The root `package.json` holds repo tooling only (husky and commitlint). It is not the site and not the Next.js app in `web/`, which is its own pnpm project.
+
+```sh
+corepack enable        # or install the pnpm version pinned in package.json's "packageManager"
+pnpm install           # installs the tooling and, via "prepare", the commit-msg hook
+```
+
+On Node 25 or later corepack no longer ships with Node: run `npm install -g corepack` first.
+
+## Branches
+
+Name branches `<type>/<issue>-<slug>`, where `<type>` is one of the commit types below and `<issue>` is the GitHub issue number:
+
+```text
+feat/3-scaffold-nextjs
+ci/40-conventional-commits
+fix/57-broken-feed-link
+```
+
+Never push to `main` directly.
+
+## Commit messages
+
+```text
+type(scope): subject
+
+optional body explaining what and why
+
+optional trailers
+```
+
+- **type**: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore` (and `revert`).
+- **scope** is optional: the area touched, such as `web`, `blog`, `ci`, `deps`.
+- **subject**: imperative mood, lower case, no trailing full stop.
+- Mark a breaking change with `!` after the type or scope, or a `BREAKING CHANGE:` footer.
+- Trailers such as `Co-Authored-By:` go after a blank line at the end.
+
+Good:
+
+```text
+feat(web): add MDX blog post layout
+fix(blog): correct RSS feed link on the home page
+docs: describe the PR flow in CONTRIBUTING
+ci: pin workflow actions to commit SHAs
+```
+
+Rejected by the hook and by CI:
+
+```text
+Updated some stuff.          (no type, ends with a full stop)
+feat: Add New Layout         (subject must not be sentence/title case)
+feature(web): add layout     (unknown type)
+```
+
+The `commit-msg` hook runs `commitlint` on every commit. CI runs the same check on every commit in a PR.
+
+## Pull requests
+
+- Open PRs against `main` only.
+- The PR title follows the same format as a commit message (`type(scope): subject`), since it can become the squash commit message.
+- The PR body has a summary, `Closes #<issue>`, how the change was verified (commands and results) and screenshots for visible changes.
+
+### What `main` requires
+
+The ruleset on `main` requires:
+
+- a pull request (no direct pushes),
+- passing required checks, including **Commit messages** and **PR title** from the `Conventional Commits` workflow,
+- every review conversation resolved.
+
+It requires no approvals, because all agents post on GitHub under the owner's account and GitHub does not let an author approve their own PR.
+
+### Reviews and merging
+
+- Because every agent posts as the owner, each PR comment and thread reply written by an agent starts with a role tag such as `[PR Author]` or `[Tech Coordinator]`, so readers can tell who is speaking.
+- The PR author fixes or answers each review thread, replies with the tag, and resolves it.
+- The Tech Coordinator bot reviews and merges. Authors don't merge their own PRs.
