@@ -1,0 +1,24 @@
+---
+title: Instrument Price Dashboard
+slug: instrument-price-dashboard
+summary: A dashboard over daily closing prices, with return, volatility and drawdown stats, search, charting and ticker comparison. Milestones M1 to M3 shipped.
+stack:
+  - .NET 10
+  - React 19
+  - TanStack Query
+  - Recharts
+  - SignalR
+  - Playwright
+liveUrl: https://llevintza.github.io/instrument-price-dashboard/
+screenshots:
+  - file: home
+    alt: The Instrument Price Dashboard log-in page on GitHub Pages, in its dark theme.
+---
+
+## Problem
+
+Looking at a price series is only the start: comparing instruments needs returns, volatility and drawdowns computed the same way for each, and a quick way to search for tickers and put them side by side.
+
+## Approach
+
+A layered .NET 10 API serves daily closing-price series together with return, volatility and drawdown statistics. A React 19 front end handles search, charting and ticker comparison, using TanStack Query for data fetching and Recharts for the charts. SignalR and Playwright round out the stack. Milestones M1 to M3 have shipped, and the front end runs on GitHub Pages.
