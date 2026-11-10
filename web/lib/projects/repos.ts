@@ -366,14 +366,17 @@ export async function getPublicRepos(
     if (offline) return repos;
     const ageMs = now().getTime() - Date.parse(cache.fetchedAt);
     const ageDays = Math.floor(ageMs / DAY_MS);
-    if (ageMs <= MAX_CACHE_AGE_MS) {
+    // A future fetchedAt (typo, hand edit) is as untrustworthy as an old one.
+    if (ageMs >= 0 && ageMs <= MAX_CACHE_AGE_MS) {
       logger.warn(
         `[repos] warning: GitHub API ${reason}; using the cached repo list (${repos.length} repos, fetched ${cache.fetchedAt}).`,
       );
       return repos;
     }
     logger.warn(
-      `[repos] warning: GitHub API ${reason} and the cache is ${ageDays} days old (limit ${MAX_CACHE_AGE_MS / DAY_MS}); rendering no repos.`,
+      ageMs < 0
+        ? `[repos] warning: GitHub API ${reason} and the cache fetchedAt (${cache.fetchedAt}) is in the future; rendering no repos.`
+        : `[repos] warning: GitHub API ${reason} and the cache is ${ageDays} days old (limit ${MAX_CACHE_AGE_MS / DAY_MS}); rendering no repos.`,
     );
     return [];
   }

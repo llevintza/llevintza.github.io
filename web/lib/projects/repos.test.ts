@@ -381,6 +381,24 @@ describe("getPublicRepos", () => {
       );
     });
 
+    it("renders no repos when fetchedAt is in the future", async () => {
+      await writeFile(cachePath, serializeCache(cached, daysAgo(-30)));
+      const logger = silentLogger();
+
+      const repos = await getPublicRepos({
+        fetch: async () => json({}, { status: 503 }),
+        cachePath,
+        logger,
+        offline: false,
+        now,
+      });
+
+      expect(repos).toEqual([]);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("is in the future"),
+      );
+    });
+
     it("without calling the API when offline, at any cache age", async () => {
       await writeFile(cachePath, serializeCache(cached, daysAgo(400)));
       const fetchMock = vi.fn();
