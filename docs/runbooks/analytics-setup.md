@@ -34,7 +34,7 @@ REPO=llevintza/llevintza.github.io
    - **Name:** `llevintza.github.io` (any label works)
    - **Domain:** `llevintza.github.io` (no `https://`, no trailing slash)
 4. Open the website's settings and copy its **Website ID** (a UUID). Copy only the ID, not the whole tracking-code snippet: the site builds the `<script>` tag itself.
-5. Check the script host. In the website's **Tracking code** snippet, the `src` must be `https://cloud.umami.is/script.js`, the value of `UMAMI_SCRIPT_SRC` in `web/components/analytics/umami.tsx`. If the US-region snippet shows a different host, stop and open an issue: the site would load the script from the wrong host and record no visits, with no visible error.
+5. Confirm the tracking snippet `src` is `https://cloud.umami.is/script.js` (`UMAMI_SCRIPT_SRC` in `web/components/analytics/umami.tsx`). Confirmed for the US region on 2026-11-10; if it ever differs, stop and open an issue.
 6. Save it as a repo variable:
 
    ```sh
@@ -121,6 +121,7 @@ Comment on #58 with the outcome, so the live checks for ADR 0002 are closed:
 - both `curl` commands from step 3 print a tag;
 - Search Console shows the property as verified, and the sitemap status is "Success";
 - a visit showed in Umami's Realtime view (step 5).
+- the About page shows the analytics note (it renders only while analytics is on, so CI builds never show it).
 
 ## Undo
 
