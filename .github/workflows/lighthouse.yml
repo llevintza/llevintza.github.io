@@ -159,7 +159,7 @@ jobs:
               return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
             };
 
-            const header = `| URL | ${BUDGETS.map(([, label, min]) => `${label} (≥ ${Math.round(min * 100)})`).join(' | ')} |`;
+            const header = `| URL | ${BUDGETS.map(([, label, min]) => `${label} (${min >= 1 ? "=" : "≥"} ${Math.round(min * 100)})`).join(' | ')} |`;
             const sep = `|---|${BUDGETS.map(() => '---').join('|')}|`;
             const rows = [...byPath].map(([p, runs]) => {
               const cells = BUDGETS.map(([key, , min]) => {
