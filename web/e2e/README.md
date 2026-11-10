@@ -34,9 +34,9 @@ Two projects run every spec:
   fonts load (at least one loaded, none failed).
   - A theme test checks that the toggle flips `[data-theme]` and that the
     choice persists across reloads.
-  - The phone navigation test (the nav reaches every top-level page) is
-    `test.fixme` until the header lands in
-    [#8](https://github.com/llevintza/llevintza.github.io/issues/8).
+  - A phone navigation test opens the header's `menu` and checks that it
+    reaches every top-level page and marks the current one
+    (`aria-current="page"`).
 - **`ux.spec.ts`** (tagged `@ux`): full-page screenshots of every route, per
   project, in both `colorScheme` light and dark, with reduced motion and
   animations disabled. Files are named
