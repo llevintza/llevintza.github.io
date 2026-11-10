@@ -166,6 +166,16 @@ async function scrollThrough(page: Page) {
   }
 }
 
+/**
+ * The site nav that is visible at this viewport. The desktop bar is hidden
+ * on phones, where the nav sits in a `<details>` "menu": open it first.
+ */
+async function openNav(page: Page) {
+  const menu = page.locator("summary:visible", { hasText: "menu" });
+  if (await menu.count()) await menu.first().click();
+  return page.locator("nav:visible").first();
+}
+
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 
@@ -188,15 +198,13 @@ test.describe("reduced motion", () => {
     });
   }
 
-  // Needs the site nav from #70 (feat/8-core-components); main has no nav
-  // links yet. Remove the fixme once #70 merges.
-  test.fixme("a client-side navigation has no page transition", async ({
-    page,
-  }) => {
+  test("a client-side navigation has no page transition", async ({ page }) => {
     await page.goto("/", { waitUntil: "load" });
-    const link = page.getByRole("navigation").getByRole("link").first();
+    const nav = await openNav(page);
+    const link = nav.locator('a[href]:not([href="/"])').first();
+    const target = await link.getAttribute("href");
     await link.click();
-    await page.waitForURL((url) => url.pathname !== "/");
+    await page.waitForURL((url) => url.pathname === target);
     expect(await runningAnimations(page), "transition animations").toEqual([]);
     expect(await hiddenText(page), "hidden text after navigation").toEqual([]);
   });
@@ -223,14 +231,15 @@ test.describe("JavaScript off", () => {
     });
   }
 
-  // Needs the site header and nav from #70 (feat/8-core-components); main
-  // has none yet. Remove the fixme once #70 merges.
-  test.fixme("the nav is visible without JS", async ({ page }) => {
+  test("the nav is visible without JS", async ({ page }) => {
     await page.goto("/", { waitUntil: "load" });
-    const nav = page.getByRole("navigation").first();
+    // On phones this opens the native <details> menu, which needs no JS.
+    const nav = await openNav(page);
     await expect(nav).toBeVisible();
     await expect(nav.getByRole("link").first()).toBeVisible();
-    expect(await hiddenText(page), "hidden nav text").toEqual([]);
+    // The home hero types and prints on load; let it finish first.
+    await settle(page);
+    expect(await hiddenText(page), "hidden text with the nav open").toEqual([]);
   });
 });
 
