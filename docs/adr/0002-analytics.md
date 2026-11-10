@@ -264,8 +264,8 @@ Text only. No code changes are made in this ADR.
    data. Aggregate stats are stored in the EU."
 7. Verify by running Lighthouse on the production build (Performance >= 95,
    no new console errors), checking that the browser stores no cookies or
-   `localStorage` for the origin (DevTools → Application: the script reads
-   only `umami.disabled` and writes nothing), and checking that a visit shows in the Umami
+   `localStorage` for the origin (DevTools → Application: no cookies and no
+   `localStorage` entries for the origin), and checking that a visit shows in the Umami
    realtime view.
 
 ## Consequences
