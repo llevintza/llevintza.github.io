@@ -14,7 +14,7 @@ const CSS_PATH =
   fileURLToPath(new URL("../app/globals.css", import.meta.url));
 
 const TEXT = ["ink", "muted", "link", "head", "accent"];
-const SURFACES = ["bg", "panel"];
+const SURFACES = ["bg", "bg-2", "panel", "panel-2"];
 
 /** @type {{ fg: string, bg: string, min: number, note: string }[]} */
 const PAIRS = [
