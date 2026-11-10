@@ -20,10 +20,9 @@ Use **variables, not secrets**: the workflow reads `vars.*`, so a value saved as
 
 The values are inlined at build time (`NEXT_PUBLIC_*`), so setting a variable changes nothing until the next deploy run.
 
-Commands below use `gh`. On this Mac, prefix every call with `GH_TOKEN="$(gh auth token --user llevintza)"` (never `gh auth switch`). For brevity:
+Commands below use `gh`, signed in as an account with admin access to the repo. If you have several `gh` accounts, make sure the active one owns this repo. For brevity:
 
 ```sh
-export GH_TOKEN="$(gh auth token --user llevintza)"
 REPO=llevintza/llevintza.github.io
 ```
 
@@ -35,7 +34,8 @@ REPO=llevintza/llevintza.github.io
    - **Name:** `llevintza.github.io` (any label works)
    - **Domain:** `llevintza.github.io` (no `https://`, no trailing slash)
 4. Open the website's settings and copy its **Website ID** (a UUID). Copy only the ID, not the whole tracking-code snippet: the site builds the `<script>` tag itself.
-5. Save it as a repo variable:
+5. Check the script host. In the website's **Tracking code** snippet, the `src` must be `https://cloud.umami.is/script.js`, the value of `UMAMI_SCRIPT_SRC` in `web/components/analytics/umami.tsx`. If the US-region snippet shows a different host, stop and open an issue: the site would load the script from the wrong host and record no visits, with no visible error.
+6. Save it as a repo variable:
 
    ```sh
    gh variable set NEXT_PUBLIC_UMAMI_WEBSITE_ID --repo "$REPO" --body '<website-id>'
@@ -85,7 +85,23 @@ Each command prints one tag. If one prints nothing, check that the variable is a
 
 Search data (impressions, clicks) starts to fill in after a few days.
 
-## 5. Exclude your own visits from Umami
+## 5. Check that Umami counts visits
+
+Do this before step 6, which stops your own browser from being counted:
+
+1. Open the website's **Realtime** view in Umami.
+2. Visit <https://llevintza.github.io/> and click through a page or two.
+3. Your visit should show within a few seconds.
+
+If it doesn't, the visit was probably filtered rather than broken:
+
+- **Do Not Track:** the script has `data-do-not-track="true"`, so a browser that sends DNT isn't counted.
+- **Ad or DNS blockers:** `cloud.umami.is` is on common blocklists (ADR 0002). Try a browser profile without extensions, on a network without a DNS blocker.
+- **Wrong host:** `data-domains="llevintza.github.io"` means only that host reports. A local `pnpm start` or a fork never counts.
+
+Also check in DevTools → Application that the site stores no cookies, and no `localStorage` entries except `theme` (set once you use the theme toggle) and the opt-out flag from step 6.
+
+## 6. Exclude your own visits from Umami
 
 On each browser and device you use to visit the site:
 
@@ -98,21 +114,13 @@ On each browser and device you use to visit the site:
 
 The Umami script checks this flag and sends nothing while it is set. It only reads the flag and never writes it (ADR 0002). The flag is per browser profile and per origin, so repeat it on every browser you use, and again after clearing site data. To count your visits again: `localStorage.removeItem('umami.disabled')`.
 
-## 6. Check that Umami counts visits
+## 7. Record the result on #58
 
-Do this before step 5, or in a browser where you haven't set the flag:
+Comment on #58 with the outcome, so the live checks for ADR 0002 are closed:
 
-1. Open the website's **Realtime** view in Umami.
-2. Visit <https://llevintza.github.io/> and click through a page or two.
-3. Your visit should show within a few seconds.
-
-If it doesn't, the visit was probably filtered rather than broken:
-
-- **Do Not Track:** the script has `data-do-not-track="true"`, so a browser that sends DNT isn't counted.
-- **Ad or DNS blockers:** `cloud.umami.is` is on common blocklists (ADR 0002). Try a browser profile without extensions, on a network without a DNS blocker.
-- **Wrong host:** `data-domains="llevintza.github.io"` means only that host reports. A local `pnpm start` or a fork never counts.
-
-Also check in DevTools → Application that the site stores no cookies and no `localStorage` entries (other than the opt-out flag if you set it).
+- both `curl` commands from step 3 print a tag;
+- Search Console shows the property as verified, and the sitemap status is "Success";
+- a visit showed in Umami's Realtime view (step 5).
 
 ## Undo
 
