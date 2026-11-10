@@ -14,11 +14,15 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test:e2e": "playwright test --grep-invert @ux",
+    "ux:screenshots": "playwright test --grep @ux",
     "check:live-sites": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-live-sites.mjs",
+    "verify:live": "node scripts/verify-live.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "check:public-content": "node scripts/check-public-content.mjs",
+    "check:url-parity": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-url-parity.mjs",
     "test:public-content": "node --test scripts/__tests__/check-public-content.test.mjs",
     "lhci": "pnpm dlx @lhci/cli@0.16.0",
     "screenshots:projects": "node scripts/capture-project-screenshots.mjs"
@@ -26,6 +30,7 @@
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",
     "@shikijs/rehype": "^4.6.0",
+    "motion": "^14.10.1",
     "next": "16.4.5",
     "next-themes": "^0.4.6",
     "react": "19.3.0",
@@ -36,6 +41,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/postcss": "^4.3.5",
     "@types/mdx": "^2.0.14",
     "@types/node": "^22",
@@ -44,6 +50,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
     "eslint-config-prettier": "^10",
+    "fast-xml-parser": "^5.12.0",
     "playwright": "^1.65.0",
     "postcss": "^8.5.32",
     "prettier": "^3",

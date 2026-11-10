@@ -1,0 +1,6 @@
+# Playwright output (see e2e/README.md)
+/ux-screenshots/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
