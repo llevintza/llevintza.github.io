@@ -254,6 +254,12 @@ export function shadowedPaths(
 }
 
 // Builds the baseline from the live site. `fetchFn` is injected for tests.
+/**
+ * @deprecated Nothing calls this since the Jekyll site was removed (#110):
+ * the baseline is a frozen pre-cutover snapshot and `check:url-parity
+ * --refresh` refuses to run. Kept, with its tests, as the record of how
+ * url-parity.baseline.json was built.
+ */
 export async function buildBaseline(opts: {
   fetchFn: FetchLike;
   origin?: string;
