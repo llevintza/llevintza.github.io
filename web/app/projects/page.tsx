@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AllRepos } from "@/components/projects/all-repos";
+import { StackList } from "@/components/ui/tag";
 import { getAllCaseStudies } from "@/lib/projects/case-studies";
 import { getFeaturedProjects } from "@/lib/projects/featured";
 import { getPublicReposCached } from "@/lib/projects/repos";
@@ -39,11 +40,7 @@ export default async function ProjectsPage() {
               )}
             </h2>
             <p>{project.description}</p>
-            <ul aria-label="Stack">
-              {project.stack.map((tech) => (
-                <li key={tech}>{tech}</li>
-              ))}
-            </ul>
+            <StackList items={project.stack} />
             <p>
               {project.liveUrl ? (
                 <>

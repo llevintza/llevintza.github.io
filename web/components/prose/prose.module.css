@@ -1,0 +1,340 @@
+/*
+ * Long-form prose for MDX content (#60 §5). Builds on the base element
+ * styles in app/globals.css (#61) and only adds what long-form reading
+ * needs: the prose size and measure, heading markers, rhythm, code windows,
+ * scrollable tables, framed figures and external-link markers.
+ *
+ * Every colour is a theme token, so both themes follow automatically.
+ */
+
+.prose {
+  max-inline-size: var(--container-prose);
+  color: var(--ink);
+  font-family: var(--font-prose);
+  font-size: var(--text-prose);
+  line-height: var(--text-prose--line-height);
+  overflow-wrap: break-word;
+}
+
+/* --- Rhythm: one line of space between blocks ---------------------------- */
+
+.prose > * {
+  margin-block: 0;
+}
+
+.prose > * + * {
+  margin-block-start: 1lh;
+}
+
+.prose :where(p, li, blockquote, dd, figcaption) {
+  max-inline-size: none;
+}
+
+/* --- Headings, with presentational `##` markers -------------------------- */
+
+.prose :where(h1, h2, h3, h4, h5, h6) {
+  color: var(--head);
+  font-family: var(--font-mono);
+  scroll-margin-block-start: 5rem;
+  text-wrap: balance;
+}
+
+.prose > * + :where(h2, h3, h4, h5, h6) {
+  margin-block-start: 2lh;
+}
+
+.prose > :where(h1, h2, h3, h4, h5, h6) + * {
+  margin-block-start: 0.75lh;
+}
+
+.prose :where(h2, h3, h4)::before {
+  /* Empty alt text: screen readers skip the marker. */
+  content: var(--marker, "## ");
+  content: var(--marker, "## ") / "";
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.prose :where(h5, h6) {
+  font-size: var(--text-base);
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
+/* Heading anchor links (e.g. rehype-autolink-headings) look like headings. */
+.prose :where(h1, h2, h3, h4, h5, h6) a {
+  color: inherit;
+  text-decoration-color: transparent;
+}
+
+.prose :where(h1, h2, h3, h4, h5, h6) a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* --- Links ---------------------------------------------------------------- */
+
+.prose a:hover {
+  background-color: var(--inverse-bg);
+  color: var(--inverse-ink);
+  text-decoration-color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* External links get a trailing ↗ in --muted, hidden from screen readers. */
+.prose
+  a[href^="http"]:not([href^="https://llevintza.github.io"]):not(
+    :has(img)
+  )::after {
+  content: "\00a0↗";
+  content: "\00a0↗" / "";
+  color: var(--muted);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.prose a[href^="http"]:hover::after {
+  color: inherit;
+}
+
+/* Footnote references. */
+.prose sup a {
+  padding-inline: 0.15em;
+  text-decoration: none;
+}
+
+/* --- Lists ---------------------------------------------------------------- */
+
+.prose ul,
+.prose ol {
+  padding-inline-start: 2.5ch;
+}
+
+.prose ul {
+  list-style: "- " outside;
+}
+
+.prose ul ul {
+  list-style-type: "› ";
+}
+
+.prose ol {
+  list-style: decimal-leading-zero outside;
+  padding-inline-start: 4ch;
+}
+
+.prose li::marker {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.prose li + li,
+.prose li > :where(ul, ol) {
+  margin-block-start: 0.35lh;
+}
+
+.prose li > p {
+  margin-block: 0;
+}
+
+/* Task lists (GFM): no marker, the checkbox stands in for it. */
+.prose li:has(> input[type="checkbox"]) {
+  list-style: none;
+}
+
+.prose li > input[type="checkbox"] {
+  accent-color: var(--accent);
+  margin-inline: -2.5ch 0.75ch;
+}
+
+/* --- Inline code and keyboard keys ---------------------------------------- */
+
+.prose :not(pre) > code {
+  font-size: 0.875em;
+  white-space: break-spaces;
+}
+
+/* --- Code blocks: a window with an optional title bar --------------------- */
+
+.prose pre {
+  border: 1px solid var(--line);
+  background-color: var(--bg-2);
+  box-shadow: var(--shadow-hard);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  padding: 1rem 1.25rem;
+}
+
+.prose pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Title bar from a code-block title (data-title, e.g. rehype-pretty-code),
+   or the language as a fallback. */
+.prose pre[data-title]::before,
+.prose pre[data-language]:not([data-title])::before {
+  display: block;
+  margin: -1rem -1.25rem 1rem;
+  padding: 0.5rem 0.75rem;
+  border-block-end: 1px solid var(--line);
+  background-color: var(--panel-2);
+  color: var(--ink);
+  font-family: var(--font-pixel);
+  font-size: var(--text-chrome);
+  line-height: 1;
+}
+
+.prose pre[data-title]::before {
+  content: attr(data-title);
+}
+
+.prose pre[data-language]:not([data-title])::before {
+  content: "$ " attr(data-language);
+}
+
+/* A wrapping figure (rehype-pretty-code) carries the frame instead. */
+.prose figure:has(> pre) {
+  margin-inline: 0;
+}
+
+.prose figure > pre + figcaption,
+.prose figcaption {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--text-micro--letter-spacing);
+  line-height: var(--text-micro--line-height);
+  margin-block-start: 0.5rem;
+}
+
+/* --- Tables: scroll sideways on narrow screens ---------------------------- */
+
+.prose table {
+  display: block;
+  inline-size: max-content;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.prose th,
+.prose td {
+  padding: 0.5rem 0.875rem;
+  white-space: nowrap;
+}
+
+.prose td {
+  white-space: normal;
+  min-inline-size: 12ch;
+}
+
+.prose tbody tr:last-child td {
+  border-block-end: 0;
+}
+
+.prose tbody tr:hover {
+  background-color: var(--panel-2);
+}
+
+.prose :where(th, td)[align="right"] {
+  text-align: end;
+}
+
+.prose :where(th, td)[align="center"] {
+  text-align: center;
+}
+
+/* --- Blockquotes and callouts --------------------------------------------- */
+
+.prose blockquote {
+  border-inline-start: 2px dashed var(--muted);
+  color: var(--ink);
+  padding-block: 0.25lh;
+  padding-inline-start: 1.25rem;
+}
+
+.prose blockquote > * {
+  margin-block: 0;
+}
+
+.prose blockquote > * + * {
+  margin-block-start: 0.75lh;
+}
+
+.prose blockquote cite {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* --- Rules, images and figures -------------------------------------------- */
+
+.prose hr {
+  border: 0;
+  border-block-start: 1px dashed var(--line);
+  margin-block: 2lh;
+}
+
+.prose img,
+.prose video {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+/* Images sit in a window frame. */
+.prose > p > img,
+.prose figure > img,
+.prose figure > picture {
+  border: 1px solid var(--line);
+  background-color: var(--panel);
+  box-shadow: var(--shadow-hard);
+  padding: 0.5rem;
+}
+
+.prose figure {
+  margin-inline: 0;
+}
+
+/* --- Definition lists, abbreviations, marks ------------------------------- */
+
+.prose dt {
+  color: var(--head);
+  font-weight: 600;
+}
+
+.prose dd {
+  margin-inline-start: 2ch;
+}
+
+.prose dd + dt {
+  margin-block-start: 0.75lh;
+}
+
+.prose abbr[title] {
+  text-decoration: underline dotted var(--muted);
+  cursor: help;
+}
+
+.prose mark {
+  background-color: var(--inverse-bg);
+  color: var(--inverse-ink);
+  padding-inline: 0.15em;
+}
+
+@media (prefers-contrast: more) {
+  .prose pre,
+  .prose > p > img,
+  .prose figure > img,
+  .prose figure > picture {
+    box-shadow: none;
+  }
+}

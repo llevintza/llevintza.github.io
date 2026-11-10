@@ -31,14 +31,18 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       type="button"
       onClick={() => setTheme(next)}
       disabled={!mounted}
-      aria-label={current ? `Switch to ${next} theme` : "Toggle colour theme"}
       title={current ? `Switch to ${next} theme` : undefined}
       className={`inline-flex items-center gap-2 rounded-md border border-line bg-panel px-2.5 py-2 font-mono text-sm leading-none text-ink transition-colors hover:border-accent hover:text-head focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${mounted ? "" : "invisible"} ${className}`}
     >
       <span aria-hidden="true" className="text-accent">
         $
       </span>
-      <span aria-hidden="true">theme: {current ?? "auto"}</span>
+      {/*
+        The visible label is the start of the accessible name (WCAG 2.5.3,
+        Label in Name): "theme: dark, switch to light".
+      */}
+      <span>theme: {current ?? "auto"}</span>
+      {current ? <span className="sr-only">, switch to {next}</span> : null}
     </button>
   );
 }
