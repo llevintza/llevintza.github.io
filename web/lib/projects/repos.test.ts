@@ -1,14 +1,21 @@
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { type AddressInfo } from "node:net";
+import http from "node:http";
+import https from "node:https";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type ApiRepo,
+  type FetchLike,
   MAX_CACHE_AGE_MS,
   REPO_EXCLUDE,
   REPOS_API_URL,
   assertPublicOnly,
+  escapeAnnotation,
   getPublicRepos,
+  MAX_RESPONSE_BYTES,
+  nodeFetch,
   readCache,
   selectPublicRepos,
   serializeCache,
@@ -254,6 +261,37 @@ describe("getPublicRepos", () => {
     expect(repos.map((r) => r.name).sort()).toEqual(["one", "two"]);
   });
 
+  it.each([
+    ["another host", "https://evil.example/repos?page=2"],
+    ["plain http", "http://api.github.com/user/1/repos?page=2"],
+    ["not a URL", "::nope::"],
+  ])(
+    "never follows a next-page link to %s, falling back to the cache",
+    async (_label, next) => {
+      await writeFile(cachePath, serializeCache([], daysAgo(1)));
+      const fetchMock = vi
+        .fn<FetchLike>()
+        .mockResolvedValueOnce(
+          json([repo("one")], { headers: { link: `<${next}>; rel="next"` } }),
+        );
+      const logger = silentLogger();
+
+      const repos = await getPublicRepos({
+        fetch: fetchMock,
+        cachePath,
+        logger,
+        offline: false,
+        now,
+      });
+
+      expect(fetchMock).toHaveBeenCalledOnce();
+      expect(repos).toEqual([]);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("next-page link is not on api.github.com"),
+      );
+    },
+  );
+
   it("does not rewrite an unchanged, recent cache", async () => {
     const repos = selectPublicRepos([repo("same")]);
     const before = serializeCache(repos, daysAgo(0.5));
@@ -362,7 +400,7 @@ describe("getPublicRepos", () => {
       );
     });
 
-    it("renders no repos when the cache is older than 14 days", async () => {
+    it("uses a cache older than 14 days, with a stale-cache warning", async () => {
       expect(MAX_CACHE_AGE_MS).toBe(14 * 24 * 60 * 60 * 1000);
       await writeFile(cachePath, serializeCache(cached, daysAgo(15)));
       const logger = silentLogger();
@@ -373,15 +411,19 @@ describe("getPublicRepos", () => {
         logger,
         offline: false,
         now,
+        annotate: false,
       });
 
-      expect(repos).toEqual([]);
+      expect(repos).toEqual(cached);
+      expect(logger.warn).toHaveBeenCalledOnce();
       expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining("the cache is 15 days old"),
+        expect.stringMatching(
+          /^\[repos\] warning: GitHub API HTTP 503.*the cache is 15 days old \(limit 14\); using the cached repo list.*refresh and commit/,
+        ),
       );
     });
 
-    it("renders no repos when fetchedAt is in the future", async () => {
+    it("uses a cache whose fetchedAt is in the future, with a warning", async () => {
       await writeFile(cachePath, serializeCache(cached, daysAgo(-30)));
       const logger = silentLogger();
 
@@ -393,11 +435,39 @@ describe("getPublicRepos", () => {
         now,
       });
 
-      expect(repos).toEqual([]);
+      expect(repos).toEqual(cached);
       expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining("is in the future"),
+        expect.stringContaining("has a fetchedAt in the future"),
       );
     });
+
+    it.each([
+      [3, /^::warning title=Repo list::GitHub API HTTP 503; using the cached/],
+      [
+        15,
+        /^::warning title=Repo list::GitHub API HTTP 503 and the cache is 15 days old/,
+      ],
+    ])(
+      "emits a GitHub Actions annotation for a %i-day-old cache",
+      async (days, annotation) => {
+        await writeFile(cachePath, serializeCache(cached, daysAgo(days)));
+        const logger = silentLogger();
+
+        const repos = await getPublicRepos({
+          fetch: async () => json({}, { status: 503 }),
+          cachePath,
+          logger,
+          offline: false,
+          now,
+          annotate: true,
+        });
+
+        expect(repos).toEqual(cached);
+        expect(logger.warn).toHaveBeenCalledWith(
+          expect.stringMatching(annotation),
+        );
+      },
+    );
 
     it("without calling the API when offline, at any cache age", async () => {
       await writeFile(cachePath, serializeCache(cached, daysAgo(400)));
@@ -469,19 +539,39 @@ describe("getPublicRepos", () => {
     });
   });
 
-  it("returns an empty list, never throws, when the API and cache both fail", async () => {
-    const logger = silentLogger();
-    const repos = await getPublicRepos({
-      fetch: async () => json({}, { status: 500 }),
-      cachePath: path.join(dir, "missing.json"),
-      logger,
-      offline: false,
-      now,
-    });
-    expect(repos).toEqual([]);
-    expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining("no usable cache"),
-    );
+  it.each([
+    ["missing", null],
+    ["corrupt", "{not json"],
+  ])(
+    "fails the build, never renders an empty list, when the API fails and the cache is %s",
+    async (_label, text) => {
+      if (text !== null) await writeFile(cachePath, text);
+      await expect(
+        getPublicRepos({
+          fetch: async () => json({}, { status: 500 }),
+          cachePath,
+          logger: silentLogger(),
+          offline: false,
+          now,
+        }),
+      ).rejects.toThrow(
+        /GitHub API HTTP 500.*repos\.cache\.json is missing or invalid; failing the build/,
+      );
+    },
+  );
+
+  it("fails the build when offline with no cache", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    await expect(
+      getPublicRepos({
+        fetch: fetchMock,
+        cachePath,
+        logger: silentLogger(),
+        offline: true,
+        now,
+      }),
+    ).rejects.toThrow(/REPOS_OFFLINE=1 but repos\.cache\.json is missing/);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -497,5 +587,142 @@ describe("getPublicRepos", () => {
   ])("treats a cache with %s as missing", async (_label, text) => {
     await writeFile(cachePath, text);
     expect(await readCache(cachePath)).toBeNull();
+  });
+});
+
+describe("nodeFetch", () => {
+  let server: http.Server;
+  let base: string;
+  let seen: http.IncomingHttpHeaders | undefined;
+
+  beforeEach(async () => {
+    seen = undefined;
+    server = http.createServer((req, res) => {
+      seen = req.headers;
+      if (req.url === "/hang") return; // never answers
+      res.writeHead(req.url === "/limited" ? 403 : 200, {
+        "content-type": "application/json",
+        link: '<http://localhost/next>; rel="next"',
+        "x-ratelimit-remaining": "0",
+      });
+      res.end(JSON.stringify([{ name: "from-server" }]));
+    });
+    await new Promise<void>((resolve) =>
+      server.listen(0, "127.0.0.1", resolve),
+    );
+    base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  });
+
+  afterEach(async () => {
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+  });
+
+  it("returns a Response with status, headers and body, and sends the headers", async () => {
+    const res = await nodeFetch(`${base}/repos`, {
+      headers: { Authorization: "Bearer test-token", "User-Agent": "ua" },
+    });
+    expect(res.ok).toBe(true);
+    expect(res.headers.get("link")).toContain('rel="next"');
+    expect(await res.json()).toEqual([{ name: "from-server" }]);
+    expect(seen?.authorization).toBe("Bearer test-token");
+    expect(seen?.["user-agent"]).toBe("ua");
+  });
+
+  it("passes non-2xx statuses through for the caller to handle", async () => {
+    const res = await nodeFetch(`${base}/limited`, { headers: {} });
+    expect(res.status).toBe(403);
+    expect(res.headers.get("x-ratelimit-remaining")).toBe("0");
+  });
+
+  it("rejects when the signal aborts", async () => {
+    await expect(
+      nodeFetch(`${base}/hang`, {
+        headers: {},
+        signal: AbortSignal.timeout(50),
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("is what getPublicRepos uses by default, not the global fetch", async () => {
+    await writeFile(cachePath, serializeCache([], daysAgo(1)));
+    const globalFetch = vi.spyOn(globalThis, "fetch");
+    const httpsGet = vi.spyOn(https, "get").mockImplementation(() => {
+      throw new Error("stubbed node:https");
+    });
+    const logger = silentLogger();
+    try {
+      await getPublicRepos({ cachePath, logger, offline: false, now });
+      expect(httpsGet).toHaveBeenCalledOnce();
+      expect(String(httpsGet.mock.calls[0][0])).toBe(REPOS_API_URL);
+      expect(globalFetch).not.toHaveBeenCalled();
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("stubbed node:https"),
+      );
+    } finally {
+      httpsGet.mockRestore();
+      globalFetch.mockRestore();
+    }
+  });
+
+  it("rejects a response body over the size cap", async () => {
+    const big = http.createServer((_req, res) => {
+      res.writeHead(200);
+      res.end(Buffer.alloc(MAX_RESPONSE_BYTES + 1));
+    });
+    await new Promise<void>((resolve) => big.listen(0, "127.0.0.1", resolve));
+    const port = (big.address() as AddressInfo).port;
+    try {
+      await expect(
+        nodeFetch(`http://127.0.0.1:${port}/`, { headers: {} }),
+      ).rejects.toThrow(/larger than/);
+    } finally {
+      big.closeAllConnections();
+      await new Promise((resolve) => big.close(resolve));
+    }
+  });
+
+  it("returns a redirect as is instead of following it", async () => {
+    const redirect = http.createServer((_req, res) => {
+      res.writeHead(301, { location: "http://127.0.0.1:1/elsewhere" });
+      res.end();
+    });
+    await new Promise<void>((resolve) =>
+      redirect.listen(0, "127.0.0.1", resolve),
+    );
+    const port = (redirect.address() as AddressInfo).port;
+    try {
+      const res = await nodeFetch(`http://127.0.0.1:${port}/`, { headers: {} });
+      expect(res.status).toBe(301);
+    } finally {
+      redirect.closeAllConnections();
+      await new Promise((resolve) => redirect.close(resolve));
+    }
+  });
+});
+
+describe("escapeAnnotation", () => {
+  it("escapes %, CR and LF so an error can't inject a workflow command", () => {
+    expect(escapeAnnotation("50% off\r\n::error::boom")).toBe(
+      "50%25 off%0D%0A::error::boom",
+    );
+  });
+
+  it("is applied to annotated warnings", async () => {
+    await writeFile(cachePath, serializeCache([], daysAgo(1)));
+    const logger = silentLogger();
+    await getPublicRepos({
+      fetch: async () => {
+        throw new Error("bad\n::error::injected");
+      },
+      cachePath,
+      logger,
+      offline: false,
+      now,
+      annotate: true,
+    });
+    const line = logger.warn.mock.calls[0][0] as string;
+    expect(line).not.toContain("\n");
+    expect(line).toContain("bad%0A::error::injected");
   });
 });
