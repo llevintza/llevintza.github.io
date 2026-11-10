@@ -1,0 +1,28 @@
+---
+title: Unlistd
+slug: unlistd
+summary: A self-hosted data-broker PII removal pipeline that keeps profiles, keys and audit trails in your own AWS account. Early MVP.
+stack:
+  - TypeScript
+  - Next.js
+  - Prisma
+  - AWS CDK
+  - SQS/Lambda/Fargate
+  - Playwright
+repo: https://github.com/llevintza/unlistd
+---
+
+## Problem
+
+Data brokers and people-search sites publish personal details, and getting removed means filing and tracking requests site by site. Commercial removal services do this for you, but they are opaque, and they hold the very profile you are trying to protect.
+
+## Approach
+
+Unlistd is an open-source toolkit that a household runs in its own AWS account, so profiles, keys and audit trails stay under its control. It automates removals where automation is reliable and keeps an explicit "needs manual" path for sites that fight bots.
+
+- **Dashboard:** a Next.js app with Auth.js and encrypted profiles.
+- **Broker catalog:** brokers described in YAML with adapters for email, form and manual removal, starting with 11 seed brokers.
+- **Workers:** email and Playwright form workers behind an SQS queue, plus recurrence and inbound handlers.
+- **Infrastructure:** AWS CDK stacks for the queue, Lambda and Fargate workers.
+
+The project is an early MVP and says so: the local app works (with mock workers for development), the workers still need live evaluation, and measured removal success rates are deliberately not claimed until a later phase. Living docs track vision, features with evaluation criteria, roadmap and an honest "what works today" assessment.

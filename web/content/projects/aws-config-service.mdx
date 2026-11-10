@@ -1,0 +1,25 @@
+---
+title: AWS Config Service
+slug: aws-config-service
+summary: A multi-tenant configuration REST API with a Fastify, DynamoDB and filesystem layered design. v1.0.3.
+stack:
+  - TypeScript
+  - Fastify
+  - DynamoDB
+  - OpenAPI
+repo: https://github.com/llevintza/aws-config-service
+---
+
+## Problem
+
+Multi-tenant cloud applications need configuration per tenant, per region and per service. Spread across environment variables and files, that quickly becomes inconsistent and hard to audit.
+
+## Approach
+
+A single REST API that organises configuration by tenant, cloud region and service, in three layers:
+
+- **API layer:** Fastify handles routing and input validation, and publishes interactive Swagger UI documentation from the OpenAPI definition.
+- **Service layer:** validation, business logic and response formatting.
+- **Storage layer:** pluggable backends, either the filesystem, DynamoDB, or a hybrid of both.
+
+It is built to run in containers, with health checks, logging and monitoring, and CI with build and security scans. The current release is v1.0.3.
