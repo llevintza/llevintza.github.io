@@ -40,7 +40,7 @@ export type About = {
   certifications: readonly Certification[];
   education: readonly Education[];
   languages: Languages;
-  /** One-line analytics note (ADR 0002, #58). */
+  /** One-line analytics note (ADR 0002, #58); renders only while analytics runs. */
   privacyNote: string;
 };
 
