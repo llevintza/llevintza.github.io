@@ -20,7 +20,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 concurrency:
   group: repo-cache
@@ -31,6 +30,10 @@ jobs:
     name: Repo cache age
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # Only this job writes issues; the top level stays read-only.
+    permissions:
+      contents: read
+      issues: write
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
@@ -51,7 +54,8 @@ jobs:
             web/scripts/refresh-repos.mjs
           sparse-checkout-cone-mode: false
 
-      # The check imports only node: built-ins, so no pnpm install is needed.
+      # The check imports only node: built-ins (repos.ts too, enforced by
+      # scripts/__tests__/refresh-repos.test.ts), so no pnpm install is needed.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: web/.nvmrc
