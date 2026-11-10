@@ -13,6 +13,27 @@ test.describe("every route", () => {
       // Exactly one visible main heading.
       await expect(page.locator("h1:visible")).toHaveCount(1);
 
+      // Console theme basics (R62-02): next-themes set data-theme on <html>.
+      await expect(page.locator("html")).toHaveAttribute(
+        "data-theme",
+        /^(dark|light)$/,
+      );
+
+      // Self-hosted fonts: at least one loaded, none failed. Any font request
+      // to an external host already fails the test via the hermetic fixture.
+      const fonts = await page.evaluate(async () => {
+        await document.fonts.ready;
+        const faces = [...document.fonts];
+        return {
+          loaded: faces.filter((f) => f.status === "loaded").length,
+          failed: faces
+            .filter((f) => f.status === "error")
+            .map((f) => `${f.family} ${f.weight} ${f.style}`),
+        };
+      });
+      expect(fonts.failed, `fonts that failed to load on ${route}`).toEqual([]);
+      expect(fonts.loaded, `loaded fonts on ${route}`).toBeGreaterThan(0);
+
       // No broken images.
       const images = page.locator("img");
       for (const img of await images.all()) {

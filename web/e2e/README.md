@@ -29,7 +29,9 @@ Two projects run every spec:
 
 - **`smoke.spec.ts`**: for every route: HTTP 200, exactly one visible `<h1>`,
   no broken images (each `img` is complete with `naturalWidth > 0`), and no
-  console errors or uncaught page errors.
+  console errors or uncaught page errors. It also checks the console theme
+  basics: `<html>` has `data-theme` (`dark` or `light`), and the self-hosted
+  fonts load (at least one loaded, none failed).
   - A theme test checks that the toggle flips `[data-theme]` and that the
     choice persists across reloads.
   - The phone navigation test (the nav reaches every top-level page) is
