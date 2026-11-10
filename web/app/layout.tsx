@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   description: "Blog and portfolio of Leo Levintza.",
 };
 
+// Browser UI colour follows the system setting. The hex values must equal
+// --bg in app/globals.css; `pnpm check:contrast` fails if they drift.
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#0b1118" },
