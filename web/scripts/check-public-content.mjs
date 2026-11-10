@@ -10,6 +10,10 @@
  *
  * Rules: README.md "Public content rules", from llevintza/llevintza CLAUDE.md.
  *
+ * Scans .html, .xml, .txt and .vtt files, so a private case study page (#111)
+ * fails if any of its text, props, alt text, captions or RSC payload link
+ * the repo.
+ *
  * Usage: node scripts/check-public-content.mjs [outDir]   (default: out/)
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -19,7 +23,8 @@ import { fileURLToPath } from "node:url";
 const OWNER = "llevintza";
 // Private repos that are never featured but must not be linked either.
 export const ALWAYS_PRIVATE_REPOS = ["llevintza.github.io"];
-const SCANNED_EXTENSIONS = new Set([".html", ".xml", ".txt"]);
+// .vtt: video captions are published text too (#111).
+const SCANNED_EXTENSIONS = new Set([".html", ".xml", ".txt", ".vtt"]);
 
 // Consumer mail providers. Work or custom domains are only caught via mailto:.
 const CONSUMER_MAIL_DOMAINS = [
@@ -190,7 +195,7 @@ function* walk(dir) {
   }
 }
 
-/** Scan every .html/.xml/.txt file under outDir. */
+/** Scan every .html/.xml/.txt/.vtt file under outDir. */
 export function checkDir(outDir, { privateRepos = [] } = {}) {
   const files = [...walk(outDir)].sort();
   const findings = [];
@@ -231,7 +236,7 @@ function main() {
   const { files, findings } = checkDir(outDir, { privateRepos });
   if (files.length === 0) {
     console.error(
-      `check-public-content: no .html/.xml/.txt files under ${outDir}.`,
+      `check-public-content: no .html/.xml/.txt/.vtt files under ${outDir}.`,
     );
     process.exit(2);
   }
