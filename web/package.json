@@ -15,6 +15,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:contrast": "node scripts/check-contrast.mjs",
+    "check:public-content": "node scripts/check-public-content.mjs",
+    "test:public-content": "node --test scripts/__tests__/check-public-content.test.mjs",
     "lhci": "pnpm dlx @lhci/cli@0.16.0"
   },
   "dependencies": {
