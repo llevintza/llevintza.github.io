@@ -22,6 +22,10 @@ const PAIRS = [
     SURFACES.map((bg) => ({ fg, bg, min: 4.5, note: "text" })),
   ),
   { fg: "btn-ink", bg: "btn-bg", min: 4.5, note: "button text" },
+  // Console theme (#61): inverse video (hover links, ::selection, table
+  // headers, tags) and window title bars.
+  { fg: "inverse-ink", bg: "inverse-bg", min: 4.5, note: "inverse video" },
+  { fg: "titlebar-ink", bg: "titlebar-bg", min: 4.5, note: "title bar" },
   // Large display text only (>= 24px, or >= 18.66px bold) may use 3:1.
   // None of the body/meta tokens rely on this; add pairs here if they do.
   // Non-text UI (WCAG 1.4.11): the focus ring must reach 3:1.
@@ -134,7 +138,7 @@ for (const [name, vars] of Object.entries(themes)) {
     const ratio = contrast(parseColor(vars[fg]), parseColor(vars[bg]));
     const ok = ratio >= min;
     if (!ok) failed = true;
-    const line = `  ${ok ? "✓" : "✗"} ${`--${fg}`.padEnd(10)} on ${`--${bg}`.padEnd(9)} ${ratio.toFixed(2).padStart(5)}:1  (min ${min}:1, ${note})`;
+    const line = `  ${ok ? "✓" : "✗"} ${`--${fg}`.padEnd(14)} on ${`--${bg}`.padEnd(13)} ${ratio.toFixed(2).padStart(5)}:1  (min ${min}:1, ${note})`;
     (ok ? console.log : console.error)(line);
   }
 }

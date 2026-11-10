@@ -35,6 +35,12 @@
   --mesh-1: rgba(52, 152, 219, 0.35);
   --mesh-2: rgba(44, 62, 80, 0.85);
   --mesh-3: rgba(93, 173, 226, 0.18);
+  --dot: rgba(52, 152, 219, 0.14);
+  --inverse-bg: #3498db;
+  --inverse-ink: #0b1118;
+  --titlebar-bg: #d5dee7;
+  --titlebar-ink: #0b1118;
+  --shadow-ink: rgba(0, 0, 0, 0.6);
   color-scheme: dark;
 }
 
@@ -59,6 +65,12 @@
     --mesh-1: rgba(52, 152, 219, 0.22);
     --mesh-2: rgba(44, 62, 80, 0.1);
     --mesh-3: rgba(52, 152, 219, 0.12);
+    --dot: rgba(44, 62, 80, 0.12);
+    --inverse-bg: #2c3e50;
+    --inverse-ink: #ffffff;
+    --titlebar-bg: #2c3e50;
+    --titlebar-ink: #f7f9fb;
+    --shadow-ink: rgba(44, 62, 80, 0.35);
     color-scheme: light;
   }
 }
@@ -83,6 +95,12 @@
   --mesh-1: rgba(52, 152, 219, 0.22);
   --mesh-2: rgba(44, 62, 80, 0.1);
   --mesh-3: rgba(52, 152, 219, 0.12);
+  --dot: rgba(44, 62, 80, 0.12);
+  --inverse-bg: #2c3e50;
+  --inverse-ink: #ffffff;
+  --titlebar-bg: #2c3e50;
+  --titlebar-ink: #f7f9fb;
+  --shadow-ink: rgba(44, 62, 80, 0.35);
   color-scheme: light;
 }
 
@@ -137,32 +155,84 @@
   --color-mesh-1: var(--mesh-1);
   --color-mesh-2: var(--mesh-2);
   --color-mesh-3: var(--mesh-3);
-
-  /* Geist, self-hosted by next/font (variables set on <html> in layout.tsx). */
-  --font-sans:
-    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono:
-    var(--font-geist-mono), ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
-    Consolas, monospace;
+  --color-dot: var(--dot);
+  --color-inverse-bg: var(--inverse-bg);
+  --color-inverse-ink: var(--inverse-ink);
+  --color-titlebar-bg: var(--titlebar-bg);
+  --color-titlebar-ink: var(--titlebar-ink);
+  --color-shadow-ink: var(--shadow-ink);
 }
 
-@theme {
-  /* Minor-third (1.2) scale on 16px, plus a fluid display size. */
+/*
+ * Console-style theme (#60 spec, #61): fonts, type scale, base element
+ * styles and effect primitives. Palette above is unchanged from #7.
+ *
+ * `static`: always emit these variables, even before a component uses them,
+ * so pages and later components (#8, #9, #12) can rely on var(--...).
+ */
+@theme static {
+  /*
+   * Fonts, self-hosted by next/font (lib/theme/fonts.ts sets the variables on
+   * <html>). Not `inline`, so --font-prose stays a live variable: set it to
+   * var(--font-prose-sans) to flip body text back to Geist Sans.
+   */
+  --font-*: initial;
+  --font-mono:
+    var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, Consolas,
+    monospace;
+  --font-mono-italic:
+    var(--font-jetbrains-mono-italic), var(--font-jetbrains-mono), ui-monospace,
+    "SF Mono", Menlo, Consolas, monospace;
+  --font-pixel: var(--font-departure-mono), var(--font-mono);
+  --font-prose-sans:
+    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-prose-sans);
+  --font-prose: var(--font-mono);
+
+  /* Type scale (#60 §3): minor third, steps retuned for mono's wide glyphs. */
   --text-*: initial;
+  --text-micro: 0.75rem;
+  --text-micro--line-height: 1.4;
+  --text-micro--letter-spacing: 0.05em;
+  --text-micro--font-weight: 300;
   --text-sm: 0.8125rem;
   --text-sm--line-height: 1.5;
+  --text-sm--letter-spacing: 0.02em;
+  --text-sm--font-weight: 400;
   --text-base: 1rem;
-  --text-base--line-height: 1.65;
+  --text-base--line-height: 1.7;
+  --text-base--letter-spacing: 0;
+  --text-base--font-weight: 400;
+  --text-prose: 1.0625rem;
+  --text-prose--line-height: 1.75;
+  --text-prose--letter-spacing: 0;
+  --text-prose--font-weight: 400;
   --text-lg: 1.2rem;
   --text-lg--line-height: 1.5;
+  --text-lg--letter-spacing: -0.005em;
+  --text-lg--font-weight: 500;
   --text-xl: 1.44rem;
   --text-xl--line-height: 1.35;
-  --text-2xl: 1.75rem;
+  --text-xl--letter-spacing: -0.01em;
+  --text-xl--font-weight: 600;
+  --text-2xl: 1.728rem;
   --text-2xl--line-height: 1.25;
-  --text-display: clamp(2.3rem, 4.5vw + 1rem, 4rem);
+  --text-2xl--letter-spacing: -0.015em;
+  --text-2xl--font-weight: 600;
+  --text-display: clamp(2rem, 3.5vw + 1rem, 3.5rem);
   --text-display--line-height: 1.05;
-  --text-display--letter-spacing: -0.03em;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 700;
+  /* Departure Mono is only crisp at multiples of 11px. */
+  --text-chrome: 0.6875rem;
+  --text-chrome--line-height: 1;
+  --text-chrome--letter-spacing: 0;
+  --text-chrome--font-weight: 400;
+  --text-chrome-2x: 1.375rem;
+  --text-chrome-2x--line-height: 1;
+  --text-chrome-2x--letter-spacing: 0;
+  --text-chrome-2x--font-weight: 400;
 
   /* Spacing: Tailwind's 4px step (p-4 = 1rem) plus layout names. */
   --spacing: 0.25rem;
@@ -170,30 +240,83 @@
   --spacing-section: 5rem;
   --spacing-grid: 32px;
   --container-wrap: 1200px;
+  --container-measure: 72ch;
   --container-prose: 68ch;
 
-  /* Radius. */
+  /* Hard edges everywhere; `full` is kept for true circles only. */
   --radius-*: initial;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
+  --radius: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
   --radius-full: 9999px;
+
+  /* Hard 2px drop shadow for windows, cards and buttons (`shadow-hard`). */
+  --shadow-*: initial;
+  --shadow-hard: 2px 2px 0 var(--shadow-ink);
 }
 
 @layer base {
-  body {
-    background-color: var(--bg);
-    background-image:
-      linear-gradient(var(--grid) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-    background-size: var(--spacing-grid) var(--spacing-grid);
-    color: var(--ink);
-    font-family: var(--font-sans);
-    font-size: var(--text-base);
-    line-height: var(--text-base--line-height);
+  html {
+    /* Italic face for em/i/cite: pair with --font-prose (see below). */
+    --font-em: var(--font-mono-italic);
+    text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--bg);
+    /* Dot grid: one dot per 32px cell (replaces B's line grid). */
+    background-image: radial-gradient(var(--dot) 1px, transparent 1.5px);
+    background-size: var(--spacing-grid) var(--spacing-grid);
+    color: var(--ink);
+    font-family: var(--font-prose);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+
+  @media (prefers-contrast: more) {
+    body {
+      background-image: none;
+    }
+  }
+
+  @media print {
+    body {
+      background: none;
+    }
+  }
+
+  /* Default page frame for bare <main> elements; utilities override it. */
+  :where(body > main) {
+    margin-inline: auto;
+    max-inline-size: var(--container-wrap);
+    padding: 2.5rem 1rem 4rem;
+  }
+
+  @media (min-width: 40rem) {
+    :where(body > main) {
+      padding-inline: var(--spacing-gutter);
+      padding-block-start: 4rem;
+    }
+  }
+
+  /* Vertical rhythm inside main (zero specificity: components reset it). */
+  :where(main) :where(p, ul, ol, dl, pre, table, blockquote, figure, hr) {
+    margin-block: 0;
+  }
+
+  :where(main)
+    :where(*)
+    + :where(p, ul, ol, dl, pre, table, blockquote, figure) {
+    margin-block-start: 1.25rem;
+  }
+
+  /* Readable measure for running text: about 72 characters of mono. */
+  :where(main) :where(p, li, blockquote, dd, figcaption) {
+    max-inline-size: var(--container-measure);
   }
 
   h1,
@@ -201,15 +324,299 @@
   h3,
   h4 {
     color: var(--head);
+    font-family: var(--font-mono);
+    text-wrap: balance;
+  }
+
+  h1 {
+    font-size: var(--text-display);
+    line-height: var(--text-display--line-height);
+    letter-spacing: var(--text-display--letter-spacing);
+    font-weight: var(--text-display--font-weight);
+  }
+
+  h2 {
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+    letter-spacing: var(--text-2xl--letter-spacing);
+    font-weight: var(--text-2xl--font-weight);
+  }
+
+  h3 {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+    letter-spacing: var(--text-xl--letter-spacing);
+    font-weight: var(--text-xl--font-weight);
+  }
+
+  h4 {
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
+    letter-spacing: var(--text-lg--letter-spacing);
+    font-weight: var(--text-lg--font-weight);
+  }
+
+  :where(main) :where(*) + :where(h1, h2, h3, h4) {
+    margin-block-start: 2.5rem;
+  }
+
+  :where(main) :where(h1, h2, h3, h4) + :where(*) {
+    margin-block-start: 1rem;
+  }
+
+  /* Heading markers used by the opt-in `heading-marker` utility. */
+  h1 {
+    --marker: "# ";
+  }
+  h2 {
+    --marker: "## ";
+  }
+  h3 {
+    --marker: "### ";
+  }
+  h4 {
+    --marker: "#### ";
+  }
+
+  strong,
+  b {
+    color: var(--head);
+    font-weight: 700;
+  }
+
+  /*
+   * Italics: JetBrains Mono's real italic (a separate, non-preloaded family)
+   * in mono contexts, Geist Sans italic in sans contexts.
+   */
+  :where(em, i, cite, dfn, var, address) {
+    font-family: var(--font-em);
+    font-style: italic;
+  }
+
+  :where(h1, h2, h3, h4, code, kbd, samp, pre, table, .font-mono) {
+    --font-em: var(--font-mono-italic);
+  }
+
+  :where(.font-sans, .font-prose-sans) {
+    --font-em: var(--font-prose-sans);
   }
 
   a {
     color: var(--link);
-    text-underline-offset: 3px;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  /* Inverse-video hover for plain content links (components style their own). */
+  :where(a:not([class])):hover {
+    background-color: var(--inverse-bg);
+    color: var(--inverse-ink);
+    text-decoration-color: transparent;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
   }
 
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--inverse-bg);
+    color: var(--inverse-ink);
+  }
+
+  /*
+   * Content lists (unclassed, e.g. from MDX); components keep preflight's
+   * reset. Not :where(): these must outrank preflight's `ul { list-style }`.
+   */
+  ul:not([class]) {
+    list-style: "- " outside;
+    padding-inline-start: 2ch;
+  }
+
+  ul:not([class]) ul:not([class]) {
+    list-style-type: "› ";
+  }
+
+  ol:not([class]) {
+    list-style: decimal-leading-zero outside;
+    padding-inline-start: 4ch;
+  }
+
+  :where(ul:not([class]), ol:not([class])) > li::marker {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :where(ul:not([class]), ol:not([class])) > li + li {
+    margin-block-start: 0.375rem;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+    font-variant-ligatures: none;
+  }
+
+  :where(:not(pre) > code) {
+    background-color: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.1em 0.35em;
+    font-size: 0.875em;
+    color: var(--ink);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  kbd {
+    background-color: var(--panel-2);
+    border: 1px solid var(--line);
+    box-shadow: 1px 1px 0 var(--shadow-ink);
+    padding: 0.05em 0.4em;
+    font-size: 0.875em;
+  }
+
+  pre {
+    background-color: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--ink);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    padding: 1rem 1.25rem;
+    tab-size: 2;
+  }
+
+  table {
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+    max-inline-size: 100%;
+  }
+
+  th,
+  td {
+    border-block-end: 1px solid var(--line);
+    padding: 0.5rem 1rem 0.5rem 0.75rem;
+    text-align: start;
+    vertical-align: top;
+  }
+
+  thead th {
+    background-color: var(--inverse-bg);
+    color: var(--inverse-ink);
+    font-weight: 600;
+    border-block-end-color: var(--inverse-bg);
+  }
+
+  hr {
+    border: 0;
+    border-block-start: 1px dashed var(--line);
+    margin-block: 2.5rem;
+  }
+
+  blockquote {
+    border-inline-start: 2px dashed var(--muted);
+    color: var(--ink);
+    padding-inline-start: 1.25rem;
+  }
+
+  time,
+  data,
+  meter,
+  progress {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/*
+ * Primitives for #8 / #9 / #12. Always generated so they work before any
+ * component uses them (and in the base-styles specimen).
+ */
+@source inline("measure measure-prose bg-dots inverse heading-marker cursor-block glow shadow-hard font-pixel text-chrome text-chrome-2x");
+
+/* --- Layout utilities --------------------------------------------------- */
+
+/* Readable measure: 72ch for body text, 68ch for long-form prose. */
+@utility measure {
+  max-inline-size: var(--container-measure);
+}
+
+@utility measure-prose {
+  max-inline-size: var(--container-prose);
+}
+
+/* --- Effect primitives (#60 §4) ----------------------------------------- */
+
+/* Dot-grid background for any surface; off under more contrast and in print. */
+@utility bg-dots {
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.5px);
+  background-size: var(--spacing-grid) var(--spacing-grid);
+
+  @media (prefers-contrast: more) {
+    background-image: none;
+  }
+  @media print {
+    background-image: none;
+  }
+}
+
+/* Inverse video: light-on-dark label block (selected nav, tags, tokens). */
+@utility inverse {
+  background-color: var(--inverse-bg);
+  color: var(--inverse-ink);
+}
+
+/* Opt-in Markdown-style heading prefix (`## `), hidden from assistive tech. */
+@utility heading-marker {
+  &::before {
+    content: var(--marker, "## ");
+    content: var(--marker, "## ") / "";
+    color: var(--muted);
+    font-weight: 400;
+  }
+}
+
+/*
+ * Block cursor. Static and solid by default (the reduced-motion state); it
+ * blinks only when the visitor has no motion preference. Always decorative:
+ * render it with aria-hidden="true".
+ */
+@utility cursor-block {
+  display: inline-block;
+  inline-size: 0.6em;
+  block-size: 1.1em;
+  background-color: var(--accent);
+  vertical-align: -0.15em;
+  margin-inline-start: 0.15em;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: cursor-blink 1s steps(1, end) infinite;
+  }
+}
+
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/*
+ * Phosphor glow: dark theme only, and only with no motion or contrast
+ * preference. Without it the text renders crisp (the static state).
+ */
+@utility glow {
+  @media (prefers-reduced-motion: no-preference) and (prefers-contrast: no-preference) {
+    @variant dark {
+      text-shadow: 0 0 0.35em color-mix(in srgb, var(--accent) 45%, transparent);
+    }
   }
 }

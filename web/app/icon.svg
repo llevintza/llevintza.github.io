@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Console prompt: a chevron and a block cursor on the dark palette. -->
+  <rect width="32" height="32" fill="#0b1118"/>
+  <rect x="0.5" y="0.5" width="31" height="31" fill="none" stroke="#22313f"/>
+  <path d="M7 9 L14 16 L7 23" fill="none" stroke="#5dade2" stroke-width="3" stroke-linecap="square"/>
+  <rect x="17" y="20" width="9" height="4" fill="#3498db"/>
+</svg>

@@ -1,10 +1,9 @@
-import { GeistMono } from "geist/font/mono";
-import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { fontVariables } from "@/lib/theme/fonts";
 
 import "./globals.css";
 
@@ -27,12 +26,8 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     // next-themes sets data-theme on <html> before hydration.
-    <html
-      lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
-      suppressHydrationWarning
-    >
-      <body className="min-h-dvh bg-bg font-sans text-ink">
+    <html lang="en" className={fontVariables} suppressHydrationWarning>
+      <body className="min-h-dvh bg-bg font-prose text-ink">
         <ThemeProvider>
           {/* Temporary placement; the site header (#8) will own this. */}
           <div className="flex justify-end px-4 pt-4">
