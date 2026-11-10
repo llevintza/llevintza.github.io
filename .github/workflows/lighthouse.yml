@@ -81,6 +81,10 @@ jobs:
       - name: Build
         if: steps.changes.outputs.web == 'true'
         run: pnpm build
+        env:
+          # Build /projects/ from the committed repo cache, not the live
+          # GitHub API, so the scores don't depend on it (#22).
+          REPOS_OFFLINE: "1"
 
       # `pnpm lhci` runs @lhci/cli (pinned in package.json) through pnpm dlx.
       - name: Collect (3 runs per URL, mobile)

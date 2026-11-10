@@ -1,18 +1,25 @@
 import { readFile, writeFile } from "node:fs/promises";
+import http from "node:http";
+import https from "node:https";
 import path from "node:path";
 
 /**
  * Every public repo, fetched from the GitHub API at build time (#22).
  *
- * The build must never fail because of the API: on any error, rate limit or
- * malformed response it falls back to the last good list in
- * `content/repos.cache.json` (committed) and logs a warning. A successful
- * fetch rewrites that file when the list changed.
+ * An API problem never empties /projects/: on any error, rate limit or
+ * malformed response the build falls back to the last good list in
+ * `content/repos.cache.json` (committed) and logs a warning. A cache older
+ * than 14 days (`fetchedAt`) is still used, with a louder warning, since a
+ * repo may have gone private since that snapshot: refresh and commit it. With
+ * no usable cache at all the build fails, so a deploy keeps the last good
+ * site. In GitHub Actions the warnings are `::warning::` annotations. A
+ * successful fetch rewrites the cache file when the list changed. The cache
+ * stores no URLs; repo and Pages links are always rebuilt from the validated
+ * repo name.
  *
- * The cache is trusted for 14 days only (`fetchedAt`): a repo made private
- * after that snapshot must not stay linked from the public site, so an older
- * cache renders the empty state instead. The cache stores no URLs; repo and
- * Pages links are always rebuilt from the validated repo name.
+ * The API is called through `node:https`, not the global `fetch`: Next.js
+ * patches that one and stores responses in `.next/cache/fetch-cache`, which CI
+ * restores between runs, so a build could render a stale API response.
  *
  * Set `REPOS_OFFLINE=1` to skip the API and build from the cache only, at any
  * age (hermetic e2e and Lighthouse runs; never set it for a deploy).
@@ -40,7 +47,7 @@ export const DEFAULT_CACHE_PATH = path.join(
 const MAX_PAGES = 10;
 const TIMEOUT_MS = 15_000;
 const DAY_MS = 24 * 60 * 60 * 1000;
-/** Older caches are not rendered (a repo may have gone private since). */
+/** Older caches still render, but with a stale-cache warning. */
 export const MAX_CACHE_AGE_MS = 14 * DAY_MS;
 /** Refresh `fetchedAt` at most this often when the list is unchanged. */
 const CACHE_REFRESH_MS = DAY_MS;
@@ -83,8 +90,15 @@ export type ApiRepo = {
 
 export type Logger = Pick<Console, "warn" | "info">;
 
+/** The part of `fetch` this module uses: a GET with headers and a signal. */
+export type FetchLike = (
+  url: string,
+  init: { headers: Record<string, string>; signal?: AbortSignal },
+) => Promise<Response>;
+
 export type GetPublicReposOptions = {
-  fetch?: typeof globalThis.fetch;
+  /** Defaults to `nodeFetch`, which bypasses Next's fetch cache. */
+  fetch?: FetchLike;
   token?: string;
   cachePath?: string;
   logger?: Logger;
@@ -93,6 +107,8 @@ export type GetPublicReposOptions = {
   writeCache?: boolean;
   /** Clock for the cache age check and `fetchedAt` (tests). */
   now?: () => Date;
+  /** Emit warnings as GitHub Actions `::warning::` annotations. */
+  annotate?: boolean;
 };
 
 const REPO_NAME_RE = /^[\w.-]+$/;
@@ -187,6 +203,42 @@ export function assertPublicOnly(
 
 class ApiError extends Error {}
 
+/**
+ * A GET over `node:http(s)`, returning a standard `Response`. Unlike the
+ * global `fetch`, which Next.js patches, it never reads or writes
+ * `.next/cache/fetch-cache`, so every build sees the live API.
+ */
+export const nodeFetch: FetchLike = (url, { headers, signal }) =>
+  new Promise<Response>((resolve, reject) => {
+    const target = new URL(url);
+    const client = target.protocol === "http:" ? http : https;
+    const req = client.get(target, { headers, signal }, (res) => {
+      const chunks: Buffer[] = [];
+      res.on("data", (chunk: Buffer) => chunks.push(chunk));
+      res.on("error", reject);
+      res.on("end", () => {
+        try {
+          const out = new Headers();
+          for (const [name, value] of Object.entries(res.headers)) {
+            for (const v of Array.isArray(value) ? value : [value]) {
+              if (v !== undefined) out.append(name, v);
+            }
+          }
+          resolve(
+            new Response(Buffer.concat(chunks), {
+              status: res.statusCode ?? 502,
+              statusText: res.statusMessage ?? "",
+              headers: out,
+            }),
+          );
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+    req.on("error", reject);
+  });
+
 function nextPageUrl(link: string | null): string | null {
   const match = link?.match(/<([^>]+)>;\s*rel="next"/);
   return match ? match[1] : null;
@@ -194,7 +246,7 @@ function nextPageUrl(link: string | null): string | null {
 
 /** Every page of the owner's repos. Throws on any HTTP or shape problem. */
 export async function fetchApiRepos(
-  fetchImpl: typeof globalThis.fetch,
+  fetchImpl: FetchLike,
   token?: string,
 ): Promise<ApiRepo[]> {
   const headers: Record<string, string> = {
@@ -328,21 +380,29 @@ async function writeCacheIfChanged(
 }
 
 /**
- * The rendered list of public repos. Never throws: falls back to the cache,
- * then to an empty list.
+ * The rendered list of public repos. Falls back to the cache, at any age, on
+ * an API problem. Throws only when there is no usable cache either, so the
+ * build fails instead of publishing an empty list.
  */
 export async function getPublicRepos(
   options: GetPublicReposOptions = {},
 ): Promise<PublicRepo[]> {
   const {
-    fetch: fetchImpl = globalThis.fetch,
+    fetch: fetchImpl = nodeFetch,
     token = process.env.GITHUB_TOKEN || undefined,
     cachePath = DEFAULT_CACHE_PATH,
     logger = console,
     offline = process.env.REPOS_OFFLINE === "1",
     writeCache = true,
     now = () => new Date(),
+    annotate = process.env.GITHUB_ACTIONS === "true",
   } = options;
+  const warn = (message: string) =>
+    logger.warn(
+      annotate
+        ? `::warning title=Repo list::${message}`
+        : `[repos] warning: ${message}`,
+    );
 
   let reason = "REPOS_OFFLINE=1";
   if (!offline) {
@@ -361,29 +421,31 @@ export async function getPublicRepos(
   }
 
   const cache = await readCache(cachePath);
-  if (cache) {
-    const repos = sortByPushedDesc(cache.repos.map(withLinks));
-    if (offline) return repos;
-    const ageMs = now().getTime() - Date.parse(cache.fetchedAt);
-    const ageDays = Math.floor(ageMs / DAY_MS);
-    // A future fetchedAt (typo, hand edit) is as untrustworthy as an old one.
-    if (ageMs >= 0 && ageMs <= MAX_CACHE_AGE_MS) {
-      logger.warn(
-        `[repos] warning: GitHub API ${reason}; using the cached repo list (${repos.length} repos, fetched ${cache.fetchedAt}).`,
-      );
-      return repos;
-    }
-    logger.warn(
-      ageMs < 0
-        ? `[repos] warning: GitHub API ${reason} and the cache fetchedAt (${cache.fetchedAt}) is in the future; rendering no repos.`
-        : `[repos] warning: GitHub API ${reason} and the cache is ${ageDays} days old (limit ${MAX_CACHE_AGE_MS / DAY_MS}); rendering no repos.`,
+  if (!cache) {
+    throw new Error(
+      offline
+        ? `[repos] REPOS_OFFLINE=1 but ${path.basename(cachePath)} is missing or invalid; failing the build rather than rendering no repos.`
+        : `[repos] GitHub API ${reason} and ${path.basename(cachePath)} is missing or invalid; failing the build rather than rendering no repos.`,
     );
-    return [];
   }
-  logger.warn(
-    `[repos] warning: GitHub API unavailable (${reason}) and no usable cache; rendering no repos.`,
-  );
-  return [];
+  const repos = sortByPushedDesc(cache.repos.map(withLinks));
+  if (offline) return repos;
+
+  const ageMs = now().getTime() - Date.parse(cache.fetchedAt);
+  const used = `using the cached repo list (${repos.length} repos, fetched ${cache.fetchedAt})`;
+  // A future fetchedAt (typo, hand edit) is as untrustworthy as an old one.
+  if (ageMs >= 0 && ageMs <= MAX_CACHE_AGE_MS) {
+    warn(`GitHub API ${reason}; ${used}.`);
+  } else {
+    const age =
+      ageMs < 0
+        ? "has a fetchedAt in the future"
+        : `is ${Math.floor(ageMs / DAY_MS)} days old (limit ${MAX_CACHE_AGE_MS / DAY_MS})`;
+    warn(
+      `GitHub API ${reason} and the cache ${age}; ${used}. A repo may have gone private since: refresh and commit ${path.basename(cachePath)}.`,
+    );
+  }
+  return repos;
 }
 
 let memo: Promise<PublicRepo[]> | undefined;
