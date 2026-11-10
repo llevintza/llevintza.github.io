@@ -1,0 +1,90 @@
+name: Public content
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-content-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  public-content:
+    # Keep this name stable: it is the check name on PRs.
+    name: Public content guardrail
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # No `paths:` filter, so the check always reports. When nothing that
+      # feeds the check changed, the build is skipped and the job passes.
+      - name: Detect relevant changes
+        id: changes
+        working-directory: .
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            range="$PR_BASE...$PR_HEAD"
+          elif [ -n "$PUSH_BEFORE" ] && ! printf '%s' "$PUSH_BEFORE" | grep -qE '^0+$'; then
+            range="$PUSH_BEFORE..$PUSH_AFTER"
+          else
+            echo "No usable diff base; running everything."
+            echo "web=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! changed="$(git diff --name-only "$range")"; then
+            echo "Could not diff $range; running everything."
+            echo "web=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if printf '%s\n' "$changed" | grep -qE '^(web/|_data/featured\.yml$|\.github/workflows/public-content\.yml$)'; then
+            echo "web=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "web/ unchanged in $range; skipping the build and check."
+            echo "web=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        if: steps.changes.outputs.web == 'true'
+        with:
+          package_json_file: web/package.json
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.changes.outputs.web == 'true'
+        with:
+          node-version-file: web/.nvmrc
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install
+        if: steps.changes.outputs.web == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        if: steps.changes.outputs.web == 'true'
+        run: pnpm build
+
+      - name: Test the guardrail
+        if: steps.changes.outputs.web == 'true'
+        run: pnpm test:public-content
+
+      - name: Check built output
+        if: steps.changes.outputs.web == 'true'
+        run: pnpm check:public-content
