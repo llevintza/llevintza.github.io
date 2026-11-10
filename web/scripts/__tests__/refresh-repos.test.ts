@@ -254,9 +254,10 @@ describe("runs without pnpm install (repo-cache.yml)", () => {
   const specifiers = (src: string) =>
     [
       ...src.matchAll(
-        /^\s*(?:import|export)\b[^;]*?\bfrom\s+["']([^"']+)["']/gm,
+        // `… from "x"`, a bare `import "x"`, and a dynamic `import("x")`.
+        /^\s*(?:import|export)\b[^;]*?\bfrom\s+["']([^"']+)["']|^\s*import\s+["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']/gm,
       ),
-    ].map((m) => m[1]);
+    ].map((m) => m[1] ?? m[2] ?? m[3]);
 
   it("repos.ts imports only node: built-ins and uses only erasable syntax", async () => {
     const src = await read("../../lib/projects/repos.ts");
