@@ -41,7 +41,12 @@ function newestBlogPostPath() {
   return `/blog/${posts[posts.length - 1]}/`;
 }
 
-const urls = ["http://localhost/", "http://localhost/projects/"];
+const urls = [
+  "http://localhost/",
+  "http://localhost/projects/",
+  // A case study with a screenshot (#24): <picture>, AVIF/WebP, lazy-loaded.
+  "http://localhost/projects/credit-desk-analytics/",
+];
 const post = newestBlogPostPath();
 if (post) {
   urls.push(`http://localhost${post}`);

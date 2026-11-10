@@ -1,0 +1,25 @@
+---
+title: OpenSwim
+slug: openswim
+summary: A free, ad-free operations platform for small-town swim teams. Phase 0, Go and Postgres API foundations.
+stack:
+  - Go
+  - PostgreSQL
+  - Next.js
+  - OpenAPI
+repo: https://github.com/llevintza/openswim
+---
+
+## Problem
+
+Small-town and summer-league swim teams usually stack several paid tools: one for rosters, chat and schedules, one for phone timing and scoring, and another for live heat sheets and results. Towns either cut features, pay for several apps, or both.
+
+## Approach
+
+OpenSwim aims to be one open stack for the whole meet weekend, from signing up swimmers to printing ribbon labels, and to stay free and ad-free.
+
+- **Meet day, paperless:** seed a dual meet and share the heat sheet, volunteers join a timing huddle by QR code as starter, timer or scorekeeper, times sync live, the scorekeeper verifies, and parents see results.
+- **Stack:** a Go API on Postgres with WebSockets, a Next.js web app, and native SwiftUI and Kotlin Compose apps for timing, because clock sync and deck reliability matter more than sharing code across platforms. Contracts are written in OpenAPI.
+- **Decisions in writing:** the domain model and the observability contract are fixed by ADRs before features land.
+
+It is in Phase 0: the docs, the monorepo layout and the Go API skeleton are in place, and the web and mobile apps are still scaffolds.
