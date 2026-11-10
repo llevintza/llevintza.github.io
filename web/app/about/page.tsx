@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PrivacyNote } from "@/components/analytics/privacy-note";
 import { ContactSection } from "@/components/contact/contact-section";
 import { about, formatLanguages, type RichLine } from "@/content/about";
 import { buildMetadata } from "@/lib/site/metadata";
@@ -24,7 +25,7 @@ function Line({ line }: { line: RichLine }) {
 export default function AboutPage() {
   return (
     <main>
-      <article>
+      <article className="pb-12">
         <h1>About</h1>
 
         <section aria-labelledby="bio">
@@ -80,7 +81,10 @@ export default function AboutPage() {
 
         <ContactSection />
 
-        <p className="mt-10 mb-12 text-sm text-muted">{about.privacyNote}</p>
+        {/* Only when analytics actually runs (#58). */}
+        <PrivacyNote className="mt-10 text-sm text-muted">
+          {about.privacyNote}
+        </PrivacyNote>
       </article>
     </main>
   );

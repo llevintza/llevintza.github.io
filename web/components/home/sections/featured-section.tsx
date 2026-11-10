@@ -1,3 +1,4 @@
+import { outboundProjectEvent } from "@/components/analytics/events";
 import { Stagger, StaggerItem } from "@/components/motion";
 import {
   Card,
@@ -34,7 +35,11 @@ function ProjectCard({ project }: { project: FeaturedProject }) {
       </CardBody>
       <CardFooter>
         {project.liveUrl ? (
-          <a href={project.liveUrl} className={footerLink}>
+          <a
+            href={project.liveUrl}
+            className={footerLink}
+            {...outboundProjectEvent(project.name, "live")}
+          >
             Live site
             <span className="sr-only">: {project.name}</span>
             <span aria-hidden="true">↗</span>
@@ -42,7 +47,11 @@ function ProjectCard({ project }: { project: FeaturedProject }) {
         ) : null}
         {/* Private repos are named only: the type forbids a repoUrl. */}
         {project.access === "public" ? (
-          <a href={project.repoUrl} className={footerLink}>
+          <a
+            href={project.repoUrl}
+            className={footerLink}
+            {...outboundProjectEvent(project.name, "repo")}
+          >
             Source
             <span className="sr-only">: {project.name} on GitHub</span>
             <span aria-hidden="true">↗</span>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { outboundProjectEvent } from "@/components/analytics/events";
 import { StackList } from "@/components/ui/tag";
 import { renderMdx } from "@/lib/content/mdx";
 import {
@@ -57,7 +58,12 @@ export default async function CaseStudyPage({ params }: Props) {
           <p>{study.summary}</p>
           <p>
             {study.access === "public" && study.repo ? (
-              <a href={study.repo}>Source on GitHub</a>
+              <a
+                href={study.repo}
+                {...outboundProjectEvent(study.slug, "repo")}
+              >
+                Source on GitHub
+              </a>
             ) : (
               <span>Source on request</span>
             )}
@@ -85,7 +91,12 @@ export default async function CaseStudyPage({ params }: Props) {
           <h2 id="live-heading">Live site</h2>
           {study.liveUrl ? (
             <p>
-              <a href={study.liveUrl}>{study.liveUrl}</a>
+              <a
+                href={study.liveUrl}
+                {...outboundProjectEvent(study.slug, "live")}
+              >
+                {study.liveUrl}
+              </a>
             </p>
           ) : (
             <p>No public demo yet.</p>

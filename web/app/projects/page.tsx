@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { outboundProjectEvent } from "@/components/analytics/events";
 import { AllRepos } from "@/components/projects/all-repos";
 import { StackList } from "@/components/ui/tag";
 import { getAllCaseStudies } from "@/lib/projects/case-studies";
@@ -45,12 +46,22 @@ export default async function ProjectsPage() {
             <p>
               {project.liveUrl ? (
                 <>
-                  <a href={project.liveUrl}>Live site</a>
+                  <a
+                    href={project.liveUrl}
+                    {...outboundProjectEvent(project.name, "live")}
+                  >
+                    Live site
+                  </a>
                   {" · "}
                 </>
               ) : null}
               {project.access === "public" ? (
-                <a href={project.repoUrl}>Source</a>
+                <a
+                  href={project.repoUrl}
+                  {...outboundProjectEvent(project.name, "repo")}
+                >
+                  Source
+                </a>
               ) : (
                 <span>Source on request</span>
               )}
