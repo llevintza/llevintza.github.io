@@ -13,7 +13,8 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "lhci": "pnpm dlx @lhci/cli@0.16.0"
   },
   "dependencies": {
     "next": "16.4.5",

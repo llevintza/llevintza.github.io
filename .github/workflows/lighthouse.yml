@@ -1,0 +1,190 @@
+name: Lighthouse
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: lighthouse-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lighthouse:
+    # Keep this name stable: it can become a required check on main.
+    name: Lighthouse budgets
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # The job always runs, so the check always reports. When web/ (and this
+      # workflow) are unchanged, the heavy steps are skipped and the job passes.
+      - name: Detect web/ changes
+        id: changes
+        working-directory: .
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            range="$PR_BASE...$PR_HEAD"
+          elif [ -n "$PUSH_BEFORE" ] && ! printf '%s' "$PUSH_BEFORE" | grep -qE '^0+$'; then
+            range="$PUSH_BEFORE..$PUSH_AFTER"
+          else
+            echo "No usable diff base; running everything."
+            echo "web=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! changed="$(git diff --name-only "$range")"; then
+            echo "Could not diff $range; running everything."
+            echo "web=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if printf '%s\n' "$changed" | grep -qE '^(web/|\.github/workflows/lighthouse\.yml$)'; then
+            echo "web=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "web/ unchanged in $range; skipping the Lighthouse run."
+            echo "web=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        if: steps.changes.outputs.web == 'true'
+        with:
+          package_json_file: web/package.json
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.changes.outputs.web == 'true'
+        with:
+          node-version-file: web/.nvmrc
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install
+        if: steps.changes.outputs.web == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        if: steps.changes.outputs.web == 'true'
+        run: pnpm build
+
+      # `pnpm lhci` runs @lhci/cli (pinned in package.json) through pnpm dlx.
+      - name: Collect (3 runs per URL, mobile)
+        if: steps.changes.outputs.web == 'true'
+        run: pnpm lhci collect
+
+      - name: Write reports
+        if: steps.changes.outputs.web == 'true'
+        run: pnpm lhci upload
+
+      # Don't fail yet: the reports and the PR comment must still go out.
+      - name: Check budgets
+        id: assert
+        if: steps.changes.outputs.web == 'true'
+        continue-on-error: true
+        run: pnpm lhci assert
+
+      - name: Upload reports
+        id: artifact
+        if: always() && steps.changes.outputs.web == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: lighthouse-reports
+          path: web/.lighthouseci/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Sticky PR comment
+        if: >-
+          always() && steps.changes.outputs.web == 'true' &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ARTIFACT_URL: ${{ steps.artifact.outputs.artifact-url }}
+          ASSERT_OUTCOME: ${{ steps.assert.outcome }}
+        with:
+          script: |
+            const fs = require('node:fs');
+            const MARKER = '[Lighthouse]';
+            // Keep in sync with web/lighthouserc.cjs.
+            const BUDGETS = [
+              ['performance', 'Performance', 0.95],
+              ['accessibility', 'Accessibility', 1],
+              ['best-practices', 'Best Practices', 0.95],
+              ['seo', 'SEO', 1],
+            ];
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const artifactUrl = process.env.ARTIFACT_URL || runUrl;
+
+            let manifest = [];
+            try {
+              manifest = JSON.parse(fs.readFileSync('web/.lighthouseci/reports/manifest.json', 'utf8'));
+            } catch (e) {
+              core.warning(`No Lighthouse manifest: ${e.message}`);
+            }
+
+            // Median per URL and category, matching the assertions' aggregation.
+            const byPath = new Map();
+            for (const run of manifest) {
+              const p = new URL(run.url).pathname;
+              if (!byPath.has(p)) byPath.set(p, []);
+              byPath.get(p).push(run.summary);
+            }
+            const median = (xs) => {
+              const s = [...xs].sort((a, b) => a - b);
+              const m = Math.floor(s.length / 2);
+              return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+            };
+
+            const header = `| URL | ${BUDGETS.map(([, label, min]) => `${label} (≥ ${Math.round(min * 100)})`).join(' | ')} |`;
+            const sep = `|---|${BUDGETS.map(() => '---').join('|')}|`;
+            const rows = [...byPath].map(([p, runs]) => {
+              const cells = BUDGETS.map(([key, , min]) => {
+                const vals = runs.map((r) => r[key]).filter((v) => typeof v === 'number');
+                if (!vals.length) return '❌ n/a';
+                const v = median(vals);
+                return `${v >= min ? '✅' : '❌'} ${Math.round(v * 100)}`;
+              });
+              return `| \`${p}\` | ${cells.join(' | ')} |`;
+            });
+
+            const passed = process.env.ASSERT_OUTCOME === 'success';
+            const body = [
+              `${MARKER} ${passed ? '✅ All budgets met' : '❌ Budget missed'}`,
+              '',
+              rows.length ? [header, sep, ...rows].join('\n') : '_No Lighthouse results: see the run log._',
+              '',
+              `Median of 3 mobile runs per URL. [HTML reports (artifact)](${artifactUrl}) · [Run](${runUrl}) · commit ${context.payload.pull_request.head.sha.slice(0, 7)}`,
+            ].join('\n');
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+            const existing = comments.find((c) => c.user?.type === 'Bot' && c.body?.startsWith(MARKER));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      - name: Fail when a budget is missed
+        if: steps.changes.outputs.web == 'true' && steps.assert.outcome != 'success'
+        run: |
+          echo "::error::Lighthouse budget missed; see the 'Check budgets' step and the reports artifact."
+          exit 1
