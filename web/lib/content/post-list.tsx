@@ -4,6 +4,8 @@ import type { Page } from "./pagination";
 import type { PostMeta } from "./posts";
 import { tagHref } from "./tags";
 
+import "./post-list.css";
+
 const dateFormat = new Intl.DateTimeFormat("en-US", {
   dateStyle: "long",
   timeZone: "UTC",
@@ -19,7 +21,7 @@ export function PostList({ posts }: { posts: readonly PostMeta[] }) {
     return <p>No posts yet.</p>;
   }
   return (
-    <ol>
+    <ol className="post-list">
       {posts.map((post) => (
         <li key={post.slug}>
           <article>
@@ -33,7 +35,7 @@ export function PostList({ posts }: { posts: readonly PostMeta[] }) {
               {post.draft ? " · Draft" : null}
             </p>
             {post.tags.length > 0 ? (
-              <ul aria-label="Tags">
+              <ul aria-label="Tags" className="tag-list">
                 {post.tags.map((tag) => (
                   <li key={tag}>
                     <Link href={tagHref(tag)}>#{tag}</Link>
@@ -53,7 +55,7 @@ export function PostList({ posts }: { posts: readonly PostMeta[] }) {
 export function Pagination({ page }: { page: Page<unknown> }) {
   if (page.totalPages <= 1) return null;
   return (
-    <nav aria-label="Pagination">
+    <nav aria-label="Pagination" className="pagination">
       <ul>
         {page.prevHref ? (
           <li>

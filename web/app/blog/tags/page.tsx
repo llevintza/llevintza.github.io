@@ -4,6 +4,8 @@ import Link from "next/link";
 import { getAllTags } from "@/lib/content/posts";
 import { BLOG_BASE, tagHref } from "@/lib/content/tags";
 
+import "@/lib/content/post-list.css";
+
 const SITE_URL = "https://llevintza.github.io";
 
 export const metadata: Metadata = {
@@ -20,7 +22,7 @@ export default function TagsPage() {
       {tags.length === 0 ? (
         <p>No tags yet.</p>
       ) : (
-        <ul>
+        <ul className="tag-list">
           {tags.map(({ tag, count }) => (
             <li key={tag}>
               <Link href={tagHref(tag)}>#{tag}</Link> ({count})
