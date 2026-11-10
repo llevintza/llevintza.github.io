@@ -1,0 +1,351 @@
+/*
+ * Rich post features (#18): callouts, Mermaid diagrams, zoomable images,
+ * heading anchors and the table of contents, in the console style of spec
+ * #60 (hard edges, 1px frames, hard shadow, mono chrome).
+ *
+ * Styled only through the global tokens in app/globals.css (AGENTS.md):
+ * no hard-coded colours or font families.
+ */
+
+/* ---- Heading anchors (rehype-autolink-headings, behavior "wrap") ---- */
+
+.heading-anchor {
+  color: inherit;
+  text-decoration: none;
+}
+
+.heading-anchor:hover,
+.heading-anchor:focus-visible {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 0.2em;
+}
+
+/* Land below the top edge, not glued to it, when a TOC link is followed. */
+:where(h2, h3, h4)[id] {
+  scroll-margin-top: 1.5rem;
+}
+
+/* ---- Callouts: a window with a title bar (spec #60, §5) ---- */
+
+.mdx-callout {
+  margin-block: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow-hard);
+}
+
+.mdx-callout__bar {
+  /* A title bar spans the window, not globals.css's 72ch text measure. */
+  max-inline-size: none;
+  display: flex;
+  gap: 0.5ch;
+  align-items: baseline;
+  margin: 0;
+  padding: 0.3rem 0.75rem;
+  font-family: var(--font-pixel);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  background: var(--panel-2);
+  color: var(--head);
+  border-bottom: 1px solid var(--line);
+}
+
+.mdx-callout__glyph {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.mdx-callout__label {
+  font-weight: 700;
+}
+
+.mdx-callout__title {
+  text-transform: none;
+}
+
+.mdx-callout__body {
+  padding: 0.75rem 1rem;
+}
+
+.mdx-callout__body > :first-child {
+  margin-top: 0;
+}
+
+.mdx-callout__body > :last-child {
+  margin-bottom: 0;
+}
+
+/* Tip: accent rule on the left. */
+.mdx-callout--tip {
+  border-left: 3px solid var(--accent);
+}
+
+/* Warn: inverse-video title bar (spec #60), louder without a new hue. */
+.mdx-callout--warn {
+  border-color: var(--inverse-bg);
+}
+
+.mdx-callout--warn .mdx-callout__bar {
+  background: var(--inverse-bg);
+  color: var(--inverse-ink);
+  border-bottom-color: var(--inverse-bg);
+}
+
+.mdx-callout--warn .mdx-callout__glyph {
+  color: inherit;
+}
+
+/* ---- Tables: a focusable scroll region around a real table ---- */
+
+.mdx-table {
+  max-inline-size: 100%;
+  overflow-x: auto;
+}
+
+/* globals.css makes a bare table in <main> a scrolling block box as a
+   stopgap; inside the region the table lays out as a table again. */
+.mdx-table > table {
+  display: table;
+  inline-size: auto;
+  max-inline-size: none;
+  overflow: visible;
+}
+
+/* Paths and identifiers stay on one line; the region scrolls instead. */
+.mdx-table code {
+  white-space: nowrap;
+}
+
+.mdx-table:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ---- Mermaid diagrams: two pre-rendered SVGs, one per theme ---- */
+
+.mdx-diagram {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: var(--shadow-hard);
+  overflow-x: auto;
+}
+
+/* Diagram text in the site's mono font: the SVG names "JetBrains Mono", which
+   next/font serves under a hashed family name. Mermaid's own <style> uses id
+   selectors, hence !important. Layout was measured with a mono font of the
+   same advance width, so labels still fit. */
+.mdx-diagram__svg svg,
+.mdx-diagram__svg svg :is(text, tspan) {
+  font-family: var(--font-mono) !important;
+}
+
+.mdx-diagram__svg > svg {
+  display: block;
+  margin-inline: auto;
+  height: auto;
+}
+
+.mdx-diagram__svg--light {
+  display: none;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .mdx-diagram__svg--light {
+    display: block;
+  }
+
+  :root:not([data-theme="dark"]) .mdx-diagram__svg--dark {
+    display: none;
+  }
+}
+
+:root[data-theme="light"] .mdx-diagram__svg--light {
+  display: block;
+}
+
+:root[data-theme="light"] .mdx-diagram__svg--dark {
+  display: none;
+}
+
+/* ---- Click-to-zoom images ---- */
+
+.mdx-zoom {
+  display: block;
+  margin: 1.5rem 0;
+  padding: 0;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--panel);
+  box-shadow: var(--shadow-hard);
+  cursor: zoom-in;
+}
+
+/* width/height attributes give the aspect ratio, so nothing shifts on load. */
+.mdx-zoom img,
+.mdx-zoom-dialog img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.mdx-zoom:focus-visible,
+.mdx-zoom-dialog button:focus-visible,
+.mdx-toc a:focus-visible,
+.mdx-toc summary:focus-visible,
+.heading-anchor:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.mdx-zoom-dialog {
+  padding: 0;
+  max-width: min(96vw, 1400px);
+  max-height: 94vh;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow-hard);
+  overflow: auto;
+}
+
+.mdx-zoom-dialog::backdrop {
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+}
+
+.mdx-zoom-dialog__bar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.25rem 0.25rem 0.25rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  background: var(--titlebar-bg);
+  color: var(--titlebar-ink);
+}
+
+.mdx-zoom-dialog__bar span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mdx-zoom-dialog__bar button {
+  flex: none;
+  min-height: 2rem;
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.mdx-zoom-dialog img {
+  max-height: calc(94vh - 2.75rem);
+  width: auto;
+  margin-inline: auto;
+  cursor: zoom-out;
+}
+
+/* ---- Table of contents ---- */
+
+.mdx-toc {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.mdx-toc__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mdx-toc__list li {
+  margin: 0;
+}
+
+.mdx-toc__list a {
+  display: block;
+  padding: 0.25rem 0;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.mdx-toc__list a:hover {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.mdx-toc__item--h2 a::before {
+  content: "› ";
+  color: var(--accent);
+}
+
+.mdx-toc__item--h3 a {
+  padding-left: 2ch;
+}
+
+.mdx-toc__heading {
+  margin: 0 0 0.5rem;
+  color: var(--head);
+  font-weight: 700;
+  text-transform: lowercase;
+}
+
+.mdx-toc--inline {
+  margin-block: 1.5rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.mdx-toc--inline summary {
+  padding: 0.5rem 0.75rem;
+  color: var(--head);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mdx-toc--inline .mdx-toc__count {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.mdx-toc--inline .mdx-toc__list {
+  padding: 0 0.75rem 0.5rem;
+  border-top: 1px dashed var(--line);
+}
+
+.mdx-toc--aside {
+  display: none;
+}
+
+@media (min-width: 72rem) {
+  .mdx-toc--inline {
+    display: none;
+  }
+
+  .mdx-toc--aside {
+    display: block;
+    position: sticky;
+    top: 1.5rem;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    padding-left: 1rem;
+    border-left: 1px dashed var(--line);
+  }
+}

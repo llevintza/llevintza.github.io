@@ -1,0 +1,39 @@
+/*
+ * Post page layout (#18): one reading column, plus a sticky table-of-contents
+ * column on wide screens when the post has one. Prose styling is #8's.
+ */
+
+.post-layout {
+  box-sizing: border-box;
+  max-width: 72ch;
+  margin-inline: auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+.post-layout__article {
+  min-width: 0;
+}
+
+.post-layout__article img,
+.post-layout__article svg {
+  max-width: 100%;
+}
+
+.post-layout__article pre {
+  overflow-x: auto;
+}
+
+@media (min-width: 72rem) {
+  .post-layout--toc {
+    display: grid;
+    grid-template-columns: minmax(0, 72ch) 16rem;
+    gap: 3rem;
+    justify-content: center;
+    max-width: none;
+  }
+
+  .post-layout__aside {
+    /* Start the sticky TOC level with the post body, not the page top. */
+    padding-top: 1rem;
+  }
+}
