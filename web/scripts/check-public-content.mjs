@@ -214,10 +214,15 @@ function main() {
   }
 
   const { source, names } = loadPrivateRepos(webDir);
+  if (!source) {
+    // Fail rather than skip, so a rename can't silently turn the rule off.
+    console.error(
+      "check-public-content: neither web/content/featured.ts nor _data/featured.yml found; can't check private-repo links.",
+    );
+    process.exit(2);
+  }
   console.log(
-    source
-      ? `Private featured repos (${path.relative(process.cwd(), source)}): ${names.join(", ") || "none"}`
-      : "No featured-projects file found; skipping the private-repo link rule.",
+    `Private featured repos (${path.relative(process.cwd(), source)}): ${names.join(", ") || "none"}`,
   );
 
   const { files, findings } = checkDir(outDir, { privateRepos: names });

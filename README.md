@@ -63,4 +63,6 @@ The Next.js site in `web/` is checked on every PR and push to `main` by the **Pu
 - a personal email address: any `mailto:` link, or any address at a consumer mail domain (Gmail, Outlook, iCloud, Yahoo, Proton and similar);
 - a link to `github.com/llevintza/<name>` for a featured project marked private (`access: "private"` in `web/content/featured.ts`, or `private: true` in `_data/featured.yml` until that file exists). Private projects appear by name only; their live site may still be linked.
 
+It covers the Next.js export only; the Jekyll site served today is not scanned, so until cutover the rules above are kept by review.
+
 Run it locally from `web/` with `pnpm build && pnpm check:public-content`, and its tests with `pnpm test:public-content`. The rules come from the public profile repo's `CLAUDE.md`. Never put a real address or number in the tests or fixtures, even to prove the check works.
