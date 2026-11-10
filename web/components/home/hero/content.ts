@@ -30,7 +30,12 @@ export type BuildingEntry = {
   private?: boolean;
 };
 
-/** Current projects, in the README's `## Building` order. */
+/**
+ * A curated subset of the README's `## Building` table, in its order: the
+ * product builds. aws-fastify-prometheus appears as the npm line below
+ * (npmPackage); the smaller tools (claude-codebase-agent, aws-config-service)
+ * are left to the projects page to keep the panel short on phones.
+ */
 export const building: readonly BuildingEntry[] = [
   {
     repo: "instrument-price-dashboard",

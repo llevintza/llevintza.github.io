@@ -28,6 +28,7 @@ export function HeroCtas() {
           &gt;
         </span>
         {ctas.bookCall.label}
+        <span className="sr-only"> (Zoom scheduler, external site)</span>
         <span className="text-muted" aria-hidden="true">
           ↗
         </span>
