@@ -15,7 +15,6 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:live-sites": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-live-sites.mjs",
-    "test:featured": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/projects/*.test.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "check:public-content": "node scripts/check-public-content.mjs",
