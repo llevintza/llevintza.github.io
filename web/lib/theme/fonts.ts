@@ -59,12 +59,12 @@ export const departureMono = localFont({
 });
 
 /**
- * Geist Sans (from the `geist` package) stays installed as the prose fallback
- * (--font-prose-sans). Loaded here rather than via `geist/font/sans` so it is
- * not preloaded while prose defaults to mono.
+ * Geist Sans 1.9.2 (vendored from the `geist` package) stays available as
+ * the prose fallback (--font-prose-sans). Not preloaded while prose defaults
+ * to mono.
  */
 export const geistSans = localFont({
-  src: "../../node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2",
+  src: "../../app/fonts/geist-sans/Geist-Variable.woff2",
   weight: "100 900",
   style: "normal",
   display: "swap",

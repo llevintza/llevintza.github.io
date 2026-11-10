@@ -4,15 +4,13 @@ Loaded by `lib/theme/fonts.ts` through `next/font/local`, so the files are
 served from `/_next/static/media/` with the site. Nothing is fetched from a
 font CDN at runtime.
 
-| Font           | Version | Source                                                                                            | Licence                                                         | Files                                                                               |
-| -------------- | ------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| JetBrains Mono | 2.304   | <https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304> (`fonts/variable/*.ttf`)         | SIL OFL 1.1, [`jetbrains-mono/OFL.txt`](jetbrains-mono/OFL.txt) | `JetBrainsMono-Roman-subset.woff2` (preloaded), `JetBrainsMono-Italic-subset.woff2` |
-| Departure Mono | 1.500   | <https://github.com/rektdeckard/departure-mono/releases/tag/v1.500> (`DepartureMono-Regular.otf`) | SIL OFL 1.1, [`departure-mono/OFL.txt`](departure-mono/OFL.txt) | `DepartureMono-Regular-subset.woff2`                                                |
+| Font           | Version | Source                                                                                                                             | Licence                                                         | Files                                                                               |
+| -------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| JetBrains Mono | 2.304   | <https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304> (`fonts/variable/*.ttf`)                                          | SIL OFL 1.1, [`jetbrains-mono/OFL.txt`](jetbrains-mono/OFL.txt) | `JetBrainsMono-Roman-subset.woff2` (preloaded), `JetBrainsMono-Italic-subset.woff2` |
+| Departure Mono | 1.500   | <https://github.com/rektdeckard/departure-mono/releases/tag/v1.500> (`DepartureMono-Regular.otf`)                                  | SIL OFL 1.1, [`departure-mono/OFL.txt`](departure-mono/OFL.txt) | `DepartureMono-Regular-subset.woff2`                                                |
+| Geist Sans     | 1.9.2   | npm package [`geist`](https://www.npmjs.com/package/geist) 1.9.2 (`dist/fonts/geist-sans/Geist-Variable.woff2`), copied unmodified | SIL OFL 1.1, [`geist-sans/OFL.txt`](geist-sans/OFL.txt)         | `Geist-Variable.woff2` (the `--font-prose-sans` fallback, not preloaded)            |
 
-Geist Sans (the `--font-prose-sans` fallback) comes from the `geist` npm
-package (SIL OFL 1.1) and is not preloaded.
-
-Under the OFL, the subset files are Modified Versions. They keep the
+Under the OFL, the JetBrains Mono and Departure Mono subsets are Modified Versions. They keep the
 original family names, which neither font declares as a Reserved Font Name.
 
 ## Subset recipe
