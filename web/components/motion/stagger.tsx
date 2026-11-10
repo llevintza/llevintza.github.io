@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { m, useReducedMotion, type Variants } from "motion/react";
 import type { ReactNode } from "react";
 
 import { duration, ease, revealOffset, staggerStep } from "./tokens";
@@ -47,7 +47,7 @@ export function Stagger({
     return <Tag className={className}>{children}</Tag>;
   }
 
-  const MotionTag = motion[as];
+  const MotionTag = m[as];
   return (
     <MotionTag
       ref={ref as never}
@@ -79,7 +79,7 @@ export function StaggerItem({
     const Tag = as;
     return <Tag className={className}>{children}</Tag>;
   }
-  const MotionTag = motion[as];
+  const MotionTag = m[as];
   return (
     <MotionTag className={className} variants={itemVariants}>
       {children}

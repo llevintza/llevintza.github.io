@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "motion/react";
+import { m, type Variants } from "motion/react";
 import type { ReactNode } from "react";
 
 import { duration, ease, revealOffset } from "./tokens";
@@ -34,7 +34,7 @@ export function Reveal({ children, className, once, amount }: RevealProps) {
   if (reduce) return <div className={className}>{children}</div>;
 
   return (
-    <motion.div
+    <m.div
       ref={ref}
       className={className}
       initial={false}
@@ -42,6 +42,6 @@ export function Reveal({ children, className, once, amount }: RevealProps) {
       variants={variants}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

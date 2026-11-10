@@ -25,8 +25,8 @@ const presets = {
 export type HoverPreset = keyof typeof presets;
 
 /**
- * Props for a `motion.*` element's hover and press feedback. Spread them:
- * `<motion.button {...useHoverMotion("press")}>`. Returns `{}` under
+ * Props for an `m.*` element's hover and press feedback. Spread them:
+ * `<m.button {...useHoverMotion("press")}>`. Returns `{}` under
  * `prefers-reduced-motion`, so only the CSS colour change remains.
  *
  * Colour swaps (inverse-video title bars, link hovers) are NOT Motion: do

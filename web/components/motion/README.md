@@ -48,6 +48,25 @@ twinkling, draggable windows, hover lift on cards.
 every client-side navigation a 200 ms fade plus a 6 px lift. Nothing to do
 in pages. Don't add a second page-level animation.
 
+**Keep fixed and sticky UI out of pages.** For those 200 ms the wrapper has
+a `transform`, which makes it the containing block for any
+`position: fixed` or `position: sticky` descendant. A fixed or sticky
+element inside a page would jump during a navigation. The site header (#8),
+skip links, toasts and any other fixed or sticky UI belong in
+`app/layout.tsx`, outside the template.
+
+### Using Motion directly: `m.*`, not `motion.*`
+
+The template's `MotionProvider` uses `LazyMotion` with `domAnimation` in
+`strict` mode, so pages load only the animation features we use (no layout
+or drag code). Below it, use the light components (`import { m } from
+"motion/react"`, then `<m.div>`, `<m.button>`). A full `<motion.div>` throws
+in strict mode.
+
+Components rendered in `app/layout.tsx` (outside the template), such as the
+header, have no provider. If they animate with `m.*`, wrap them in their
+own `<MotionProvider>`. Without one, `m.*` renders but doesn't animate.
+
 ### `<Reveal>`: scroll reveal for one block
 
 ```tsx
@@ -121,12 +140,12 @@ the timings so you can chain a prompt, its output and a next prompt.
 
 ```tsx
 "use client";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 
 const press = useHoverMotion("press");
-<motion.button className="shadow-hard active:shadow-none" {...press}>
+<m.button className="shadow-hard active:shadow-none" {...press}>
   [ read more ]
-</motion.button>;
+</m.button>;
 ```
 
 - `"press"`: buttons shift 2 px into their hard shadow while pressed
