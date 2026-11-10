@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="t">
+  <title id="t">A terminal window showing pnpm build writing a static export to the out folder</title>
+  <rect width="1200" height="640" fill="#0B1118"/>
+  <g fill="#3498DB" fill-opacity=".14">
+    <circle cx="32" cy="32" r="1.5"/><circle cx="1168" cy="32" r="1.5"/><circle cx="32" cy="608" r="1.5"/><circle cx="1168" cy="608" r="1.5"/>
+  </g>
+  <rect x="64" y="64" width="1072" height="512" fill="#000" fill-opacity=".6" transform="translate(6 6)"/>
+  <rect x="64" y="64" width="1072" height="512" fill="#111C28" stroke="#22313F" stroke-width="2"/>
+  <rect x="64" y="64" width="1072" height="48" fill="#D5DEE7"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    <text x="92" y="96" font-size="22" fill="#0B1118">zsh — web</text>
+    <text x="1108" y="96" font-size="22" fill="#0B1118" text-anchor="end">[x]</text>
+    <g font-size="26">
+      <text x="104" y="172" fill="#3498DB">$ <tspan fill="#F2F6FA">pnpm build</tspan></text>
+      <text x="104" y="224" fill="#8796A5">  ▲ Next.js · output: export</text>
+      <text x="104" y="276" fill="#4ADE80">  ✓ <tspan fill="#D5DEE7">Compiled successfully</tspan></text>
+      <text x="104" y="328" fill="#4ADE80">  ✓ <tspan fill="#D5DEE7">Validated frontmatter (zod)</tspan></text>
+      <text x="104" y="380" fill="#4ADE80">  ✓ <tspan fill="#D5DEE7">Highlighted code (Shiki)</tspan></text>
+      <text x="104" y="432" fill="#4ADE80">  ✓ <tspan fill="#D5DEE7">Exported static pages to out/</tspan></text>
+      <text x="104" y="508" fill="#3498DB">$ <tspan fill="#D5DEE7">█</tspan></text>
+    </g>
+  </g>
+</svg>

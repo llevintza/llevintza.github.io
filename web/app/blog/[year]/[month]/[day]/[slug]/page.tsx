@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { TableOfContents } from "@/components/mdx/toc";
+import { TagList } from "@/components/ui/tag";
 import { renderMdx } from "@/lib/content/mdx";
 import {
   getAllPosts,
@@ -8,9 +10,11 @@ import {
   type Post,
   type PostParams,
 } from "@/lib/content/posts";
+import { extractToc, shouldShowToc } from "@/lib/content/toc";
 import { buildMetadata } from "@/lib/site/metadata";
 
 import "../../../../shiki.css";
+import "./post.css";
 
 type Props = PageProps<"/blog/[year]/[month]/[day]/[slug]">;
 
@@ -52,11 +56,20 @@ const dateFormat = new Intl.DateTimeFormat("en-US", {
 
 export default async function PostPage({ params }: Props) {
   const post = await findPost(params);
-  const content = await renderMdx(post.body);
+  const [content, toc] = await Promise.all([
+    renderMdx(post.body).catch((error: unknown) => {
+      // Name the post, e.g. for a Mermaid diagram missing from the cache.
+      throw new Error(`Rendering ${post.file} failed: ${String(error)}`, {
+        cause: error,
+      });
+    }),
+    extractToc(post.body),
+  ]);
+  const showToc = shouldShowToc(toc);
 
   return (
-    <main>
-      <article>
+    <main className={showToc ? "post-layout post-layout--toc" : "post-layout"}>
+      <article className="post-layout__article">
         <header>
           <h1>{post.title}</h1>
           <p>
@@ -67,16 +80,16 @@ export default async function PostPage({ params }: Props) {
             <span>{post.readingTime.minutes} min read</span>
             {post.draft ? " · Draft" : null}
           </p>
-          {post.tags.length > 0 ? (
-            <ul aria-label="Tags">
-              {post.tags.map((tag) => (
-                <li key={tag}>{tag}</li>
-              ))}
-            </ul>
-          ) : null}
+          <TagList tags={post.tags} />
         </header>
+        {showToc ? <TableOfContents toc={toc} variant="inline" /> : null}
         {content}
       </article>
+      {showToc ? (
+        <div className="post-layout__aside">
+          <TableOfContents toc={toc} variant="aside" />
+        </div>
+      ) : null}
     </main>
   );
 }
