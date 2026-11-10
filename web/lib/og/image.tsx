@@ -22,13 +22,17 @@ import { OG_SIZE } from "./constants";
  *
  *    Dynamic segments add `generateStaticParams` and read `params` (see the
  *    post route's og.png/route.tsx).
- * 2. `buildMetadata({ ..., image: { path: ogImagePath("/about/"), alt } })`.
- *    Pages that skip both get the site-wide default image (`/og.png`).
+ * 2. `buildMetadata({ ..., image: "page" })`, which points og:image and
+ *    twitter:image at `<path>/og.png` with the full title as alt text. To use
+ *    another image, pass `image: { path, alt }` instead. Pages that skip both
+ *    steps get the site-wide default (`/og.png`). `lib/og/og.test.ts` fails if
+ *    a page sets `image: "page"` without its route.
  *
  * Colours are the dark console theme (app/globals.css). Satori can't read
  * woff2 or variable fonts, so lib/og/fonts holds static TTF/OTF instances made
  * from the same subsets in app/fonts (see lib/og/fonts/README.md). They are
- * read from disk here: nothing is fetched over the network.
+ * read from disk here. Card text is limited to the glyphs they cover
+ * (`toSupportedText`), so next/og never fetches a fallback font or emoji.
  */
 
 /** Dark-theme tokens from app/globals.css. */

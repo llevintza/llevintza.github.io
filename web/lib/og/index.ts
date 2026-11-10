@@ -6,7 +6,9 @@ export {
   pageCard,
   postCard,
   promptFor,
+  SUPPORTED_RANGES,
   titleSizeFor,
+  toSupportedText,
   truncate,
   type OgCard,
 } from "./card-input";
