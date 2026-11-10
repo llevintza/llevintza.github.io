@@ -1,6 +1,11 @@
 import { contactLinks, type ContactLink } from "@/content/contact";
 import styles from "./contact-section.module.css";
 
+/** Screen-reader hint for links that leave the site (matches the hero CTA). */
+const EXTERNAL_HINT: Partial<Record<ContactLink["id"], string>> = {
+  "book-a-call": " (Zoom scheduler, external site)",
+};
+
 const ICON_SIZE = 18;
 
 function ContactIcon({ link }: { link: ContactLink }) {
@@ -33,6 +38,9 @@ export function ContactSection() {
           <a className={styles.primary} href={link.href}>
             <ContactIcon link={link} />
             {link.label}
+            {EXTERNAL_HINT[link.id] ? (
+              <span className="sr-only">{EXTERNAL_HINT[link.id]}</span>
+            ) : null}
           </a>
         </p>
       ))}
