@@ -82,6 +82,7 @@ This is the single source for the required-checks list; update it here when bran
 | **PR title** | `conventional-commits.yml` | The PR title follows Conventional Commits |
 | **Web: lint, typecheck, build** | `ci.yml` | In `web/`: Prettier, ESLint, `tsc` and the static export build. It reports on every PR, and skips the heavy steps when `web/` is unchanged |
 | **Lighthouse budgets** | `lighthouse.yml` | Lighthouse scores for `/`, `/projects/` and the newest post meet the budgets in [`web/README.md`](web/README.md) |
+| **Playwright** | `e2e.yml` | In `web/`: Playwright smoke tests against the static export, plus UX screenshots. It reports on every PR, and skips the heavy steps when `web/` is unchanged |
 | **Public content guardrail** | `public-content.yml` | Scans the `web/` static export for phone numbers, personal email addresses and links to private repos (see [README](README.md#public-content-rules)) |
 
 It requires no approvals, because all agents post on GitHub under the owner's account and GitHub does not let an author approve their own PR.

@@ -8,9 +8,12 @@
  * links at all, so private entries are safe by construction.
  */
 
-export const name = "Leo Levintza";
+import { about } from "@/content/about";
+import { featuredProjects } from "@/content/featured";
 
-/** The README tagline, rendered as `--flag` lines under the name. */
+export const name = about.name;
+
+/** The README headline (`about.headline`) as `--flag` lines under the name. */
 export const tagline = [
   "principal-software-engineer",
   "distributed-systems --cloud-native-backends",
@@ -18,37 +21,44 @@ export const tagline = [
   'location="New York Metro Area"',
 ] as const;
 
-export const intro =
-  "I design and build distributed, cloud-native backend systems, most recently for buy-side firms: a quantitative hedge fund, a global alternative asset manager, and a large US asset manager. Lately I embed agentic AI tooling (Claude Code, GitHub Copilot CLI, Sourcegraph Cody) into the SDLC: legacy discovery, documentation, code-review agents, and evaluation frameworks for AI-assisted delivery.";
+export const headline = about.headline;
+export const intro = about.bio;
 
 export type BuildingEntry = {
   /** Repo name, shown as text only. */
   repo: string;
-  /** Current stage, from the README's "What" column. */
+  /** Current stage, short form of the README's "What" column. */
   status: string;
   /** Private repos are named, never linked. */
-  private?: boolean;
+  private: boolean;
 };
 
 /**
- * A curated subset of the README's `## Building` table, in its order: the
- * product builds. aws-fastify-prometheus appears as the npm line below
- * (npmPackage); the smaller tools (claude-codebase-agent, aws-config-service)
- * are left to the projects page to keep the panel short on phones.
+ * Short stage labels for the terminal panel, keyed by featured project name.
+ * The rows themselves (which repos, their order and privacy) come from
+ * `content/featured.ts` (Arch A67-01): a project shows in the panel when it
+ * has a stage here. aws-fastify-prometheus appears as the npm line below;
+ * the smaller tools (claude-codebase-agent, aws-config-service) are left to
+ * the projects page to keep the panel short on phones.
  */
-export const building: readonly BuildingEntry[] = [
-  {
-    repo: "instrument-price-dashboard",
-    status: "M1-M3 shipped",
-    private: true,
+export const panelStages: Readonly<Record<string, string>> = {
+  "instrument-price-dashboard": "M1-M3 shipped",
+  "allocator-memo-builder": "MVP v0.1.0",
+  "credit-desk-analytics": "phases 0-6 shipped",
+  energlens: "zero-cost demo",
+  "hedge-fund-market-data": "phase 2",
+  unlistd: "early MVP",
+  openswim: "phase 0",
+};
+
+export const building: readonly BuildingEntry[] = featuredProjects.flatMap(
+  (project) => {
+    const status = panelStages[project.name];
+    return status
+      ? [{ repo: project.name, status, private: project.access === "private" }]
+      : [];
   },
-  { repo: "allocator-memo-builder", status: "MVP v0.1.0", private: true },
-  { repo: "credit-desk-analytics", status: "phases 0-6 shipped" },
-  { repo: "energlens", status: "zero-cost demo" },
-  { repo: "hedge-fund-market-data", status: "phase 2", private: true },
-  { repo: "unlistd", status: "early MVP" },
-  { repo: "openswim", status: "phase 0" },
-];
+);
 
 /** Published package line at the foot of the terminal panel. */
 export const npmPackage = {

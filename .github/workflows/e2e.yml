@@ -1,13 +1,12 @@
 name: E2E
 
 # Playwright smoke tests and per-PR UX screenshots for the Next.js app in web/.
-# See web/e2e/README.md. Not a required check.
+# See web/e2e/README.md. "Playwright" is a required check on main, so it runs
+# on every PR and skips the heavy steps when web/ is unchanged.
 
 on:
   pull_request:
-    paths:
-      - "web/**"
-      - ".github/workflows/e2e.yml"
+    branches: [main]
 
 permissions:
   contents: read
@@ -18,6 +17,7 @@ concurrency:
 
 jobs:
   test:
+    # Keep this name stable: it is a required check on main.
     name: Playwright
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -30,51 +30,92 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
 
+      # The job always runs, so the check always reports. When web/ (and this
+      # workflow) are unchanged, the heavy steps are skipped and the job passes.
+      - name: Detect web/ changes
+        id: changes
+        working-directory: .
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            range="$PR_BASE...$PR_HEAD"
+          elif [ -n "$PUSH_BEFORE" ] && ! printf '%s' "$PUSH_BEFORE" | grep -qE '^0+$'; then
+            range="$PUSH_BEFORE..$PUSH_AFTER"
+          else
+            echo "No usable diff base; running everything."
+            echo "web=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! changed="$(git diff --name-only "$range")"; then
+            echo "Could not diff $range; running everything."
+            echo "web=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if printf '%s\n' "$changed" | grep -qE '^(web/|\.github/workflows/e2e\.yml$)'; then
+            echo "web=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "web/ unchanged in $range; skipping Playwright."
+            echo "web=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        if: steps.changes.outputs.web == 'true'
         with:
           package_json_file: web/package.json
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.changes.outputs.web == 'true'
         with:
           node-version-file: web/.nvmrc
           cache: pnpm
           cache-dependency-path: web/pnpm-lock.yaml
 
       - name: Install dependencies
+        if: steps.changes.outputs.web == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Read Playwright version
         id: pw
+        if: steps.changes.outputs.web == 'true'
         run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
 
       - name: Cache Playwright browsers
         id: pw-cache
+        if: steps.changes.outputs.web == 'true'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}-chromium
 
       - name: Install Chromium
-        if: steps.pw-cache.outputs.cache-hit != 'true'
+        if: steps.changes.outputs.web == 'true' && steps.pw-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Install Chromium system dependencies
-        if: steps.pw-cache.outputs.cache-hit == 'true'
+        if: steps.changes.outputs.web == 'true' && steps.pw-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
 
       - name: Build static export
+        if: steps.changes.outputs.web == 'true'
         run: pnpm build
 
       - name: Smoke tests
+        if: steps.changes.outputs.web == 'true'
         run: pnpm test:e2e
         env:
           PW_SKIP_BUILD: "1"
 
       - name: UX screenshots
         id: ux
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.changes.outputs.web == 'true' }}
         run: pnpm ux:screenshots
         env:
           PW_SKIP_BUILD: "1"
@@ -90,7 +131,7 @@ jobs:
           retention-days: 14
 
       - name: Upload Playwright report
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.changes.outputs.web == 'true' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report
@@ -101,6 +142,7 @@ jobs:
     name: Publish UX screenshots
     needs: test
     # Runs even when the smoke tests fail, as long as screenshots were taken.
+    # When web/ is unchanged the UX step is skipped, so this job is skipped too.
     # Fork and Dependabot PRs get a read-only token, so they keep the
     # artifact only.
     if: >-

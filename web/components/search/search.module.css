@@ -1,0 +1,47 @@
+/*
+ * Search palette styles that utilities can't express: the backdrop, the open
+ * animation and match highlights. Colours come from theme tokens only; the
+ * default Pagefind UI CSS is never loaded.
+ */
+
+.dialog::backdrop {
+  background-color: color-mix(in srgb, var(--bg) 78%, transparent);
+}
+
+/* Static by default; a short fade-and-drop only without a motion preference.
+   Opacity and transform only, so nothing shifts layout. */
+@media (prefers-reduced-motion: no-preference) {
+  .dialog[open] {
+    animation: palette-in 140ms ease-out;
+  }
+
+  .dialog[open]::backdrop {
+    animation: backdrop-in 140ms ease-out;
+  }
+}
+
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* No native clear button or search decoration: the palette has its own esc. */
+.input::-webkit-search-cancel-button,
+.input::-webkit-search-decoration {
+  appearance: none;
+}
+
+/* Inverse-video match, like a selected token in the console theme. */
+.mark {
+  background-color: var(--inverse-bg);
+  color: var(--inverse-ink);
+  padding-inline: 0.1em;
+}
