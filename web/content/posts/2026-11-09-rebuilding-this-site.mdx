@@ -1,0 +1,34 @@
+---
+title: Rebuilding this site with Next.js and MDX
+date: 2026-11-09
+tags: [nextjs, mdx, typescript, jekyll]
+summary: Why this site is moving from Jekyll to a statically exported Next.js app, and how the old post URLs survive the move.
+---
+
+This site started as a [Jekyll](https://jekyllrb.com/) site with the minima theme, built and served by GitHub Pages. That got it online quickly, but I want more than a theme gives me: interactive pieces in posts, typed content, and a design of my own.
+
+So I'm rebuilding it with the Next.js App Router and TypeScript in strict mode. It is still a static site: `next build` with `output: "export"` writes plain HTML files, and GitHub Pages serves them just as it served Jekyll's output.
+
+## Posts are MDX files
+
+Each post is an `.mdx` file in the repo. Frontmatter (title, date, tags, summary) is validated with zod when the site builds, so a missing field or a malformed date fails the build instead of shipping a broken page. Code blocks are highlighted at build time with Shiki, in a light and a dark theme, so no highlighting JavaScript reaches the browser.
+
+## Keeping the URLs
+
+Links to the old site should keep working. Jekyll was configured with `permalink: /blog/:year/:month/:day/:title/`, and the new site builds the same shape from the post's date and file name:
+
+```ts
+interface PostParams {
+  year: string;
+  month: string;
+  day: string;
+  slug: string;
+}
+
+// 2026-11-09-rebuilding-this-site.mdx -> /blog/2026/11/09/rebuilding-this-site/
+function permalinkFor({ year, month, day, slug }: PostParams): string {
+  return `/blog/${year}/${month}/${day}/${slug}/`;
+}
+```
+
+The Jekyll site keeps serving until the new one reaches parity. More on the design once it lands.
