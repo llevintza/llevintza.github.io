@@ -1,16 +1,7 @@
-"use client";
-
-import { m, type Variants } from "motion/react";
 import type { ReactNode } from "react";
 
 import styles from "./motion.module.css";
-import { duration, ease, revealOffset } from "./tokens";
-import { useRevealOnScroll } from "./use-reveal-on-scroll";
-
-const variants: Variants = {
-  hidden: { opacity: 0, y: revealOffset, transition: { duration: 0 } },
-  visible: { opacity: 1, y: 0, transition: { duration: duration.base, ease } },
-};
+import { revealAttributes } from "./reveal-attributes";
 
 type RevealProps = {
   children: ReactNode;
@@ -23,30 +14,22 @@ type RevealProps = {
 
 /**
  * Fades a block in and lifts it `revealOffset` px when it scrolls into view.
- * Visible at rest: the server HTML and no-JS view show it fully. Off under
+ * A Server Component: the animation is a CSS transition, and the page's one
+ * `<ScrollReveal />` only flips the block's `data-reveal` attribute. Visible
+ * at rest: the server HTML and no-JS view show it fully. Off under
  * `prefers-reduced-motion`. Its box never changes size, so no layout shift.
  */
 export function Reveal({ children, className, once, amount }: RevealProps) {
-  const { ref, phase, reduce } = useRevealOnScroll<HTMLDivElement>({
-    once,
-    amount,
-  });
-
-  if (reduce) return <div className={className}>{children}</div>;
-
   return (
-    <m.div
-      ref={ref}
-      className={cx(className)}
-      initial={false}
-      animate={phase}
-      variants={variants}
+    <div
+      className={cx(styles.reveal, className)}
+      {...revealAttributes({ once, amount })}
     >
       {children}
-    </m.div>
+    </div>
   );
 }
 
-function cx(className?: string) {
-  return className ? `${styles.reveal} ${className}` : styles.reveal;
+export function cx(...names: (string | undefined)[]) {
+  return names.filter(Boolean).join(" ");
 }

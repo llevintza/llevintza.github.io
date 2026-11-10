@@ -8,6 +8,7 @@ animation respects the visitor's settings.
 ```ts
 import {
   Reveal,
+  ScrollReveal,
   Stagger,
   StaggerItem,
   TypedText,
@@ -21,9 +22,10 @@ import {
 
 1. **Off under `prefers-reduced-motion: reduce`.** `app/template.tsx` wraps
    every page in `<MotionConfig reducedMotion="user">`, but Motion still
-   fades opacity in that mode, so each primitive also checks
-   `useReducedMotion()` and renders plain static markup. CSS animations live
-   only inside `@media (prefers-reduced-motion: no-preference)`.
+   fades opacity in that mode, so each Motion-driven primitive also checks
+   `useReducedMotion()` and renders plain static markup. CSS animations and
+   the scroll-reveal hidden state live only inside
+   `@media (prefers-reduced-motion: no-preference)`.
 2. **Visible at rest.** The server HTML shows everything. Nothing is hidden
    until JavaScript has run, and the CSS animations finish on their own, so
    if JS fails or is disabled the content is simply there. Print always shows
@@ -73,7 +75,12 @@ own `<MotionProvider>`. Without one, `m.*` renders but doesn't animate.
 ```tsx
 <Reveal>
   <section>…</section>
-</Reveal>
+</Reveal>;
+
+{
+  /* Once per page, anywhere in it: */
+}
+<ScrollReveal />;
 ```
 
 Fades in and rises 12 px when the block scrolls into view (once by
@@ -82,6 +89,16 @@ Renders a wrapping `div`, so pass `className` for layout if needed. Use it
 for sections further down a page, not for the hero, the page title or
 anything that could be the LCP element (those start on screen and are left
 alone anyway).
+
+`<Reveal>` and `<Stagger>` are Server Components: they render a
+`data-reveal` attribute, and a CSS transition does the animation. A page
+that uses them renders **one** `<ScrollReveal />` (a client component with
+no markup). After hydration it hides the blocks that start below the fold
+and reveals them as they scroll in, with one `IntersectionObserver` for
+the whole page. Without it, or without JavaScript, the blocks simply stay
+visible. This keeps hydration cheap: the home page used to hydrate a Motion
+component per block and per item, which cost it most of its extra startup
+script time (#10).
 
 ### `<Stagger>` + `<StaggerItem>`: lists that "print" in order
 
@@ -95,7 +112,9 @@ alone anyway).
 </Stagger>
 ```
 
-Items appear 60 ms apart when the group scrolls into view. Use it for card
+Items appear 60 ms apart when the group scrolls into view (`<Stagger>`
+numbers its direct `<StaggerItem>` children for the delay, and needs the
+page's `<ScrollReveal />` like `<Reveal>`). Use it for card
 grids and post lists (#8, #13). Keep groups short; past about 12 items the
 tail feels slow, so split long lists or reveal them with one `<Reveal>`.
 
@@ -161,10 +180,10 @@ and the active nav item switch instantly in CSS with no `transition`
 
 ## Tests
 
-`timing.test.ts` (vitest, `pnpm test`) covers the timing helpers. The
-reduced-motion, no-JS and no-layout-shift guarantees were checked by hand
-with Playwright and Lighthouse (see PR #68). They should move into the e2e
-suite once it lands (#34).
+`timing.test.ts` (vitest, `pnpm test`) covers the timing helpers, and
+`reveal.test.tsx` the scroll-reveal markup and that its CSS matches
+`tokens.ts`. `e2e/motion.spec.ts` checks the reduced-motion, no-JS,
+no-preference and print guarantees on every main route.
 
 ## Adding something new
 

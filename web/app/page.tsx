@@ -7,7 +7,7 @@ import {
 } from "@/components/home/sections/latest-posts-section";
 import { NowSection } from "@/components/home/sections/now-section";
 import { SelectedWorkSection } from "@/components/home/sections/selected-work-section";
-import { Reveal } from "@/components/motion";
+import { Reveal, ScrollReveal } from "@/components/motion";
 import { highlights } from "@/content/highlights";
 import { getAllPosts } from "@/lib/content/posts";
 import { getFeaturedProjects } from "@/lib/projects/featured";
@@ -39,6 +39,8 @@ export default function HomePage() {
           <ContactSection />
         </Reveal>
       </div>
+      {/* One observer drives every Reveal and Stagger above (#10). */}
+      <ScrollReveal />
     </main>
   );
 }
