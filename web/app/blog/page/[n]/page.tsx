@@ -13,6 +13,7 @@ import {
 import { Pagination, PostList } from "@/lib/content/post-list";
 import { getAllPosts, type Post } from "@/lib/content/posts";
 import { BLOG_BASE } from "@/lib/content/tags";
+import { ogImagePath } from "@/lib/og";
 import { buildMetadata } from "@/lib/site/metadata";
 
 type Props = PageProps<"/blog/page/[n]">;
@@ -41,6 +42,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `Blog, page ${page.page}`,
     description: `Posts by Leo Levintza, page ${page.page} of ${page.totalPages}.`,
     path: pageHref(BLOG_BASE, page.page),
+    // Later pages share the blog index card.
+    image: { path: ogImagePath(BLOG_BASE), alt: "Blog · Leo Levintza" },
   });
 }
 

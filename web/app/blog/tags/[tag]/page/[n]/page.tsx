@@ -12,6 +12,7 @@ import {
 import { Pagination, PostList } from "@/lib/content/post-list";
 import { getAllPosts } from "@/lib/content/posts";
 import { groupPostsByTag, tagHref } from "@/lib/content/tags";
+import { ogImagePath } from "@/lib/og";
 import { buildMetadata } from "@/lib/site/metadata";
 
 type Props = PageProps<"/blog/tags/[tag]/page/[n]">;
@@ -44,6 +45,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `Posts tagged #${tag}, page ${page.page}`,
     description: `Blog posts by Leo Levintza tagged #${tag}, page ${page.page} of ${page.totalPages}.`,
     path: pageHref(tagHref(tag), page.page),
+    // Later pages share the tag's card.
+    image: {
+      path: ogImagePath(tagHref(tag)),
+      alt: `Posts tagged #${tag} · Leo Levintza`,
+    },
   });
 }
 

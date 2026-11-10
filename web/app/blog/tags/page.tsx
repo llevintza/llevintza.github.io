@@ -10,6 +10,7 @@ export const metadata = buildMetadata({
   title: "Tags",
   description: "Every tag used on Leo Levintza's blog.",
   path: `${BLOG_BASE}tags/`,
+  image: "page",
 });
 
 export default function TagsPage() {

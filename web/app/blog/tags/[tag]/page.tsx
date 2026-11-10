@@ -37,6 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `Posts tagged #${tag}`,
     description: `Blog posts by Leo Levintza tagged #${tag}.`,
     path: tagHref(tag),
+    image: "page",
   });
 }
 
