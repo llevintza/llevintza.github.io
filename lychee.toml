@@ -39,4 +39,9 @@ exclude = [
   '^https?://([a-z]+\.)?linkedin\.com/',  # returns HTTP 999 to non-browser clients
   '^https?://(www\.)?(x|twitter)\.com/',   # login wall / 403 for bots
   '^https?://([a-z]+\.)?zoom\.us/',        # bot challenge on scheduler pages
+  # This site's own pages. They are already checked as relative links in the
+  # static export, and absolute self-URLs (canonical, og:url) 404 on the live
+  # site until the page deploys. Other llevintza.github.io paths (/email-icons/,
+  # project sites such as /energlens/) are still checked.
+  '^https://llevintza\.github\.io/(?:$|blog/|projects/|about/|feed\.xml$|sitemap\.xml$|robots\.txt$)',
 ]
