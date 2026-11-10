@@ -37,9 +37,8 @@ test.describe("every route", () => {
 });
 
 test.describe("theme", () => {
-  // TODO(#7): enable once the theme toggle lands.
-  // https://github.com/llevintza/llevintza.github.io/issues/7
-  test.fixme("toggle flips [data-theme] and persists across reloads", async ({
+  // The toggle landed with the design tokens (#51); see #7 and #34.
+  test("toggle flips [data-theme] and persists across reloads", async ({
     page,
   }) => {
     await page.goto("/");

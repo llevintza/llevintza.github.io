@@ -30,9 +30,8 @@ Two projects run every spec:
 - **`smoke.spec.ts`**: for every route: HTTP 200, exactly one visible `<h1>`,
   no broken images (each `img` is complete with `naturalWidth > 0`), and no
   console errors or uncaught page errors.
-  - The theme test (`[data-theme]` toggles and persists across reloads) is
-    `test.fixme` until the toggle lands in
-    [#7](https://github.com/llevintza/llevintza.github.io/issues/7).
+  - A theme test checks that the toggle flips `[data-theme]` and that the
+    choice persists across reloads.
   - The phone navigation test (the nav reaches every top-level page) is
     `test.fixme` until the header lands in
     [#8](https://github.com/llevintza/llevintza.github.io/issues/8).
