@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
 import { getFeaturedProjects } from "@/lib/projects/featured";
+import { buildMetadata } from "@/lib/site/metadata";
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "Projects",
   description: "Featured projects by Leo Levintza.",
-};
+  path: "/projects/",
+});
 
 export default function ProjectsPage() {
   const projects = getFeaturedProjects();
