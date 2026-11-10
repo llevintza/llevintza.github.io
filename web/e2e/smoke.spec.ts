@@ -13,17 +13,23 @@ test.describe("every route", () => {
       // Exactly one visible main heading.
       await expect(page.locator("h1:visible")).toHaveCount(1);
 
-      // No broken images: lazy images below the fold load once scrolled to.
+      // No broken images.
       const images = page.locator("img");
       for (const img of await images.all()) {
         await img.scrollIntoViewIfNeeded();
       }
-      const broken = await images.evaluateAll((els) =>
-        (els as HTMLImageElement[])
-          .filter((img) => !img.complete || img.naturalWidth === 0)
-          .map((img) => img.currentSrc || img.src),
-      );
-      expect(broken, `broken images on ${route}`).toEqual([]);
+      // Lazy images start loading only once scrolled to: poll until settled.
+      await expect
+        .poll(
+          () =>
+            images.evaluateAll((els) =>
+              (els as HTMLImageElement[])
+                .filter((img) => !img.complete || img.naturalWidth === 0)
+                .map((img) => img.currentSrc || img.src),
+            ),
+          { message: `broken images on ${route}` },
+        )
+        .toEqual([]);
 
       expect(consoleErrors, `console errors on ${route}`).toEqual([]);
     });

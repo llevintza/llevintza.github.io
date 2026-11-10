@@ -101,10 +101,12 @@ jobs:
     name: Publish UX screenshots
     needs: test
     # Runs even when the smoke tests fail, as long as screenshots were taken.
-    # Fork PRs get a read-only token, so they keep the artifact only.
+    # Fork and Dependabot PRs get a read-only token, so they keep the
+    # artifact only.
     if: >-
       ${{ !cancelled() && needs.test.outputs.screenshots == 'success'
-      && github.event.pull_request.head.repo.full_name == github.repository }}
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # This job never runs code from the PR: it only moves PNGs and comments.
@@ -212,7 +214,10 @@ jobs:
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner, repo, issue_number: pr, per_page: 100,
             });
-            const existing = comments.find((c) => c.body?.startsWith(marker));
+            // Only our own bot comment: never overwrite a human's that starts with the marker.
+            const existing = comments.find(
+              (c) => c.user?.login === "github-actions[bot]" && c.body?.startsWith(marker),
+            );
             if (existing) {
               await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
             } else {
