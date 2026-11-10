@@ -69,11 +69,11 @@ updates:
         exclude-patterns: [mermaid, mermaid-isomorphic]
         update-types: [major]
     # Versions the toolchain can't take yet (#101, A101-01/02/03). These are
-    # version ignores only, so security updates are unaffected. Remove each
-    # one once its cause is gone.
+    # version-range ignores, so security fixes within the current majors are
+    # unaffected. Remove each one once its cause is gone.
     ignore:
       # Tied to the Node runtime major in web/.nvmrc (22). Raise this bound in
-      # the same PR that bumps .nvmrc and CI, never ahead of it.
+      # the same PR that bumps .nvmrc, engines.node and CI, never ahead.
       - dependency-name: "@types/node"
         versions: [">=23"]
       # typescript-eslint 8.72.1 caps its peer range at typescript <6.1.0.
