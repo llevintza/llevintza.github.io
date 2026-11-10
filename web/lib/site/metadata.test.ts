@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  FEED_ALTERNATE_TYPES,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_URL,
@@ -75,5 +76,22 @@ describe("buildMetadata", () => {
     const meta = buildMetadata({ path: "/" });
     expect(meta.openGraph).not.toHaveProperty("images");
     expect(meta.twitter).not.toHaveProperty("images");
+  });
+});
+
+describe("feed discovery", () => {
+  it("links the Atom feed at the jekyll-feed URL", () => {
+    expect(FEED_ALTERNATE_TYPES).toEqual({
+      "application/atom+xml": [
+        { url: "https://llevintza.github.io/feed.xml", title: SITE_NAME },
+      ],
+    });
+  });
+
+  it("is kept on pages that set their own canonical", () => {
+    // Next.js replaces the layout's `alternates` with the page's, so
+    // buildMetadata must carry the feed link itself.
+    const meta = buildMetadata({ title: "About", path: "/about/" });
+    expect(meta.alternates?.types).toEqual(FEED_ALTERNATE_TYPES);
   });
 });

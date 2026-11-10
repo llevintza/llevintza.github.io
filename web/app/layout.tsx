@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site/footer";
 import { SiteHeader } from "@/components/site/header";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import {
+  FEED_ALTERNATE_TYPES,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_URL,
@@ -18,6 +19,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: SITE_NAME, template: TITLE_TEMPLATE },
   description: SITE_DESCRIPTION,
+  // Feed discovery on every page; buildMetadata repeats it for pages that set
+  // their own `alternates`.
+  alternates: { types: FEED_ALTERNATE_TYPES },
 };
 
 // Browser UI colour follows the system setting. The hex values must equal

@@ -1,6 +1,13 @@
 import type { PostMeta } from "@/lib/content/posts";
+import {
+  FEED_PATH,
+  SITE_AUTHOR,
+  SITE_NAME,
+  SITE_TAGLINE,
+  SITE_URL,
+} from "@/lib/site/metadata";
 
-/** Feed-level settings. Defaults mirror the Jekyll `_config.yml`. */
+/** Feed-level settings. */
 export interface FeedSite {
   /** Absolute origin without a trailing slash: `https://llevintza.github.io`. */
   url: string;
@@ -10,19 +17,16 @@ export interface FeedSite {
 }
 
 /**
- * Same values jekyll-feed publishes today, so readers subscribed to the
- * Jekyll feed see the same feed (same `<id>`, same self link) after cutover.
+ * From the shared site constants. The values equal what jekyll-feed publishes
+ * today, so readers subscribed to the Jekyll feed see the same feed (same
+ * `<id>`, same self link) after cutover.
  */
 export const SITE: FeedSite = {
-  url: "https://llevintza.github.io",
-  title: "Leo Levintza",
-  subtitle:
-    "Principal Software Engineer · Distributed Systems · Cloud-Native Backends · Agentic AI Tooling & AI-Augmented SDLC · New York Metro Area",
-  author: "Leo Levintza",
+  url: SITE_URL,
+  title: SITE_NAME,
+  subtitle: SITE_TAGLINE,
+  author: SITE_AUTHOR,
 };
-
-/** Where the feed is served, relative to the site root. */
-export const FEED_PATH = "/feed.xml";
 
 /** jekyll-feed's default: the 10 newest posts. */
 export const FEED_LIMIT = 10;
