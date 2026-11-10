@@ -62,7 +62,10 @@ export function Tag({ children, variant = "chip", href, className }: TagProps) {
   return <span className={classes}>{content}</span>;
 }
 
-/** A wrapped, unmarked list of tags. */
+/**
+ * A wrapped, unmarked list of tags. `role="list"` keeps list semantics in
+ * Safari VoiceOver, which drops them once CSS removes the markers.
+ */
 export function TagList({
   tags,
   variant,
@@ -80,9 +83,13 @@ export function TagList({
 }) {
   if (tags.length === 0) return null;
   return (
-    <ul aria-label={label} className={cn("flex flex-wrap gap-2", className)}>
-      {tags.map((tag) => (
-        <li key={tag} className="flex">
+    <ul
+      role="list"
+      aria-label={label}
+      className={cn("flex flex-wrap gap-2", className)}
+    >
+      {tags.map((tag, index) => (
+        <li key={`${tag}-${index}`} className="flex">
           <Tag variant={variant} href={hrefFor?.(tag)}>
             {tag}
           </Tag>
@@ -110,6 +117,7 @@ export function StackList({
   if (items.length === 0) return null;
   return (
     <ul
+      role="list"
       aria-label={label}
       className={cn(
         "flex flex-wrap items-baseline gap-x-[1ch] gap-y-1 font-mono text-sm text-ink lowercase",
@@ -117,7 +125,10 @@ export function StackList({
       )}
     >
       {items.map((item, index) => (
-        <li key={item} className="flex items-baseline gap-x-[1ch]">
+        <li
+          key={`${item}-${index}`}
+          className="flex items-baseline gap-x-[1ch]"
+        >
           {index > 0 && (
             <span aria-hidden="true" className="text-muted">
               /
