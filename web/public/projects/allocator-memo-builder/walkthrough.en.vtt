@@ -1,0 +1,203 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.000
+Meet Allocator Memo Builder.
+
+00:00:02.000 --> 00:00:07.000
+It turns a messy fund universe into an investment committee memo.
+
+00:00:07.000 --> 00:00:10.000
+And every claim in that memo can be checked.
+
+00:00:10.000 --> 00:00:15.000
+An allocator gets a messy manager universe, and a mandate.
+
+00:00:15.000 --> 00:00:19.000
+The job is a memo the investment committee can defend.
+
+00:00:19.000 --> 00:00:22.000
+But where does each number in that memo come from?
+
+00:00:22.000 --> 00:00:24.000
+So the work is split three ways.
+
+00:00:24.000 --> 00:00:26.000
+Code computes.
+
+00:00:26.000 --> 00:00:27.000
+The model writes.
+
+00:00:27.000 --> 00:00:30.000
+And code checks what it wrote.
+
+00:00:30.000 --> 00:00:37.000
+The input is three CSVs: fund terms, plus monthly returns in long and wide format.
+
+00:00:37.000 --> 00:00:43.000
+The sample universe is synthetic: twelve invented funds, with twenty-two deliberate problems.
+
+00:00:43.000 --> 00:00:46.000
+Name variants, and a typo.
+
+00:00:46.000 --> 00:00:49.000
+Returns in percent instead of decimal.
+
+00:00:49.000 --> 00:00:56.000
+Missing months, an outlier, a duplicate, a short track record, and a fund with only summary stats.
+
+00:00:56.000 --> 00:01:01.000
+Every problem is documented, so the sample doubles as a test oracle.
+
+00:01:01.000 --> 00:01:03.000
+Load the bundled sample.
+
+00:01:03.000 --> 00:01:09.000
+The data quality page lists every fix, with the file, row and column it came from.
+
+00:01:09.000 --> 00:01:12.000
+Each fix becomes evidence the memo can cite.
+
+00:01:12.000 --> 00:01:18.000
+Exact name matches merge automatically, but fuzzy matches are only proposals.
+
+00:01:18.000 --> 00:01:22.000
+Orrin Vale, missing an s, is the same fund, so it's accepted.
+
+00:01:22.000 --> 00:01:28.000
+Saltmarsh Global Macro two is a different vehicle, so it's rejected.
+
+00:01:28.000 --> 00:01:30.000
+Next, the mandate.
+
+00:01:30.000 --> 00:01:34.000
+Quarterly liquidity, sixty days notice, a twelve-month lockup.
+
+00:01:34.000 --> 00:01:42.000
+An eight percent volatility target, a twenty percent drawdown limit, a two percent fee cap, and three years of track record.
+
+00:01:42.000 --> 00:01:49.000
+Global macro preferred, no credit, a shortlist of three, against a sixty-forty blend.
+
+00:01:49.000 --> 00:01:56.000
+Benchmarks come from FRED: a committed snapshot runs offline, and one button refreshes it live.
+
+00:01:56.000 --> 00:02:03.000
+Return, volatility, Sharpe, drawdown, correlation and beta are all computed in code, and tested.
+
+00:02:03.000 --> 00:02:07.000
+Peer correlations show how much the funds move together.
+
+00:02:07.000 --> 00:02:13.000
+Screening is code too, and only the five funds that pass every hard filter reach the model.
+
+00:02:13.000 --> 00:02:20.000
+When the memo compares funds, it uses a common window, so each one is measured over the same months.
+
+00:02:20.000 --> 00:02:23.000
+The model never computes a number.
+
+00:02:23.000 --> 00:02:31.000
+Every fact it can use is an evidence record with a stable id: a source cell, a metric, a mandate field, a screening result.
+
+00:02:31.000 --> 00:02:39.000
+It answers through one strict tool, and every claim carries a value, a unit, and the ids behind it.
+
+00:02:39.000 --> 00:02:41.000
+Now, a live run against Claude.
+
+00:02:41.000 --> 00:02:47.000
+The prompt is built from evidence only, and every claim is verified before the memo appears.
+
+00:02:47.000 --> 00:02:56.000
+The result: a ranked shortlist with rationale, then the memo, with a summary, a recommendation, key risks, and a data appendix.
+
+00:02:56.000 --> 00:02:59.000
+Every line carries a claim marker.
+
+00:02:59.000 --> 00:03:02.000
+Verification is deterministic.
+
+00:03:02.000 --> 00:03:09.000
+Each id must resolve, and each number is converted to the evidence's unit and compared within a tolerance.
+
+00:03:09.000 --> 00:03:15.000
+Every claim gets one status: verified, mismatch, unsupported, or qualitative cited.
+
+00:03:15.000 --> 00:03:20.000
+If anything fails, the model gets one retry, with the list of failures.
+
+00:03:20.000 --> 00:03:29.000
+Wording counts too: a loss of eight point eight six percent, stated as a positive number, is signed by its wording before it's compared.
+
+00:03:29.000 --> 00:03:35.000
+So it matches the minus eight point eight six percent in the evidence, and verifies.
+
+00:03:35.000 --> 00:03:38.000
+Flagged claims are never dropped.
+
+00:03:38.000 --> 00:03:41.000
+Click a marker to open the audit view.
+
+00:03:41.000 --> 00:03:48.000
+This claim says F04's maximum drawdown lasted 28 months, and it's verified against the computed metric.
+
+00:03:48.000 --> 00:03:56.000
+The trail shows the metric's window, formula and source rows, down to the CSV cell, with the delta and tolerance.
+
+00:03:56.000 --> 00:04:02.000
+The next claim is qualitative, and resolves to the notes cell it cites in funds.csv.
+
+00:04:02.000 --> 00:04:07.000
+This live run took two model calls, and left zero claims flagged.
+
+00:04:07.000 --> 00:04:12.000
+The memo and the full audit download as Markdown and JSON.
+
+00:04:12.000 --> 00:04:16.000
+Each design decision is recorded in an ADR.
+
+00:04:16.000 --> 00:04:19.000
+Streamlit, with no business logic in the UI.
+
+00:04:19.000 --> 00:04:23.000
+SQLite, and a JSON bundle per run.
+
+00:04:23.000 --> 00:04:25.000
+FRED, with a committed cache.
+
+00:04:25.000 --> 00:04:27.000
+One strict tool for the model.
+
+00:04:27.000 --> 00:04:31.000
+A deterministic verifier that flags, and never drops.
+
+00:04:31.000 --> 00:04:35.000
+And seeded sample data as a test oracle.
+
+00:04:35.000 --> 00:04:41.000
+Tests cover validation, metrics and verification, and CI is a test gate only.
+
+00:04:41.000 --> 00:04:44.000
+There are known limitations.
+
+00:04:44.000 --> 00:04:48.000
+The S and P series is price return, without dividends.
+
+00:04:48.000 --> 00:04:56.000
+FRED serves only about three years of corporate bond history, so longer windows use a Treasury proxy, which is an approximation.
+
+00:04:56.000 --> 00:05:03.000
+There's no PDF export, it's single-user and local, and live ranking isn't deterministic.
+
+00:05:03.000 --> 00:05:06.000
+But every run is checkable.
+
+00:05:06.000 --> 00:05:08.000
+Every number computed.
+
+00:05:08.000 --> 00:05:10.000
+Every claim checked.
+
+00:05:10.000 --> 00:05:12.900
+That's Allocator Memo Builder.
+

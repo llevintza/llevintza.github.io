@@ -1,0 +1,38 @@
+---
+title: Allocator Memo Builder
+slug: allocator-memo-builder
+summary: A fund-screening and memo-drafting tool. An LLM drafts the investment committee memo, and a deterministic verifier traces every claim back to its source cell. Working MVP (v0.1.0).
+stack:
+  - Python
+  - Streamlit
+  - pandas
+  - Pydantic
+  - Claude API
+video:
+  file: walkthrough.mp4
+  poster: walkthrough-poster.webp
+  captions: walkthrough.en.vtt
+  title: Video walkthrough
+  summary: "A five-minute narrated tour (AI voice, with captions) on the bundled synthetic sample: loading three messy CSVs, the data-quality report and its accept or reject merge decisions, the mandate form, benchmarks, metrics and screening, a live memo run against Claude, how each claim is verified, and an audit click-through from a claim down to the CSV cell behind it. It closes with the design decisions and known limitations."
+---
+
+## Problem
+
+An allocator starts from a scrappy manager universe: spreadsheets of fund terms and monthly returns, with name variants, returns in percent in one file and decimals in another, missing and duplicate months, and short track records. The output is an investment committee memo that has to stand up to questions. An LLM can write a fluent memo, but fluent isn't defendable: for every number in it, someone will ask where it came from.
+
+## Approach
+
+The work is split three ways: code computes, the model writes, and code checks what it wrote.
+
+- **Validate and normalize:** the CSVs are read, cleaned and merged in code. Every fix (a rescaled series, a filled gap, an outlier, a merge) is recorded with the file, row and column it came from. Exact name matches merge automatically, while fuzzy matches are only proposals that the user accepts or rejects.
+- **Compute and screen:** return, volatility, Sharpe, Sortino, drawdown, peer correlation and beta are computed in tested Python against public benchmark series from FRED, with a committed snapshot so everything runs offline. Funds are compared over a common window. The mandate is a form, not a prompt: liquidity, volatility and drawdown limits, fees, track record and strategy preferences. Only funds that pass every hard filter reach the model.
+- **Write through one strict tool:** every fact the model may use is an evidence record with a stable id: a source cell, a metric, a benchmark value, a data fix, a screening result or a mandate field. Claude answers through a single strict-schema tool whose input is validated with Pydantic, and each claim carries its value, unit and the ids behind it. Prose outside the tool call is never read.
+- **Verify deterministically:** each id must resolve, and each number is converted to the evidence's unit and compared within a per-unit tolerance. Every claim gets one status: verified, mismatch, unsupported or qualitative-cited. If anything fails, the model gets one retry with the list of failures. A failing claim is flagged in the memo, never dropped.
+
+The Streamlit app follows the same flow, from upload through data quality, mandate, and shortlist and memo, to an audit view where any claim can be followed down to the cell it rests on. The memo downloads as Markdown and the full audit as JSON. Each design decision is written up as an ADR.
+
+## Outcome
+
+A working MVP (v0.1.0), runnable locally with or without an API key. Without one, it shows a saved example run in which every claim passed verification on the first call. The sample data is a synthetic universe of invented funds with 22 documented, deliberate problems, which doubles as the test oracle for validation.
+
+The README lists the known limitations: the S&P 500 series is price return, so equity-relative excess returns are overstated by roughly the dividend yield; corporate-bond history from FRED is short, so longer windows use an approximate Treasury proxy; there is no PDF export; it's single-user and local; and a live run's ranking can differ from run to run. Verification makes each run checkable, not reproducible.
