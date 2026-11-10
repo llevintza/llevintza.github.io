@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { StackList } from "@/components/ui/tag";
 import { renderMdx } from "@/lib/content/mdx";
 import {
   getAllCaseStudies,
@@ -37,6 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${study.title}: case study`,
     description: study.summary,
     path: study.permalink,
+    image: "page",
   });
 }
 
@@ -67,11 +69,7 @@ export default async function CaseStudyPage({ params }: Props) {
 
         <section aria-labelledby="stack-heading">
           <h2 id="stack-heading">Stack</h2>
-          <ul>
-            {study.stack.map((tech) => (
-              <li key={tech}>{tech}</li>
-            ))}
-          </ul>
+          <StackList items={study.stack} />
         </section>
 
         {study.screenshots.length > 0 ? (
