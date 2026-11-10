@@ -1,12 +1,5 @@
-/* Minimal, token-driven styles. The console components (#8) will restyle
-   this; every colour reads a token from app/globals.css, with a fallback
-   from the direction B token table (dark palette, the default). */
-
-.section {
-  /* Light chip behind icons that would vanish on their background. Not a
-     global token yet; #8 can promote it. */
-  --contact-chip: #f4f7fa;
-}
+/* Minimal, token-driven styles: every colour, including the icon chip
+   (--contact-chip), reads a theme token from app/globals.css. */
 
 .primary,
 .link {
@@ -21,9 +14,9 @@
   padding: 0.75rem 1.25rem;
   font-weight: 600;
   font-size: 1.05rem;
-  color: var(--btn-ink, #0b1118);
-  background: var(--btn-bg, #3498db);
-  border: 1px solid var(--btn-bg, #3498db);
+  color: var(--btn-ink);
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-bg);
 }
 
 .primary:hover {
@@ -41,18 +34,18 @@
 
 .link {
   padding: 0.45rem 0.7rem;
-  color: var(--ink, #d5dee7);
-  background: var(--panel, #111c28);
-  border: 1px solid var(--line, #22313f);
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
 }
 
 .link:hover {
-  border-color: var(--brand-blue, #3498db);
+  border-color: var(--brand-blue);
 }
 
 .primary:focus-visible,
 .link:focus-visible {
-  outline: 3px solid var(--ring, #3498db);
+  outline: 3px solid var(--ring);
   outline-offset: 2px;
 }
 

@@ -2,12 +2,12 @@ import Image from "next/image";
 
 import { cn } from "@/components/ui/cn";
 import { focusRing } from "@/components/ui/focus";
-
-import { CONTACT_LINKS, ICONS_BASE } from "./contact-links";
+import { contactLinks } from "@/content/contact";
 
 /**
- * Site footer: copyright and the public contact links with the colored
- * email-icons set. No phone and no email, by rule.
+ * Site footer: copyright and the public contact links from
+ * `content/contact.ts`, with their colour icons. No phone and no email, by
+ * rule.
  */
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -23,8 +23,8 @@ export function SiteFooter() {
         </p>
 
         <ul aria-label="Contact" className="flex flex-wrap gap-x-1 gap-y-1">
-          {CONTACT_LINKS.map((link) => (
-            <li key={link.href}>
+          {contactLinks.map((link) => (
+            <li key={link.id}>
               <a
                 href={link.href}
                 className={cn(
@@ -32,13 +32,17 @@ export function SiteFooter() {
                   focusRing,
                 )}
               >
-                {/* Some icons are black: give them a light tile in dark mode. */}
+                {/* Black logos get a light chip in dark mode. */}
                 <Image
-                  src={`${ICONS_BASE}${link.icon}`}
+                  src={link.icon}
                   alt=""
                   width={16}
                   height={16}
-                  className="size-4 shrink-0 dark:box-content dark:bg-head dark:p-px"
+                  className={cn(
+                    "size-4 shrink-0",
+                    link.darkIcon &&
+                      "dark:box-content dark:bg-(--contact-chip) dark:p-px",
+                  )}
                 />
                 {link.label}
                 <span

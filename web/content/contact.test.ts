@@ -1,5 +1,10 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 import { CONTACT_ICONS_BASE, contactLinks } from "./contact";
+
+const PUBLIC_DIR = path.join(import.meta.dirname, "..", "public");
 
 describe("contactLinks", () => {
   it("has exactly one primary link, Book a call", () => {
@@ -7,13 +12,17 @@ describe("contactLinks", () => {
     expect(primary.map((link) => link.id)).toEqual(["book-a-call"]);
   });
 
-  it("uses unique ids and https URLs, with icons from email-icons", () => {
+  it("uses unique ids and https URLs, with vendored icons", () => {
     expect(new Set(contactLinks.map((link) => link.id)).size).toBe(
       contactLinks.length,
     );
     for (const link of contactLinks) {
       expect(new URL(link.href).protocol).toBe("https:");
       expect(link.icon.startsWith(CONTACT_ICONS_BASE)).toBe(true);
+      expect(
+        existsSync(path.join(PUBLIC_DIR, link.icon)),
+        `${link.icon} is missing from public/`,
+      ).toBe(true);
     }
   });
 

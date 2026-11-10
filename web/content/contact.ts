@@ -1,11 +1,15 @@
 // Contact links: the single typed source for every place the site shows them
-// (the About page "Get in touch" section now, the footer from #8 later).
-// Mirrors `contacts:` and `icons_base` in the Jekyll `_config.yml`.
+// (the About page "Get in touch" section and the site footer).
+// Mirrors `contacts:` in the Jekyll `_config.yml`.
 // Public-site rule: no phone number and no email address, ever.
 
-/** Base URL of the colour icon set published by llevintza/email-icons. */
-export const CONTACT_ICONS_BASE =
-  "https://llevintza.github.io/email-icons/img/color/";
+/**
+ * Site path of the vendored colour icons (H72-02): copies of the
+ * llevintza/email-icons `img/color/` set, so the site doesn't depend on
+ * another repo's published path. Email signatures keep loading theirs from
+ * /email-icons/.
+ */
+export const CONTACT_ICONS_BASE = "/icons/contact/";
 
 export type ContactId = "linkedin" | "github" | "x" | "book-a-call";
 
@@ -15,8 +19,8 @@ export type ContactLink = {
   label: string;
   /** External https URL. */
   href: `https://${string}`;
-  /** Absolute icon URL (square PNG). */
-  icon: `https://${string}`;
+  /** Site-relative icon path (square PNG under public/). */
+  icon: `/${string}`;
   /**
    * The icon is dark artwork (black logo) that disappears on a dark
    * background, so dark themes should put it on a light chip.
