@@ -46,11 +46,10 @@ const post = newestBlogPostPath();
 if (post) {
   urls.push(`http://localhost${post}`);
 } else {
-  // TODO(#15): once the first post lands, make this URL mandatory and fail
-  // here instead of warning.
-  console.warn(
-    "[lighthouserc] WARNING: no blog post found in out/blog/YYYY/MM/DD/<slug>/; " +
-      "skipping the blog post URL.",
+  // Posts exist since #15, so a missing post means the build is broken.
+  throw new Error(
+    "[lighthouserc] no blog post found in out/blog/YYYY/MM/DD/<slug>/index.html; " +
+      "run `pnpm build` first (and check that content/posts has a published post).",
   );
 }
 
