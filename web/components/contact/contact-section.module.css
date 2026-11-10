@@ -2,6 +2,12 @@
    this; every colour reads a token from app/globals.css, with a fallback
    from the direction B token table (dark palette, the default). */
 
+.section {
+  /* Light chip behind icons that would vanish on their background. Not a
+     global token yet; #8 can promote it. */
+  --contact-chip: #f4f7fa;
+}
+
 .primary,
 .link {
   display: inline-flex;
@@ -61,17 +67,17 @@
    the dark theme (same theme rule as the `dark:` variant in globals.css). */
 .primary .icon {
   padding: 1px;
-  background: #f4f7fa;
+  background: var(--contact-chip);
 }
 
 :global([data-theme="dark"]) .chip {
   padding: 1px;
-  background: #f4f7fa;
+  background: var(--contact-chip);
 }
 
 @media not all and (prefers-color-scheme: light) {
   :global(:root:not([data-theme])) .chip {
     padding: 1px;
-    background: #f4f7fa;
+    background: var(--contact-chip);
   }
 }
