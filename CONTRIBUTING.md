@@ -65,7 +65,7 @@ The `commit-msg` hook runs `commitlint` on every commit. CI runs the same check 
 - Open PRs against `main` only.
 - The PR title follows the same format as a commit message (`type(scope): subject`), since it can become the squash commit message.
 - The PR body has a summary, `Closes #<issue>`, how the change was verified (commands and results) and screenshots for visible changes.
-- Dependabot ([`.github/dependabot.yml`](.github/dependabot.yml)) opens weekly `chore(deps)` (npm, root and `web/`) and `ci(deps)` (actions) PRs. Updates are batched: one PR for minor and patch updates and one for majors, per ecosystem. They go through the same checks and reviews as any other PR.
+- Dependabot ([`.github/dependabot.yml`](.github/dependabot.yml)) opens weekly `chore(deps)` (npm, root and `web/`) and `ci(deps)` (actions) PRs. Version updates are batched: one PR for minor and patch updates and one for majors, per ecosystem. Mermaid gets its own PR, which needs the diagram re-render described in `web/README.md`. If one dependency turns a batch red, comment `@dependabot ignore <dependency> major version` on that PR to drop it. They go through the same checks and reviews as any other PR.
 
 ### What `main` requires
 

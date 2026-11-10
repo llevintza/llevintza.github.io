@@ -7,9 +7,14 @@
 # lower case because the prefix and this repo's history are lower case.
 #
 # Runs weekly on Monday at 03:00 UTC, ahead of the 04:17 UTC rebuild cron
-# in deploy.yml. Every update is batched: each ecosystem gets at most two
-# PRs a week, one for minor + patch and one for majors, so a breaking major
-# can't hold back the routine updates.
+# in deploy.yml. Every version update is batched: each ecosystem gets at most
+# two PRs a week, one for minor + patch and one for majors, so a breaking
+# major can't hold back the routine updates. Security updates aren't grouped.
+#
+# web-mermaid: any mermaid bump (patch included) changes every diagram hash,
+# and mermaid must match mermaid-isomorphic. So both move together in their
+# own PR, which needs a local re-render (`pnpm build`, see web/README.md
+# "Mermaid diagrams") before CI goes green. It never blocks the other batches.
 #
 # cooldown: pnpm 12 refuses versions younger than its minimumReleaseAge
 # (default 1440 minutes, one day), so Dependabot must not propose anything
@@ -53,11 +58,15 @@ updates:
     commit-message:
       prefix: chore(deps)
     groups:
+      web-mermaid:
+        patterns: [mermaid, mermaid-isomorphic]
       web-minor-patch:
         patterns: ["*"]
+        exclude-patterns: [mermaid, mermaid-isomorphic]
         update-types: [minor, patch]
       web-major:
         patterns: ["*"]
+        exclude-patterns: [mermaid, mermaid-isomorphic]
         update-types: [major]
     cooldown:
       default-days: 3
