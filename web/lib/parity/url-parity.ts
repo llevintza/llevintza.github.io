@@ -224,8 +224,6 @@ export function parseBaseline(raw: string): Baseline {
   };
 }
 
-// Paths whose first segment is a project-site repo name: a Pages repo with
-// that name would shadow the route (ADR 0001).
 // The `rel="next"` URL from a GitHub API `Link` header, if any.
 export function nextPageUrl(link: string | null): string | null {
   if (!link) return null;
@@ -246,6 +244,8 @@ export function exportedProjectPrefixes(
   return prefixes.filter((p) => exists(p.replace(/^\/+|\/+$/g, "")));
 }
 
+// Paths whose first segment is a project-site repo name: a Pages repo with
+// that name would shadow the route (ADR 0001).
 export function shadowedPaths(
   paths: readonly string[],
   prefixes: readonly string[],
