@@ -174,6 +174,20 @@ export function parseCaseStudy(
     );
   }
 
+  if (project) {
+    // Single source: stack and liveUrl must match content/featured.ts.
+    if (JSON.stringify(fm.stack) !== JSON.stringify(project.stack)) {
+      problems.push(
+        `stack: must match the featured entry's stack in content/featured.ts (${project.stack.join(", ")})`,
+      );
+    }
+    if (fm.liveUrl !== project.liveUrl) {
+      problems.push(
+        `liveUrl: must match the featured entry's liveUrl in content/featured.ts (${project.liveUrl ?? "none"}), got ${JSON.stringify(fm.liveUrl)}`,
+      );
+    }
+  }
+
   problems.push(...checkSections(body));
 
   const screenshots: Screenshot[] = [];
@@ -205,7 +219,9 @@ export function parseCaseStudy(
 
 /** `## Problem` then `## Approach`, each exactly once. */
 function checkSections(body: string): string[] {
-  const headings = [...body.matchAll(/^##[ \t]+(.+?)[ \t]*#*[ \t]*$/gm)].map(
+  // Ignore fenced code blocks, so a "## Problem" in a sample doesn't count.
+  const prose = body.replace(/^(```|~~~)[^\n]*\n[\s\S]*?^\1[ \t]*$/gm, "");
+  const headings = [...prose.matchAll(/^##[ \t]+(.+?)[ \t]*#*[ \t]*$/gm)].map(
     (m) => m[1],
   );
   const problems: string[] = [];

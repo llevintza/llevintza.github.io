@@ -20,6 +20,7 @@ const featured: FeaturedProject[] = [
     access: "public",
     repoUrl: "https://github.com/llevintza/pub-app",
     description: "A public project.",
+    liveUrl: "https://example.org/pub-app/",
     stack: ["TypeScript"],
   },
   {
@@ -71,7 +72,7 @@ const validPublic = [
   "title: Pub App",
   "slug: pub-app",
   "summary: Does things.",
-  "stack: [TypeScript, Node]",
+  "stack: [TypeScript]",
   "liveUrl: https://example.org/pub-app/",
   "repo: https://github.com/llevintza/pub-app",
   "screenshots:",
@@ -99,7 +100,7 @@ describe("parseCaseStudy", () => {
       access: "public",
       repo: "https://github.com/llevintza/pub-app",
       permalink: "/projects/pub-app/",
-      stack: ["TypeScript", "Node"],
+      stack: ["TypeScript"],
     });
     expect(study.screenshots).toEqual([
       {
@@ -186,6 +187,33 @@ describe("parseCaseStudy", () => {
     );
     expect(() => parse("pub-app.mdx", src)).toThrow(
       /liveUrl: must be an https:\/\/ URL/,
+    );
+  });
+
+  it("requires stack and liveUrl to match content/featured.ts", () => {
+    const drifted = source(
+      validPublic
+        .replace("stack: [TypeScript]", "stack: [TypeScript, Node]")
+        .replace("example.org/pub-app/", "example.org/elsewhere/"),
+    );
+    expect(() => parse("pub-app.mdx", drifted)).toThrow(
+      /stack: must match the featured entry's stack[\s\S]*liveUrl: must match the featured entry's liveUrl/,
+    );
+    const extraLive = source(`${validPrivate}\nliveUrl: https://example.org/`);
+    expect(() => parse("priv-app.mdx", extraLive)).toThrow(
+      /liveUrl: must match the featured entry's liveUrl in content\/featured\.ts \(none\)/,
+    );
+  });
+
+  it("ignores section headings inside fenced code blocks", () => {
+    const fenced =
+      "```md\n## Problem\n\n## Approach\n```\n\nNo real sections.\n";
+    expect(() => parse("priv-app.mdx", source(validPrivate, fenced))).toThrow(
+      /missing a "## Problem" section[\s\S]*missing a "## Approach" section/,
+    );
+    const withSample = `${BODY}\n\`\`\`md\n## Problem\n\`\`\`\n`;
+    expect(parse("priv-app.mdx", source(validPrivate, withSample)).slug).toBe(
+      "priv-app",
     );
   });
 
