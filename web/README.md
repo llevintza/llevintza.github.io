@@ -47,7 +47,7 @@ lychee --config lychee.toml --root-dir "$PWD/web/out" 'web/out/**/*.html'
 
 ## Lighthouse
 
-CI (`.github/workflows/lighthouse.yml`, check **Lighthouse budgets**) runs Lighthouse on every PR against the static export and fails when a budget is missed: Performance ≥ 95, Accessibility = 100, Best Practices ≥ 95, SEO = 100. It tests `/`, `/projects/` and the newest blog post (3 mobile runs each, median), then posts a sticky `[Lighthouse]` comment with the scores and a link to the HTML reports artifact. The config is `lighthouserc.cjs`.
+CI (`.github/workflows/lighthouse.yml`, check **Lighthouse budgets**) runs Lighthouse on every PR against the static export and fails when a budget is missed: Performance ≥ 95, Accessibility = 100, Best Practices ≥ 95, SEO = 100. It tests `/`, `/projects/`, `/projects/credit-desk-analytics/` and the newest blog post (5 mobile runs each, median), then posts a sticky `[Lighthouse]` comment with the scores and a link to the HTML reports artifact. The config is `lighthouserc.cjs`.
 
 Run it locally (needs Chrome installed):
 
