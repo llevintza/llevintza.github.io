@@ -1,0 +1,78 @@
+# Dependabot version updates (#64).
+#
+# Commit messages and PR titles must pass the required Conventional Commits
+# checks (commitlint + amannn/action-semantic-pull-request). An explicit
+# prefix gives "chore(deps): bump x from a to b" and "ci(deps): bump …":
+# Dependabot appends ": " after a prefix that ends in ")", and keeps "bump"
+# lower case because the prefix and this repo's history are lower case.
+#
+# Runs weekly on Monday at 03:00 UTC, ahead of the 04:17 UTC rebuild cron
+# in deploy.yml. Minor and patch updates are grouped per ecosystem; majors
+# get their own PRs.
+#
+# cooldown: pnpm 12 refuses versions younger than its minimumReleaseAge
+# (default 1440 minutes, one day), so Dependabot must not propose anything
+# newer. Three days covers that with a margin; majors wait a week.
+version: 2
+
+updates:
+  # Not covered on purpose: design/ (mockup screenshot tooling) and the root
+  # Gemfile (local Jekyll preview). Neither ships to the site.
+
+  # Root tooling: commitlint and husky (pnpm-lock.yaml).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+      timezone: Etc/UTC
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      root-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    open-pull-requests-limit: 5
+
+  # Next.js app (web/pnpm-lock.yaml).
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+      timezone: Etc/UTC
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      web-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    open-pull-requests-limit: 5
+
+  # Workflow actions. They are pinned to full commit SHAs with a "# vX.Y.Z"
+  # comment, and Dependabot updates the SHA and the comment together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+      timezone: Etc/UTC
+    commit-message:
+      prefix: ci(deps)
+    groups:
+      actions-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    # github-actions supports only default-days (no semver-*-days).
+    cooldown:
+      default-days: 3
+    open-pull-requests-limit: 5
