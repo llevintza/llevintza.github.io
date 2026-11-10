@@ -11,7 +11,7 @@ The site is a personal blog and portfolio. It is moving from Jekyll (minima) on
 GitHub Pages to a Next.js App Router site built with `output: 'export'` (static
 HTML, no server), still served from GitHub Pages at `llevintza.github.io`. There
 is no custom domain today, and no Cloudflare proxy in front of the site. Hosting
-is being decided separately in ADR 0001.
+is decided in ADR 0001 (accepted: GitHub Pages via Actions, no custom domain).
 
 We want rough answers to "is anyone reading this, which posts, and where do they
 come from" without:
@@ -223,8 +223,8 @@ Why:
   at once. Cloudflare is free but US-run and samples after 7 days. Plausible is
   EU and unsampled but costs $9/month.
 - The 4.1 KB deferred script is no threat to Performance >= 95.
-- It works on plain GitHub Pages with no proxy or custom domain, so it doesn't
-  depend on the outcome of ADR 0001.
+- It works on plain GitHub Pages with no proxy or custom domain, which is the
+  setup ADR 0001 accepted (GitHub Pages via Actions, no custom domain).
 - It supports custom events (for example, outbound clicks on featured projects)
   if we want them later.
 - If it outgrows Hobby or the terms change, switching to self-hosted Umami
