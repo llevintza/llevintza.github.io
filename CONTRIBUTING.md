@@ -71,8 +71,18 @@ The `commit-msg` hook runs `commitlint` on every commit. CI runs the same check 
 The ruleset on `main` requires:
 
 - a pull request (no direct pushes),
-- passing required checks, including **Commit messages** and **PR title** from the `Conventional Commits` workflow,
+- these required checks passing,
 - every review conversation resolved.
+
+This is the single source for the required-checks list; update it here when branch protection changes.
+
+| Check | Workflow | What it checks |
+|---|---|---|
+| **Commit messages** | `conventional-commits.yml` | Every commit in the PR follows Conventional Commits |
+| **PR title** | `conventional-commits.yml` | The PR title follows Conventional Commits |
+| **Web: lint, typecheck, build** | `ci.yml` | In `web/`: Prettier, ESLint, `tsc` and the static export build. It reports on every PR, and skips the heavy steps when `web/` is unchanged |
+| **Lighthouse budgets** | `lighthouse.yml` | Lighthouse scores for `/`, `/projects/` and the newest post meet the budgets in [`web/README.md`](web/README.md) |
+| **Public content guardrail** | `public-content.yml` | Scans the `web/` static export for phone numbers, personal email addresses and links to private repos (see [README](README.md#public-content-rules)) |
 
 It requires no approvals, because all agents post on GitHub under the owner's account and GitHub does not let an author approve their own PR.
 

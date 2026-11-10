@@ -61,3 +61,6 @@ exclude:
   - commitlint.config.mjs
   - .husky/
   - CONTRIBUTING.md
+  - CLAUDE.md
+  - AGENTS.md
+  - lychee.toml

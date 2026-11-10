@@ -10,13 +10,7 @@ The site is being rebuilt in Next.js (App Router, TypeScript, static export) in 
 
 ## How changes land
 
-Every change reaches `main` through a feature branch and a pull request; nothing is pushed straight to `main`. The ruleset on `main` requires these checks to pass before a PR can merge:
-
-| Check | Workflow | What it checks |
-|---|---|---|
-| **Commit messages** | `conventional-commits.yml` | Every commit in the PR follows Conventional Commits |
-| **PR title** | `conventional-commits.yml` | The PR title follows Conventional Commits |
-| **Web: lint, typecheck, build** | `ci.yml` | In `web/`: Prettier, ESLint, `tsc` and the static export build. It reports on every PR, and skips the heavy steps when `web/` is unchanged |
+Every change reaches `main` through a feature branch and a pull request; nothing is pushed straight to `main`. The ruleset on `main` requires five checks to pass before a PR can merge; [`CONTRIBUTING.md`](CONTRIBUTING.md#what-main-requires) lists them.
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for branch names, commit and PR conventions, and how reviews and merges work.
 
