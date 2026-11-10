@@ -83,6 +83,10 @@ export const PLACEHOLDER_PARAM = "_";
  * empty array, which is the normal case for `/page/[n]/` while there are 10
  * posts or fewer. In that case return one placeholder route instead; its page
  * calls `notFound()`, so nothing real is published at that URL.
+ *
+ * The export still writes a file there (e.g. `out/blog/page/_/index.html`),
+ * which GitHub Pages serves with HTTP 200 as a noindex soft 404. Never list
+ * `PLACEHOLDER_PARAM` paths in a sitemap or feed, and never link to them.
  */
 export function orPlaceholder<P extends Record<string, string>>(
   params: P[],
