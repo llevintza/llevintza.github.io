@@ -3,13 +3,20 @@ import type { ReactNode } from "react";
 
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+  TITLE_TEMPLATE,
+} from "@/lib/site/metadata";
 import { fontVariables } from "@/lib/theme/fonts";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Leo Levintza",
-  description: "Blog and portfolio of Leo Levintza.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_NAME, template: TITLE_TEMPLATE },
+  description: SITE_DESCRIPTION,
 };
 
 // Browser UI colour follows the system setting. The hex values must equal

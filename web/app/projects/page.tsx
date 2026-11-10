@@ -1,12 +1,13 @@
-import type { Metadata } from "next";
 import { AllRepos } from "@/components/projects/all-repos";
 import { getFeaturedProjects } from "@/lib/projects/featured";
 import { getPublicReposCached } from "@/lib/projects/repos";
+import { buildMetadata } from "@/lib/site/metadata";
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "Projects",
   description: "Featured projects and all public repos by Leo Levintza.",
-};
+  path: "/projects/",
+});
 
 export default async function ProjectsPage() {
   const projects = getFeaturedProjects();
