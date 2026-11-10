@@ -7,6 +7,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type ApiRepo,
+  type FetchLike,
   MAX_CACHE_AGE_MS,
   REPO_EXCLUDE,
   REPOS_API_URL,
@@ -259,6 +260,37 @@ describe("getPublicRepos", () => {
     expect(fetchMock.mock.calls[1][0]).toBe(next);
     expect(repos.map((r) => r.name).sort()).toEqual(["one", "two"]);
   });
+
+  it.each([
+    ["another host", "https://evil.example/repos?page=2"],
+    ["plain http", "http://api.github.com/user/1/repos?page=2"],
+    ["not a URL", "::nope::"],
+  ])(
+    "never follows a next-page link to %s, falling back to the cache",
+    async (_label, next) => {
+      await writeFile(cachePath, serializeCache([], daysAgo(1)));
+      const fetchMock = vi
+        .fn<FetchLike>()
+        .mockResolvedValueOnce(
+          json([repo("one")], { headers: { link: `<${next}>; rel="next"` } }),
+        );
+      const logger = silentLogger();
+
+      const repos = await getPublicRepos({
+        fetch: fetchMock,
+        cachePath,
+        logger,
+        offline: false,
+        now,
+      });
+
+      expect(fetchMock).toHaveBeenCalledOnce();
+      expect(repos).toEqual([]);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("next-page link is not on api.github.com"),
+      );
+    },
+  );
 
   it("does not rewrite an unchanged, recent cache", async () => {
     const repos = selectPublicRepos([repo("same")]);

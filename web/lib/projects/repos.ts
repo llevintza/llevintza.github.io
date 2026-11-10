@@ -255,9 +255,24 @@ export const nodeFetch: FetchLike = (url, { headers, signal }) =>
     req.on("error", reject);
   });
 
+/**
+ * The `rel="next"` URL, only on the API's own origin (https), since the next
+ * request carries the token. Anything else throws, so the build falls back
+ * to the cache.
+ */
 function nextPageUrl(link: string | null): string | null {
   const match = link?.match(/<([^>]+)>;\s*rel="next"/);
-  return match ? match[1] : null;
+  if (!match) return null;
+  let origin: string | undefined;
+  try {
+    origin = new URL(match[1]).origin;
+  } catch {
+    // Not a URL: rejected below.
+  }
+  if (origin !== new URL(REPOS_API_URL).origin) {
+    throw new ApiError("next-page link is not on api.github.com");
+  }
+  return match[1];
 }
 
 /** Every page of the owner's repos. Throws on any HTTP or shape problem. */
