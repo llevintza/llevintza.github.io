@@ -20,7 +20,7 @@ pnpm dev          # http://localhost:3000
 | `pnpm build`                        | Static export to `out/` (`/blog/` becomes `out/blog/index.html`) |
 | `pnpm start`                        | Serves `out/` as static files (run `pnpm build` first)           |
 | `pnpm lint`                         | ESLint                                                           |
-| `pnpm typecheck`                    | `tsc --noEmit`                                                   |
+| `pnpm typecheck`                    | `next typegen` (route types), then `tsc --noEmit`                |
 | `pnpm format` / `pnpm format:check` | Prettier write / check                                           |
 
 `next.config.ts` sets `output: 'export'`, `trailingSlash: true` (URLs match the Jekyll site) and `images.unoptimized` (static export has no image optimizer).
