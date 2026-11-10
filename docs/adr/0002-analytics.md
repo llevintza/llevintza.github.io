@@ -205,6 +205,13 @@ transfer size and the uncompressed size.
 | Next.js export effort | None | Trivial | Trivial | High (ops) | Trivial | Medium-high (ops) |
 | Ongoing ops | None | None | None | High | None | Medium |
 
+## Decision
+
+Accepted 2026-11-10 by Leo Levintza: Umami Cloud, Hobby plan, EU region,
+loaded only in production builds, as recommended below. The integration is
+tracked in #58. The Recommendation section is kept as written, as the
+reasoning behind the decision.
+
 ## Recommendation
 
 **Adopt Umami Cloud on the free Hobby plan, created in the EU data region,
