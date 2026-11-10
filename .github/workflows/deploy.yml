@@ -84,8 +84,13 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: build
-    # Gate: off until the cutover runbook sets PAGES_DEPLOY_ENABLED=true.
-    if: github.event_name != 'pull_request' && vars.PAGES_DEPLOY_ENABLED == 'true'
+    # Gate: off until the cutover runbook sets PAGES_DEPLOY_ENABLED=true, and
+    # only from main (a manual run from another ref builds but never deploys;
+    # the github-pages environment's branch policy enforces the same).
+    if: >-
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/main' &&
+      vars.PAGES_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
