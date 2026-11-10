@@ -1,6 +1,7 @@
 # ADR 0002: Privacy-friendly analytics
 
-- **Status:** Accepted (2026-11-10, Leo Levintza: Umami Cloud, Hobby plan, EU region)
+- **Status:** Accepted (2026-11-10, Leo Levintza: Umami Cloud, Hobby plan, **US region**; amended 2026-11-10 from EU)
+- **Setup guide:** [docs/runbooks/analytics-setup.md](../runbooks/analytics-setup.md)
 - **Date:** 2026-11-09
 - **Issue:** #31 (part of epic #28, SEO, social previews and analytics)
 - **Deciders:** Leo Levintza (owner)
@@ -211,6 +212,37 @@ Accepted 2026-11-10 by Leo Levintza: Umami Cloud, Hobby plan, EU region,
 loaded only in production builds, as recommended below. The integration is
 tracked in #58. The Recommendation section is kept as written, as the
 reasoning behind the decision.
+
+## Amendment 2026-11-10
+
+Leo Levintza changed two things on 2026-11-10, before the Umami account was
+created. The rest of this ADR is kept as written, including the EU wording in
+the findings and the recommendation, as the record of the original reasoning.
+
+**1. Umami Cloud in the US data region, not the EU.**
+
+- The site is US-based and its main audience is in the US.
+- Umami "does not collect personal data" and sets no cookies [UM-pricing], so
+  where the aggregate stats live is low-stakes. Driver 5 ("EU storage
+  is preferred") was a preference, not a requirement.
+- The region is picked at account setup and can't be changed afterwards
+  [UM-faq], so it is decided now, before the account exists.
+
+Step 1 of the integration sketch therefore picks **US**, and the About note
+drops "Aggregate stats are kept in the EU". It reads: "This site uses Umami, a
+cookie-free analytics service that stores no personal data."
+
+**2. Google Search Console is added alongside Umami.** It gives search
+impressions, clicks and indexing reports, which Umami can't see. It adds no
+script and no cookies: the only change to the site is a
+`<meta name="google-site-verification">` tag for the ownership check. The
+token comes from the build-time variable `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`,
+passed only to the deploy build on `main` (the same gate as the Umami website
+ID), so CI, Lighthouse, e2e and PR builds render no tag. The token is never
+committed.
+
+The owner's step-by-step setup for both is in
+[docs/runbooks/analytics-setup.md](../runbooks/analytics-setup.md).
 
 ## Recommendation
 

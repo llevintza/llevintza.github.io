@@ -38,6 +38,21 @@ export const TITLE_TEMPLATE = `%s · ${SITE_NAME}`;
 export const SITE_DESCRIPTION =
   "Leo Levintza, Principal Software Engineer: distributed systems, cloud-native backends, and agentic AI tooling for an AI-augmented SDLC.";
 
+/**
+ * Google Search Console ownership check (ADR 0002 amendment, #58): a
+ * `<meta name="google-site-verification">` tag in every page head, set by the
+ * root layout. No script and no cookies. The token comes only from the
+ * build-time variable NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION, which only the
+ * Pages deploy build gets; without it (CI, Lighthouse, e2e, PR builds) no tag
+ * is rendered. Never commit a token.
+ */
+export function siteVerification(
+  google: string | undefined = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+): Metadata["verification"] {
+  const token = google?.trim();
+  return token ? { google: token } : undefined;
+}
+
 export interface PageMetadataInput {
   /**
    * Page title without the site name; the root layout's template appends it.

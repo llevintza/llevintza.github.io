@@ -59,6 +59,15 @@ open .lighthouseci/reports/*.report.html
 
 `pnpm lhci` runs a pinned `@lhci/cli` through `pnpm dlx`, so it adds no dependency. Reports stay local (`upload.target: filesystem`); nothing goes to public storage.
 
+## Analytics and Search Console
+
+Two build-time variables, both empty by default, turn on the only third-party tags ([ADR 0002](../docs/adr/0002-analytics.md)):
+
+- `NEXT_PUBLIC_UMAMI_WEBSITE_ID` renders the cookie-free Umami Cloud script (`components/analytics/`) and the analytics note on About.
+- `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` renders the `<meta name="google-site-verification">` tag (`siteVerification()` in `lib/site/metadata.ts`).
+
+Only the deploy build on `main` gets them, from GitHub Actions variables; CI, Lighthouse, e2e and PR builds never do. Never commit a real value. To see the on-state locally, pass made-up values to `pnpm build`. The owner's setup steps are in [docs/runbooks/analytics-setup.md](../docs/runbooks/analytics-setup.md).
+
 ## Rich posts
 
 Posts can use these extras on top of Markdown. `content/posts/2026-11-09-rebuilding-this-site.mdx` shows all of them.
