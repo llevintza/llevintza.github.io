@@ -12,7 +12,7 @@ import {
 
 const SITE_URL = "https://llevintza.github.io";
 
-/** Matches the post column; the screenshot never renders wider than this. */
+/** The `<img>` style caps the screenshot at 48rem, so it never renders wider. */
 const SCREENSHOT_SIZES = "(min-width: 48rem) 48rem, 100vw";
 
 type Props = PageProps<"/projects/[slug]">;
@@ -133,7 +133,7 @@ function ScreenshotFigure({ shot }: { shot: Screenshot }) {
           alt={shot.alt}
           loading="lazy"
           decoding="async"
-          style={{ maxWidth: "100%", height: "auto" }}
+          style={{ width: "100%", maxWidth: "48rem", height: "auto" }}
         />
       </picture>
     </figure>
