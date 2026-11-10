@@ -31,6 +31,7 @@ Guidance for coding agents in this repo. Read [README.md](README.md), [CONTRIBUT
   - for `ux-review` PRs, the owner has approved the UX.
 
   After a push that changes the PR's own files, post a fresh READY only once the conditions hold again on the new head. A merge-only update from `origin/main` (no new changes from the PR) keeps the earlier reviews: reviewers still re-check the new head, but Rex's re-check doesn't block READY or merge. Arch's re-check is still required if that update touches an ADR or strategy doc, and Helms's `[workflows]` sign-off if it changes a workflow, CI or build config. Never post READY while anything is pending.
+
 - **Visual changes** need Playwright screenshots at 390×844 and 1440×900, light and dark, the `ux-review` label, and the owner's UX approval before merge. Screenshots go on the orphan branch `ux-screenshots` under `pr-<n>/`.
 
 ## Working in `web/`
