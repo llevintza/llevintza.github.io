@@ -27,10 +27,15 @@ future.
 
 ## Decision drivers
 
-1. **No cookie banner.** The tool must not store or read anything on the
-   visitor's device (no cookies, no `localStorage`), so ePrivacy Art. 5(3)
-   consent isn't triggered, and it must not process personal data in a way that
-   needs consent under GDPR.
+1. **No cookie banner.** The tool must store nothing on the visitor's device
+   (no cookies, no `localStorage` writes, no identifiers), so ePrivacy
+   Art. 5(3) consent isn't triggered. It also must not process personal data in
+   a way that needs consent under GDPR. The only device read allowed is the
+   vendor's own opt-out flag: Umami reads `localStorage["umami.disabled"]` and
+   Plausible reads `localStorage.plausible_ignore` (checked in each live script
+   on 2026-11-09). Each script only checks for its flag and never sets it. It
+   lets the site owner exclude their own visits, and a normal visitor never has
+   it set.
 2. **Cost.** Free or close to free at our volume.
 3. **Works on static GitHub Pages.** No server-side code, no rewrites, no
    required custom domain or proxy.
@@ -259,7 +264,8 @@ Text only. No code changes are made in this ADR.
    data. Aggregate stats are stored in the EU."
 7. Verify by running Lighthouse on the production build (Performance >= 95,
    no new console errors), checking that the browser stores no cookies or
-   `localStorage` for the origin, and checking that a visit shows in the Umami
+   `localStorage` for the origin (DevTools → Application: the script reads
+   only `umami.disabled` and writes nothing), and checking that a visit shows in the Umami
    realtime view.
 
 ## Consequences
@@ -273,7 +279,9 @@ Text only. No code changes are made in this ADR.
     or an upgrade.
   - It depends on a free tier whose limits may change.
   - "No cookie banner" rests on the tool storing nothing on the device and
-    collecting no personal data. This matches the vendor's statements and
+    collecting no personal data. The one exception is a read of the vendor's
+    opt-out flag (`umami.disabled` in `localStorage`), which the script checks
+    but never writes. This matches the vendor's statements and
     common regulator guidance for audience measurement, but it isn't legal
     advice. The site should still mention analytics in a short privacy note.
 - **Revisit when:** traffic nears 100K events per month, the owner wants
