@@ -1,4 +1,5 @@
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { builtinModules } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -240,5 +241,46 @@ describe("cacheAge", () => {
 
   it("uses the build's 14-day limit", () => {
     expect(MAX_AGE_DAYS).toBe(14);
+  });
+});
+
+// repo-cache.yml runs the script from a sparse checkout with no pnpm install,
+// through Node's type stripping. Fail here, not in a scheduled run, if either
+// file gains a package, alias or extra relative import, or TypeScript syntax
+// that Node can't strip.
+describe("runs without pnpm install (repo-cache.yml)", () => {
+  const read = (rel: string) =>
+    readFile(path.join(import.meta.dirname, rel), "utf8");
+  const specifiers = (src: string) =>
+    [
+      ...src.matchAll(
+        /^\s*(?:import|export)\b[^;]*?\bfrom\s+["']([^"']+)["']/gm,
+      ),
+    ].map((m) => m[1]);
+
+  it("repos.ts imports only node: built-ins and uses only erasable syntax", async () => {
+    const src = await read("../../lib/projects/repos.ts");
+    const specs = specifiers(src);
+    expect(specs.length).toBeGreaterThan(0);
+    for (const s of specs) {
+      expect(s.startsWith("node:") && builtinModules.includes(s.slice(5))).toBe(
+        true,
+      );
+    }
+    expect(src).not.toMatch(/^\s*(?:export\s+)?(?:const\s+)?enum\s/m);
+    expect(src).not.toMatch(/^\s*(?:export\s+)?(?:namespace|module)\s+\w/m);
+    expect(src).not.toMatch(
+      /constructor\s*\([^)]*\b(?:private|public|protected|readonly)\s/,
+    );
+  });
+
+  it("the script imports only node: built-ins and repos.ts", async () => {
+    const specs = specifiers(await read("../refresh-repos.mjs"));
+    for (const s of specs) {
+      expect(
+        s === "../lib/projects/repos.ts" ||
+          (s.startsWith("node:") && builtinModules.includes(s.slice(5))),
+      ).toBe(true);
+    }
   });
 });
