@@ -113,8 +113,11 @@ script time (#10).
 ```
 
 Items appear 60 ms apart when the group scrolls into view (`<Stagger>`
-numbers its direct `<StaggerItem>` children for the delay, and needs the
-page's `<ScrollReveal />` like `<Reveal>`). Use it for card
+numbers its `<StaggerItem>` children for the delay, and needs the page's
+`<ScrollReveal />` like `<Reveal>`). Each `<StaggerItem>` must be a
+**direct child** of `<Stagger>` (an array from `.map` is fine): one
+wrapped in another component or a Fragment gets index 0, so the whole
+group would appear at once. Use it for card
 grids and post lists (#8, #13). Keep groups short; past about 12 items the
 tail feels slow, so split long lists or reveal them with one `<Reveal>`.
 
@@ -181,8 +184,8 @@ and the active nav item switch instantly in CSS with no `transition`
 ## Tests
 
 `timing.test.ts` (vitest, `pnpm test`) covers the timing helpers, and
-`reveal.test.tsx` the scroll-reveal markup and that its CSS matches
-`tokens.ts`. `e2e/motion.spec.ts` checks the reduced-motion, no-JS,
+`reveal.test.tsx` the scroll-reveal markup and its token-driven timing,
+and `scroll-reveal-driver.test.ts` the observer logic. `e2e/motion.spec.ts` checks the reduced-motion, no-JS,
 no-preference and print guarantees on every main route.
 
 ## Adding something new

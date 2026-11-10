@@ -5,7 +5,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { Reveal } from "./reveal";
-import { DEFAULT_REVEAL_AMOUNT, revealAmount } from "./reveal-attributes";
+import {
+  DEFAULT_REVEAL_AMOUNT,
+  revealAmount,
+  revealStyle,
+} from "./reveal-attributes";
 import { Stagger, StaggerItem } from "./stagger";
 import { duration, ease, revealOffset, staggerStep } from "./tokens";
 
@@ -21,7 +25,9 @@ describe("<Reveal>", () => {
         <p>hello</p>
       </Reveal>,
     );
-    expect(html).toMatch(/^<div class="[^"]*reveal[^"]* mt-6" data-reveal="">/);
+    expect(html).toMatch(
+      /^<div class="[^"]*reveal[^"]* mt-6" style="--reveal-duration:320ms;[^"]*" data-reveal="">/,
+    );
     expect(html).not.toMatch(/opacity|transform|hidden/);
   });
 
@@ -47,7 +53,9 @@ describe("<Stagger>", () => {
         ))}
       </Stagger>,
     );
-    expect(html).toMatch(/^<ul class="[^"]*stagger[^"]* grid" data-reveal="">/);
+    expect(html).toMatch(
+      /^<ul class="[^"]*stagger[^"]* grid" style="--reveal-duration[^"]*" data-reveal="">/,
+    );
     expect([...html.matchAll(/style="--i:(\d+)"/g)].map((m) => m[1])).toEqual([
       "0",
       "1",
@@ -66,13 +74,18 @@ describe("revealAmount", () => {
 });
 
 describe("motion.module.css", () => {
-  it("uses the motion tokens for the scroll reveal", () => {
-    expect(css).toContain(
-      `${duration.base * 1000}ms cubic-bezier(${ease.join(", ")})`,
-    );
-    expect(css).toContain(`translateY(${revealOffset}px)`);
-    expect(css).toContain(`translateY(${revealOffset / 2}px)`);
-    expect(css).toContain(`* ${staggerStep * 1000}ms)`);
+  it("takes the reveal timing from tokens.ts", () => {
+    expect(revealStyle).toEqual({
+      "--reveal-duration": `${duration.base * 1000}ms`,
+      "--reveal-ease": `cubic-bezier(${ease.join(", ")})`,
+      "--reveal-offset": `${revealOffset}px`,
+      "--stagger-step": `${staggerStep * 1000}ms`,
+    });
+    // The CSS reads only those properties: no hard-coded reveal timing.
+    for (const name of Object.keys(revealStyle)) {
+      expect(css).toContain(`var(${name})`);
+    }
+    expect(css).not.toMatch(/\d+ms cubic-bezier|translateY\(\d+px\)/);
   });
 
   it("only hides blocks inside the no-motion-preference query", () => {

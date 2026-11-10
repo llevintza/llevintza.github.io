@@ -101,21 +101,22 @@
  * to `visible` once they scroll in. At rest (server HTML, no JS, reduced
  * motion) the attribute is empty and nothing here hides anything.
  *
- * Timing mirrors `tokens.ts` (`reveal.test.tsx` checks they agree):
- * `duration.base` 320ms, `ease` cubic-bezier(0.22, 1, 0.36, 1),
- * `revealOffset` 12px (half for stagger items), `staggerStep` 60ms.
- * Hiding is instant (`transition: none`); only the reveal is animated.
+ * The timing comes from `tokens.ts` through custom properties that
+ * `<Reveal>` and `<Stagger>` set (`revealStyle`): `--reveal-duration`,
+ * `--reveal-ease`, `--reveal-offset` (half of it for stagger items) and
+ * `--stagger-step`. Hiding is instant (`transition: none`); only the reveal
+ * is animated.
  */
 @media (prefers-reduced-motion: no-preference) {
   .reveal,
   .staggerItem {
     transition:
-      opacity 320ms cubic-bezier(0.22, 1, 0.36, 1),
-      transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+      opacity var(--reveal-duration) var(--reveal-ease),
+      transform var(--reveal-duration) var(--reveal-ease);
   }
 
   .staggerItem {
-    transition-delay: calc(var(--i, 0) * 60ms);
+    transition-delay: calc(var(--i, 0) * var(--stagger-step));
   }
 
   .reveal[data-reveal="hidden"],
@@ -125,11 +126,11 @@
   }
 
   .reveal[data-reveal="hidden"] {
-    transform: translateY(12px);
+    transform: translateY(var(--reveal-offset));
   }
 
   [data-reveal="hidden"] > .staggerItem {
-    transform: translateY(6px);
+    transform: translateY(calc(var(--reveal-offset) / 2));
   }
 }
 

@@ -1,3 +1,7 @@
+import type { CSSProperties } from "react";
+
+import { duration, ease, revealOffset, staggerStep } from "./tokens";
+
 /**
  * The data attributes shared by `<Reveal>`, `<Stagger>` and
  * `<ScrollReveal>`. The server renders `data-reveal=""` (untouched, fully
@@ -34,3 +38,14 @@ export function revealAmount(value: string | null): number {
     ? amount
     : DEFAULT_REVEAL_AMOUNT;
 }
+
+/**
+ * The reveal timing from `tokens.ts`, as the custom properties that
+ * `motion.module.css` reads, so the tokens stay the single source.
+ */
+export const revealStyle = {
+  "--reveal-duration": `${duration.base * 1000}ms`,
+  "--reveal-ease": `cubic-bezier(${ease.join(", ")})`,
+  "--reveal-offset": `${revealOffset}px`,
+  "--stagger-step": `${staggerStep * 1000}ms`,
+} as CSSProperties;

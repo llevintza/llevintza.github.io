@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 
+import { cn } from "@/components/ui/cn";
+
 import styles from "./motion.module.css";
-import { revealAttributes } from "./reveal-attributes";
+import { revealAttributes, revealStyle } from "./reveal-attributes";
 
 type RevealProps = {
   children: ReactNode;
@@ -22,14 +24,11 @@ type RevealProps = {
 export function Reveal({ children, className, once, amount }: RevealProps) {
   return (
     <div
-      className={cx(styles.reveal, className)}
+      className={cn(styles.reveal, className)}
+      style={revealStyle}
       {...revealAttributes({ once, amount })}
     >
       {children}
     </div>
   );
-}
-
-export function cx(...names: (string | undefined)[]) {
-  return names.filter(Boolean).join(" ");
 }

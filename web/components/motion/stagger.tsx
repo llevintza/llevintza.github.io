@@ -7,9 +7,10 @@ import {
   type ReactNode,
 } from "react";
 
+import { cn } from "@/components/ui/cn";
+
 import styles from "./motion.module.css";
-import { cx } from "./reveal";
-import { revealAttributes } from "./reveal-attributes";
+import { revealAttributes, revealStyle } from "./reveal-attributes";
 
 type StaggerProps = {
   children: ReactNode;
@@ -37,7 +38,8 @@ export function Stagger({
   let index = 0;
   return (
     <Tag
-      className={cx(styles.stagger, className)}
+      className={cn(styles.stagger, className)}
+      style={revealStyle}
       {...revealAttributes({ once, amount })}
     >
       {Children.map(children, (child) =>
@@ -69,7 +71,7 @@ export function StaggerItem({
 }: StaggerItemProps) {
   return (
     <Tag
-      className={cx(styles.staggerItem, className)}
+      className={cn(styles.staggerItem, className)}
       style={{ "--i": index } as CSSProperties}
     >
       {children}
