@@ -23,7 +23,7 @@ export function MobileNav({ className }: { className?: string }) {
 
   // Close after a client-side navigation.
   useEffect(() => {
-    close();
+    if (ref.current) ref.current.open = false;
   }, [pathname]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDetailsElement>) => {
