@@ -1,3 +1,4 @@
+import { outboundProjectEvent } from "@/components/analytics/events";
 import type { PublicRepo } from "@/lib/projects/repos";
 
 const dateFormat = new Intl.DateTimeFormat("en", {
@@ -26,7 +27,12 @@ export function AllRepos({ repos }: { repos: readonly PublicRepo[] }) {
           {repos.map((repo) => (
             <li key={repo.name}>
               <h3>
-                <a href={repo.repoUrl}>{repo.name}</a>
+                <a
+                  href={repo.repoUrl}
+                  {...outboundProjectEvent(repo.name, "repo")}
+                >
+                  {repo.name}
+                </a>
               </h3>
               {repo.description ? <p>{repo.description}</p> : null}
               <p>
@@ -51,6 +57,7 @@ export function AllRepos({ repos }: { repos: readonly PublicRepo[] }) {
                     {" · "}
                     <a
                       href={repo.liveUrl}
+                      {...outboundProjectEvent(repo.name, "live")}
                       aria-label={`Live site for ${repo.name}`}
                     >
                       Live site
