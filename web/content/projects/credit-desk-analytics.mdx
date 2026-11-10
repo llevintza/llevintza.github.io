@@ -1,0 +1,35 @@
+---
+title: Credit Desk Analytics
+slug: credit-desk-analytics
+summary: Front-office analytics for a structured-credit desk, with very large position grids, fund performance and deal exploration. Built spec-first and tuned for load and render speed.
+stack:
+  - .NET 10
+  - Angular
+  - Postgres
+  - AG Grid
+  - Dapper/EF Core
+  - Playwright
+liveUrl: https://llevintza.github.io/credit-desk-analytics/
+repo: https://github.com/llevintza/credit-desk-analytics
+screenshots:
+  - file: home
+    alt: The Credit Desk Analytics sign-in page on GitHub Pages, in its dark theme. The app is invite-only.
+---
+
+## Problem
+
+A structured-credit desk (CLO, RMBS, CMBS, ABS, CRT) of about 60 portfolio managers, traders and analysts lives in Excel. Pricing and risk run overnight, so from early morning the data is static, and users open their start-of-day screens expecting spreadsheet behaviour: every row and column, scroll anywhere, sort and filter with totals that follow the filter, copy, paste and export.
+
+The start-of-day grid is 20,000 rows by about 200 columns. Their priorities, in order, are correct numbers, speed, and then look and feel. The targets are concrete: first rows in under a second, 60 fps scrolling in both directions, and a new sort or filter block in under 400 ms with the summary row in the same response.
+
+## Approach
+
+The README is the implementation spec: a person or a coding agent can build the system from it, and every decision is recorded as an ADR in the PR that made it, with measurements.
+
+- **Database:** a wide snapshot for "today" and narrow history for trends, on Postgres 17 locally and Neon in production. Five logical data sources (core, market, surveillance, pricing, reference) each have their own connection string, so any of them can move without code changes.
+- **Data access:** Dapper where the result shape is chosen per user at runtime (the grid), EF Core where the model is stable (accounts, presets, audit).
+- **API:** ASP.NET Core minimal APIs send only the visible row block and the displayed columns, in a columnar shape, with totals over all filtered rows in the same response. Data changes once a day, so responses are cached in-process until the next as-of date and served with an ETag.
+- **Front end:** Angular with signals, OnPush and zoneless change detection, and AG Grid Community's Infinite Row Model with column virtualisation. `switchMap` makes sure a stale response never wins, and multi-source pages render progressively.
+- **Delivery:** one PR per phase, with Playwright end-to-end tests, coverage gates and k6 performance budgets in CI. The same SPA is served by a Render web service and by GitHub Pages, so the login page paints at once even while the free-tier API wakes up.
+
+Phases 0 to 6 have shipped: positions, fund performance, an insights board of 20 small grids from five sources, a deal explorer and a performance lab that compares wire formats and compression on real requests.

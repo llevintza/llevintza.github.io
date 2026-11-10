@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+
+import { getAllCaseStudies } from "@/lib/projects/case-studies";
 import { getFeaturedProjects } from "@/lib/projects/featured";
 
 export const metadata: Metadata = {
@@ -8,6 +11,9 @@ export const metadata: Metadata = {
 
 export default function ProjectsPage() {
   const projects = getFeaturedProjects();
+  const caseStudies = new Map(
+    getAllCaseStudies().map((study) => [study.slug, study.permalink]),
+  );
 
   return (
     <main>
@@ -19,7 +25,15 @@ export default function ProjectsPage() {
             key={project.name}
             aria-labelledby={`project-${project.name}`}
           >
-            <h2 id={`project-${project.name}`}>{project.name}</h2>
+            <h2 id={`project-${project.name}`}>
+              {caseStudies.has(project.name) ? (
+                <Link href={caseStudies.get(project.name)!}>
+                  {project.name}
+                </Link>
+              ) : (
+                project.name
+              )}
+            </h2>
             <p>{project.description}</p>
             <ul aria-label="Stack">
               {project.stack.map((tech) => (

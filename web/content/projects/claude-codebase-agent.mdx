@@ -1,0 +1,24 @@
+---
+title: claude-codebase-agent
+slug: claude-codebase-agent
+summary: A Claude Agent SDK command-line tool that explores unfamiliar codebases and implements features behind a human approval gate.
+stack:
+  - Python
+  - Claude Agent SDK
+  - MCP
+repo: https://github.com/llevintza/claude-codebase-agent
+---
+
+## Problem
+
+Getting productive in an unfamiliar codebase takes time: finding where things live, understanding how a subsystem works, and then making a change without breaking anything. An agent can do much of that work, but it should not edit files before a person has seen the plan.
+
+## Approach
+
+A standalone Python CLI built on the Claude Agent SDK. Point it at any Git repository and pick one of three modes:
+
+1. **Ask a question:** a read-only lookup that searches for the most specific anchor first, reads only the files it needs and answers with file and line references.
+2. **Adaptive investigation:** an open-ended goal explored in four passes (map the structure, find the high-impact subsystems, build a numbered plan, execute it) that returns a structure map, high-impact areas, the plan and a report.
+3. **Implement a feature:** plan, confirm, write and verify. The agent investigates and writes a concrete plan, then **pauses for approval** before touching any file, implements the change, and runs the tests until they pass.
+
+Safety comes from the workflow: the target must be a Git repo so every change can be reverted, the builder agent is constrained to the target directory, and the verify command is detected automatically or set explicitly. MCP servers such as GitHub or Jira can be added for extra context.
