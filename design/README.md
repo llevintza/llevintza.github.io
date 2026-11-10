@@ -62,4 +62,4 @@ corepack pnpm a11y                               # axe checks at both widths, no
 
 PNGs are palette-quantised with `sharp`, which keeps the 12 at under 2 MB.
 
-`design/` is a standalone pnpm project and is not part of the Jekyll build (`_config.yml` excludes it).
+`design/` is a standalone pnpm project and is not part of the site build (`web/`).

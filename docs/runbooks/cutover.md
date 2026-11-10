@@ -110,7 +110,12 @@ Pages' CDN caches pages for up to 10 minutes (`cache-control: max-age=600`). If 
 
 Use this if the deploy fails and can't be fixed quickly, or if any verification check fails.
 
-> **After the Jekyll removal PR merges, this rollback no longer works as written:** `main` has no Jekyll source left for step 2 to build. To roll back to Jekyll then, first revert that PR on `main` (through a revert PR, like any other change) so the Jekyll files are back, then run the steps below. A bad Next.js deploy doesn't need Jekyll: redeploy the last good build instead (ADR 0001, Rollback step 2).
+> **After the Jekyll removal PR merges, this rollback no longer works as written:** `main` has no Jekyll source left for step 2 to build. To roll back to Jekyll then, either:
+>
+> - revert that PR on `main` first (through a revert PR, like any other change), so the Jekyll files are back, then run the steps below; or
+> - in step 2, deploy from the `jekyll-legacy` branch, which keeps the last Jekyll commit (`597d012`): `-f 'source[branch]=jekyll-legacy'` instead of `main`.
+>
+> A bad Next.js deploy doesn't need Jekyll: redeploy the last good build instead (ADR 0001, Rollback step 2).
 
 ```sh
 # 1. Stop Actions deploys first, so a push can't redeploy the new site.
