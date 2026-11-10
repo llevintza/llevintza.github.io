@@ -52,3 +52,30 @@ open .lighthouseci/reports/*.report.html
 ```
 
 `pnpm lhci` runs a pinned `@lhci/cli` through `pnpm dlx`, so it adds no dependency. Reports stay local (`upload.target: filesystem`); nothing goes to public storage.
+
+## Rich posts
+
+Posts can use these extras on top of Markdown. `content/posts/2026-11-09-rebuilding-this-site.mdx` shows all of them.
+
+- **Table of contents**: added automatically when a post has more than 3 h2/h3 headings. It's a sticky aside on wide screens and a collapsible `contents` box on phones, rendered without JavaScript. Heading ids come from `rehype-slug`, and `lib/content/toc.ts` runs the same plugins so the links match.
+- **Callouts**: `<Callout type="note|tip|warn" title="optional">…</Callout>`.
+- **Images**: `![alt text](/images/posts/<slug>/file.svg)`. Put files in `public/images/posts/<slug>/`. Width and height are read at build time, so the page doesn't shift when an image loads. Images load lazily and open full size in a dialog (Esc or the close button returns focus).
+- **Mermaid diagrams**: a fenced ` ```mermaid ` block. See below.
+
+### Mermaid diagrams
+
+Diagrams are rendered to SVG **at build time**, once with the light theme and once with the dark one. CSS shows the one matching `data-theme`, and no Mermaid code reaches the browser. Rendering needs a headless browser (Playwright's Chromium), so the SVGs are cached in the repo:
+
+- `content/diagrams/<hash>-light.svg` and `<hash>-dark.svg`, where the hash covers the diagram source, the Mermaid version, the theme config in `lib/content/mermaid.ts` and a renderer version.
+- `pnpm build` uses the cached SVG when it exists. On a miss it renders the diagram locally (`lib/content/mermaid-render.mjs`, run in a child process) and writes the files.
+- In CI (`CI` is set), a miss fails the build and names the post, the diagram and the missing files. CI never downloads a browser.
+
+When you add or change a diagram, or bump Mermaid or the theme:
+
+```sh
+pnpm exec playwright install chromium   # once per machine
+pnpm build                              # renders the new SVGs
+git add content/diagrams/
+```
+
+Old cache files aren't removed automatically. Delete the folder and rebuild to prune them. Mermaid's long decimals are rounded to 2 places when an SVG is written, so the public-content guardrail doesn't mistake coordinates for phone numbers.
