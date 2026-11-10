@@ -43,5 +43,5 @@ exclude = [
   # static export, and absolute self-URLs (canonical, og:url) 404 on the live
   # site until the page deploys. Other llevintza.github.io paths (/email-icons/,
   # project sites such as /energlens/) are still checked.
-  '^https://llevintza\.github\.io/(?:$|blog/|projects/|about/|feed\.xml$|sitemap\.xml$|robots\.txt$)',
+  '^https://llevintza\.github\.io/(?:$|blog/|projects/|about/|feed\.xml$|sitemap\.xml$|robots\.txt$|og\.png$)',
 ]

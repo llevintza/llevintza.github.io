@@ -13,7 +13,7 @@ import { getAllPosts } from "@/lib/content/posts";
 import { getFeaturedProjects } from "@/lib/projects/featured";
 import { buildMetadata } from "@/lib/site/metadata";
 
-export const metadata = buildMetadata({ path: "/" });
+export const metadata = buildMetadata({ path: "/", image: "page" });
 
 /**
  * Home (#11, #13): the hero (headline and intro from the profile README),

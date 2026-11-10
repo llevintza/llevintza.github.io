@@ -10,6 +10,7 @@ export const metadata = buildMetadata({
   title: "Blog",
   description: "Posts by Leo Levintza, newest first.",
   path: BLOG_BASE,
+  image: "page",
 });
 
 export default function BlogPage() {

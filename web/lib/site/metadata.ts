@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { OG_CONTENT_TYPE, OG_SIZE, ogImagePath } from "@/lib/og/constants";
+
 /** Production origin. Canonicals, Open Graph URLs and the sitemap use it. */
 export const SITE_URL = "https://llevintza.github.io";
 
@@ -48,7 +50,26 @@ export interface PageMetadataInput {
   path: string;
   /** Open Graph type. Posts use `article`; everything else `website`. */
   type?: "website" | "article";
+  /**
+   * Social preview image (#30). `"page"` uses the page's own
+   * `<path>/og.png/route.tsx`, with the full title as alt text. Leave it out
+   * for the site-wide card at `/og.png`.
+   */
+  image?: "page" | OgImageInput;
 }
+
+export interface OgImageInput {
+  /** Site-relative path to the PNG, e.g. `ogImagePath("/about/")`. */
+  path: string;
+  /** Describes the image for screen readers and link-preview fallbacks. */
+  alt: string;
+}
+
+/** Rendered by `app/og.png/route.tsx`; used by pages without their own. */
+export const DEFAULT_OG_IMAGE: OgImageInput = {
+  path: ogImagePath("/"),
+  alt: SITE_NAME,
+};
 
 /**
  * Normalises a site-relative path to `/a/b/` form, matching
@@ -66,22 +87,30 @@ export function absoluteUrl(path: string): string {
 
 /**
  * Per-page metadata: title, description, one absolute canonical, the feed
- * discovery link, and the Open Graph and Twitter basics.
- *
- * Social images (#30): leave `images` out here. Next.js adds `og:image` and
- * `twitter:image` from an `opengraph-image.tsx` / `twitter-image.tsx` file
- * next to a page (or in a parent segment), so #30 only has to add those files.
- * If a page needs an explicit image instead, add an `image` field to
- * `PageMetadataInput` and set `openGraph.images` / `twitter.images` from it.
+ * discovery link, and the Open Graph and Twitter tags, including a 1200x630
+ * image with its absolute URL, size, type and alt (see lib/og for how images
+ * are made).
  */
 export function buildMetadata({
   title,
   description = SITE_DESCRIPTION,
   path,
   type = "website",
+  image = DEFAULT_OG_IMAGE,
 }: PageMetadataInput): Metadata {
   const url = absoluteUrl(path);
   const fullTitle = title ? `${title} · ${SITE_NAME}` : SITE_NAME;
+  const og =
+    image === "page" ? { path: ogImagePath(path), alt: fullTitle } : image;
+  const images = [
+    {
+      // Files keep their extension, so no trailing slash here.
+      url: new URL(og.path, SITE_URL).href,
+      ...OG_SIZE,
+      alt: og.alt,
+      type: OG_CONTENT_TYPE,
+    },
+  ];
 
   return {
     // `absolute` for the home page so the template doesn't double the name.
@@ -95,11 +124,13 @@ export function buildMetadata({
       siteName: SITE_NAME,
       type,
       locale: "en_US",
+      images,
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: fullTitle,
       description,
+      images,
     },
   };
 }

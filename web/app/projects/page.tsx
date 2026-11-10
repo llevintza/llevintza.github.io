@@ -11,6 +11,7 @@ export const metadata = buildMetadata({
   title: "Projects",
   description: "Featured projects and all public repos by Leo Levintza.",
   path: "/projects/",
+  image: "page",
 });
 
 export default async function ProjectsPage() {

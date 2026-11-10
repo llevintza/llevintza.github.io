@@ -46,6 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: post.summary,
     path: post.permalink,
     type: "article",
+    image: "page",
   });
 }
 
