@@ -15,3 +15,4 @@ web/next-env.d.ts
 web/*.tsbuildinfo
 test-results/
 playwright-report/
+web/.lighthouseci/

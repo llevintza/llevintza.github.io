@@ -1,0 +1,25 @@
+# Icon URLs that sent email signatures load. Checked by .github/workflows/links.yml
+# (job "Email icon URLs"): each must return 200 with an image/* content type.
+#
+# Source: llevintza/email-signatures (private, so the list is committed here instead
+# of read at run time). `source/signature.json` sets `icons_base` to
+# https://llevintza.github.io/email-icons/img/color/ and each link's `icon` file name.
+# The img/ (non-color) icons are the earlier set from llevintza/email-icons; older
+# signatures may still point at them, so they must keep working too.
+# When signature.json gains an icon, add its URL here.
+
+# Current: icons_base + links[].icon
+https://llevintza.github.io/email-icons/img/color/github.png
+https://llevintza.github.io/email-icons/img/color/linkedin.png
+https://llevintza.github.io/email-icons/img/color/phone.png
+https://llevintza.github.io/email-icons/img/color/web.png
+https://llevintza.github.io/email-icons/img/color/x.png
+https://llevintza.github.io/email-icons/img/color/zoom.png
+
+# Earlier set
+https://llevintza.github.io/email-icons/img/github.png
+https://llevintza.github.io/email-icons/img/linkedin.png
+https://llevintza.github.io/email-icons/img/telephone-symbol-button.png
+https://llevintza.github.io/email-icons/img/twitter.png
+https://llevintza.github.io/email-icons/img/x.png
+https://llevintza.github.io/email-icons/img/zoom.png

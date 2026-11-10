@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leo Levintza · Direction B: Engineer's Console</title>
+<link rel="stylesheet" href="style.css">
+<script src="../_shared/site.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="home.html"><b>~/</b>leo<span class="full">-levintza</span><span class="cursor" aria-hidden="true"></span></a>
+    <nav class="nav" aria-label="Main"><a href="post.html">./blog</a><a href="projects.html">./projects</a><a href="#">./about</a></nav>
+    <button class="theme-btn" type="button" data-theme-toggle aria-label="Toggle theme"></button>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="mesh" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div>
+        <p class="prompt"><b>$</b> <span class="typed">whoami --long</span></p>
+        <h1>Leo Levintza<span class="dot">.</span></h1>
+        <ul class="role">
+          <li>principal-software-engineer</li>
+          <li>distributed-systems --cloud-native-backends</li>
+          <li>agentic-ai-tooling --ai-augmented-sdlc</li>
+          <li>location="New York Metro Area"</li>
+        </ul>
+        <p class="bio">I design and build distributed, cloud-native backend systems, most recently for buy-side firms: a quantitative hedge fund, a global alternative asset manager, and a large US asset manager. Lately I embed agentic AI tooling (Claude Code, GitHub Copilot CLI, Sourcegraph Cody) into the SDLC: legacy discovery, documentation, code-review agents, and evaluation frameworks for AI-assisted delivery.</p>
+        <div class="ctas">
+          <a class="btn btn-primary" href="projects.html">./projects →</a>
+          <a class="btn" href="https://scheduler.zoom.us/llevintza/availability"><img src="https://llevintza.github.io/email-icons/img/color/zoom.png" alt="" width="18" height="18">book-a-call</a>
+        </div>
+        <ul class="contacts" aria-label="Contact"><li><a href="https://www.linkedin.com/in/llevintza/"><img src="https://llevintza.github.io/email-icons/img/color/linkedin.png" alt="" width="16" height="16">LinkedIn</a></li><li><a href="https://github.com/llevintza"><img src="https://llevintza.github.io/email-icons/img/color/github.png" alt="" width="16" height="16">GitHub</a></li><li><a href="https://x.com/llevintza"><img src="https://llevintza.github.io/email-icons/img/color/x.png" alt="" width="16" height="16">X</a></li></ul>
+      </div>
+      <div class="term" aria-label="Recent activity">
+        <div class="term-bar"><i></i><i></i><i></i><span>leo@levintza: ~/building</span></div>
+        <div class="term-body">
+          <p><span class="k">$</span> ls ~/building</p>
+          <p>credit-desk-analytics  <span class="m">phases 0-6 shipped</span></p>
+          <p>instrument-price-dashboard  <span class="m">M1-M3 shipped</span></p>
+          <p>energlens  <span class="m">zero-cost demo</span></p>
+          <p>unlistd  <span class="m">early MVP</span></p>
+          <p>openswim  <span class="m">phase 0</span></p>
+          <p>&nbsp;</p>
+          <p><span class="k">$</span> npm view @llevintza/fastify-prometheus-metrics</p>
+          <p><span class="ok">✓</span> v1.0.2 · MIT</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-glance">
+    <div class="wrap">
+      <div class="sec-head"><h2 id="h-glance">At a glance</h2><span class="path">~/status</span></div>
+      <div class="tiles">
+        <div class="tile" data-reveal>
+          <h3><span class="live" aria-hidden="true"></span>now</h3>
+          <ul>
+            <li>Embedding agentic AI into the SDLC: code-review agents, agent evaluation frameworks, MCP servers and Claude Agent SDK pipelines</li>
+            <li>Founding and architecting open-source platforms in Go, TypeScript and Python</li>
+          </ul>
+        </div>
+        <div class="tile" data-reveal>
+          <h3>selected-work</h3>
+          <div class="metrics">
+            <div class="metric"><b>6 <small>wks</small></b><span>legacy discovery, down from 3-6 months, with agentic AI tooling</span></div>
+            <div class="metric"><b>-90<small>%</small></b><span>CPU/memory after decomposing a retail data-graph service</span></div>
+            <div class="metric"><b>5,000<small>/s</small></b><span>events per instance, F# Kafka-to-EventStore replication</span></div>
+            <div class="metric"><b>100<small>x</small></b><span>faster slide preparation with an OOXML reporting framework</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-featured">
+    <div class="wrap">
+      <div class="sec-head"><h2 id="h-featured">Featured projects</h2><span class="path">~/building</span><a href="projects.html">ls -a →</a></div>
+      <div class="cards">
+        <article class="card" data-reveal>
+          <h3>instrument-price-dashboard <span class="tag">Private</span></h3>
+          <p>Dashboard over daily closing prices: a layered .NET 10 API serving price series with return, volatility and drawdown stats, and a React front end for search, charting and ticker comparison. Milestones M1-M3 shipped.</p>
+          <ul class="stack"><li>.NET 10</li><li>React 19</li><li>TanStack Query</li><li>Recharts</li><li>SignalR</li></ul>
+          <p class="links"><a href="https://llevintza.github.io/instrument-price-dashboard/">Live site</a><span>Source on request</span></p>
+        </article>
+        <article class="card" data-reveal>
+          <h3><a href="https://github.com/llevintza/credit-desk-analytics">credit-desk-analytics</a></h3>
+          <p>Front-office analytics for a structured-credit desk: very large position grids, fund performance and deal exploration. Built spec-first and tuned for load and render speed. Phases 0-6 shipped.</p>
+          <ul class="stack"><li>.NET 10</li><li>Angular</li><li>Postgres</li><li>AG Grid</li><li>Playwright</li></ul>
+          <p class="links"><a href="https://llevintza.github.io/credit-desk-analytics/">Live site</a><a href="https://github.com/llevintza/credit-desk-analytics">Source</a></p>
+        </article>
+        <article class="card" data-reveal>
+          <h3><a href="https://github.com/llevintza/energlens">energlens</a></h3>
+          <p>Utility-bill analytics across properties, with a Claude-powered PDF extraction CLI. Zero-cost demo deployment.</p>
+          <ul class="stack"><li>Python/FastAPI</li><li>SQLAlchemy 2.0</li><li>React 19</li><li>Claude API</li></ul>
+          <p class="links"><a href="https://llevintza.github.io/energlens/">Live site</a><a href="https://github.com/llevintza/energlens">Source</a></p>
+        </article>
+        <article class="card" data-reveal>
+          <h3><a href="https://github.com/llevintza/unlistd">unlistd</a></h3>
+          <p>Self-hosted data-broker PII removal pipeline that keeps profiles, keys and audit trails in your own AWS account. Early MVP.</p>
+          <ul class="stack"><li>TypeScript</li><li>Next.js</li><li>Prisma</li><li>AWS CDK</li><li>SQS/Lambda/Fargate</li></ul>
+          <p class="links"><a href="https://github.com/llevintza/unlistd">Source</a></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-posts">
+    <div class="wrap">
+      <div class="sec-head"><h2 id="h-posts">Latest posts</h2><span class="path">git log --oneline</span><a href="post.html">all posts →</a></div>
+      <ul class="log">
+        <li data-reveal><time datetime="2026-11-02">2026-11-02</time><div><a href="post.html">Prometheus metrics for a Fastify API in one plugin</a><p>Automatic HTTP metrics, route filtering and an optional CloudWatch bridge.</p></div></li>
+        <li data-reveal><time datetime="2026-10-19">2026-10-19</time><div><a href="post.html">A human approval gate for a codebase agent</a><p>How claude-codebase-agent explores a repo, plans, and waits for a yes.</p></div></li>
+        <li data-reveal><time datetime="2026-10-05">2026-10-05</time><div><a href="post.html">Rendering very large position grids fast</a><p>Notes from tuning credit-desk-analytics for load and render speed.</p></div></li>
+      </ul>
+      <p class="note">// mockup: sample post titles drawn from the featured projects; no posts are published yet</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>© 2026 Leo Levintza · <span aria-hidden="true">exit 0</span></span>
+    <ul class="contacts" aria-label="Contact"><li><a href="https://www.linkedin.com/in/llevintza/"><img src="https://llevintza.github.io/email-icons/img/color/linkedin.png" alt="" width="16" height="16">LinkedIn</a></li><li><a href="https://github.com/llevintza"><img src="https://llevintza.github.io/email-icons/img/color/github.png" alt="" width="16" height="16">GitHub</a></li><li><a href="https://x.com/llevintza"><img src="https://llevintza.github.io/email-icons/img/color/x.png" alt="" width="16" height="16">X</a></li><li><a href="https://scheduler.zoom.us/llevintza/availability"><img src="https://llevintza.github.io/email-icons/img/color/zoom.png" alt="" width="16" height="16">Book a Zoom call</a></li></ul>
+  </div>
+</footer>
+</body>
+</html>
