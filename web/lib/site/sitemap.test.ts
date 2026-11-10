@@ -114,4 +114,10 @@ describe("buildSitemap", () => {
       `${SITE_URL}/projects/unlistd/`,
     ]);
   });
+
+  it("fails when the app directory is missing", () => {
+    expect(() =>
+      buildSitemap({ appDir: path.join(os.tmpdir(), "no-such-app-dir-75") }),
+    ).toThrow(/app directory not found/);
+  });
 });

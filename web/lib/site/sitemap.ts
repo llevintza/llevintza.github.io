@@ -39,6 +39,14 @@ export function buildSitemap({
   projectsDir = PROJECTS_DIR,
   posts: postOptions = { includeDrafts: false },
 }: SitemapOptions = {}): MetadataRoute.Sitemap {
+  // The optional routes below are found on disk. A wrong cwd would drop them
+  // silently, so fail the build instead.
+  if (!fs.existsSync(appDir)) {
+    throw new Error(
+      `[sitemap] app directory not found at ${appDir}; run the build from web/`,
+    );
+  }
+
   const posts = getAllPosts(postOptions);
   const newest = posts[0]?.date;
 
