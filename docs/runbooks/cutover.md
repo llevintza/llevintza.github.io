@@ -8,7 +8,7 @@
 
 ## How the gate works
 
-`deploy.yml` runs on every push to `main` that touches `web/**` (and by hand). Its `build` job always builds `web/out` and uploads it as the Pages artifact. Its `deploy` job runs only when **both** of these hold:
+`deploy.yml` runs on every push to `main` that touches `web/**`, weekly on a schedule (Mondays 04:17 UTC, #23), and by hand. Its `build` job always builds `web/out` and uploads it as the Pages artifact. Its `deploy` job runs only when **both** of these hold:
 
 1. The repo variable `PAGES_DEPLOY_ENABLED` is `true`. Until it is, the job is skipped.
 2. The Pages source is "GitHub Actions" (`build_type=workflow`). With the current source, "Deploy from a branch" (`build_type=legacy`), GitHub serves Jekyll from `main` and ignores the artifact.
