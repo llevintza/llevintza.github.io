@@ -273,8 +273,10 @@ The source switch must stay reversible, so #38 implements these steps:
 1. **Back to Jekyll.** Before #38 deletes the Jekyll files from `main`, keep the last Jekyll commit on a named branch
    (`jekyll-legacy`). To roll back, go to Settings → Pages → Source: "Deploy from a branch" → `jekyll-legacy` /
    root. Switching back to `main` alone won't work once the Jekyll sources are gone.
-2. **Bad Next.js deploy after cutover.** Redeploy the last good ref through `workflow_dispatch` on the Pages deploy
-   workflow, so that workflow must have a `workflow_dispatch` trigger that takes a ref.
+2. **Bad Next.js deploy after cutover.** Redeploy the last good build through `workflow_dispatch` on the Pages deploy
+   workflow. The run stays on `main` and takes a `ref` input (a tag or SHA), which it checks out and builds. Don't
+   run the workflow from the old ref itself: by default the `github-pages` environment's deployment-branch rule
+   allows only `main`, so it would reject that deploy.
 3. **Blast radius.** Neither path touches `/email-icons/` or the project sites, which are published from their own
    repos.
 4. **After any switch or rollback**, confirm these return 200 with `curl -I`: `/`, `/feed.xml`,
