@@ -2,8 +2,10 @@
  * Featured projects for /projects/ (and later the home page).
  *
  * Text mirrors the `## Building` table in the public llevintza/llevintza
- * profile README; keep the two in sync. Ported from the Jekyll site's
- * `_data/featured.yml`, which stays in place until cutover.
+ * profile README; keep the two in sync. This file is the canonical list for
+ * the Next.js site. It was ported from the Jekyll site's `_data/featured.yml`,
+ * which is frozen until cutover (it still has the older 7-entry list), so edit
+ * this file, not that one.
  *
  * Private repos are listed by name only: the type below makes a `repoUrl`
  * on a private entry a compile error, and the loader re-checks it at build.

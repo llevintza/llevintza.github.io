@@ -14,7 +14,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check:live-sites": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-live-sites.mjs"
+    "check:live-sites": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-live-sites.mjs",
+    "test:featured": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/projects/*.test.mjs"
   },
   "dependencies": {
     "next": "16.4.5",
