@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { PROD, buildChecks, parseIconList, runCheck } from "../verify-live.mjs";
+import {
+  PROD,
+  buildChecks,
+  parseIconList,
+  parseSitemapPaths,
+  runCheck,
+} from "../verify-live.mjs";
 
 type Check = { group: string; url: string; kind: string };
 type Response = { status: number; type: string; body: string };
@@ -69,6 +75,47 @@ describe("buildChecks", () => {
     expect(checks.filter((c) => c.group === "portfolio")).toEqual([
       { group: "portfolio", url: `${PROD}/`, kind: "html" },
     ]);
+  });
+});
+
+describe("parseSitemapPaths", () => {
+  it("returns de-duplicated paths with query, ignoring the host", () => {
+    const xml = `<?xml version="1.0"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://llevintza.github.io/</loc></url>
+  <url><loc> https://llevintza.github.io/blog/2026/01/02/a-post/ </loc></url>
+  <url><loc>https://llevintza.github.io/search/?q=a&amp;b=c</loc></url>
+  <url><loc>https://llevintza.github.io/blog/2026/01/02/a-post/</loc></url>
+</urlset>`;
+    expect(parseSitemapPaths(xml)).toEqual([
+      "/",
+      "/blog/2026/01/02/a-post/",
+      "/search/?q=a&b=c",
+    ]);
+  });
+});
+
+describe("buildChecks with sitemap paths", () => {
+  it("re-bases sitemap paths and skips ones already in the site group", () => {
+    const checks: Check[] = buildChecks("http://localhost:3000", ICONS, [
+      "/",
+      "/blog/",
+      "/blog/2026/01/02/a-post/",
+    ]);
+    expect(checks.filter((c) => c.group === "sitemap")).toEqual([
+      {
+        group: "sitemap",
+        url: "http://localhost:3000/blog/2026/01/02/a-post/",
+        kind: "page",
+      },
+    ]);
+  });
+
+  it("checks sitemap entries by status only", async () => {
+    const check = { group: "sitemap", url: "http://x/a.pdf", kind: "page" };
+    const pdf = { status: 200, type: "application/pdf", body: "%PDF" };
+    expect((await runCheck(check, fetcher(pdf))).ok).toBe(true);
+    expect((await runCheck(check, fetcher(html(404)))).ok).toBe(false);
   });
 });
 

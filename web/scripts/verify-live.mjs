@@ -11,13 +11,17 @@
  *   - project sites served from their own repos: /email-icons/, /energlens/,
  *     /credit-desk-analytics/, /instrument-price-dashboard/
  *   - the Portfolio link https://llevintza.github.io/
+ *   - with --urls-from: every <loc> of a saved sitemap, re-based onto --base
+ *     (snapshot the Jekyll sitemap before the switch, re-check after it, so
+ *     old permalinks are verified on the live host)
  *
  * Icons, project sites and the Portfolio link are always checked on the
  * production host: they don't come from this repo's build.
  *
- * Usage: pnpm verify:live [--base <url>] [--json]
- *   --base  base URL for the own-site paths (default https://llevintza.github.io)
- *   --json  print the results as JSON instead of a table
+ * Usage: pnpm verify:live [--base <url>] [--urls-from <file|url>] [--json]
+ *   --base       base URL for the own-site paths (default https://llevintza.github.io)
+ *   --urls-from  a sitemap XML file or URL; each <loc> path must answer 200 on --base
+ *   --json       print the results as JSON instead of a table
  * Exits 1 if any check fails.
  */
 import { readFileSync } from "node:fs";
@@ -48,6 +52,8 @@ export const KINDS = {
     test: ({ type, body }) => /xml/.test(type) && /<urlset[\s>]/.test(body),
   },
   image: { label: "image", test: ({ type }) => type.startsWith("image/") },
+  // Sitemap entries: any content type, the status is what matters.
+  page: { label: "page", test: () => true },
 };
 
 /** Parses .github/email-icon-urls.txt: one URL per line, `#` comments. */
@@ -58,7 +64,21 @@ export function parseIconList(text) {
     .filter((l) => l && !l.startsWith("#"));
 }
 
-export function buildChecks(base, iconUrls) {
+/**
+ * Paths (with query) of every <loc> in a sitemap, de-duplicated, in order.
+ * Paths, not URLs, so a production snapshot can be re-checked on any base.
+ */
+export function parseSitemapPaths(xml) {
+  const paths = [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map(
+    ([, loc]) => {
+      const u = new URL(loc.replaceAll("&amp;", "&"));
+      return u.pathname + u.search;
+    },
+  );
+  return [...new Set(paths)];
+}
+
+export function buildChecks(base, iconUrls, sitemapPaths = []) {
   const root = base.replace(/\/+$/, "");
   const own = [
     ["/", "html"],
@@ -68,6 +88,11 @@ export function buildChecks(base, iconUrls) {
     ["/feed.xml", "feed"],
     ["/sitemap.xml", "sitemap"],
   ].map(([p, kind]) => ({ group: "site", url: root + p, kind }));
+  const ownPaths = new Set(own.map((c) => c.url));
+  const fromSitemap = sitemapPaths
+    .map((p) => root + p)
+    .filter((url) => !ownPaths.has(url))
+    .map((url) => ({ group: "sitemap", url, kind: "page" }));
   const icons = iconUrls.map((url) => ({ group: "icon", url, kind: "image" }));
   const projects = [
     "/email-icons/",
@@ -76,7 +101,7 @@ export function buildChecks(base, iconUrls) {
     "/instrument-price-dashboard/",
   ].map((p) => ({ group: "project", url: PROD + p, kind: "html" }));
   const portfolio = { group: "portfolio", url: `${PROD}/`, kind: "html" };
-  return [...own, ...icons, ...projects, portfolio];
+  return [...own, ...fromSitemap, ...icons, ...projects, portfolio];
 }
 
 async function fetchOnce(url, kind) {
@@ -123,23 +148,40 @@ export async function runCheck(check, fetcher = fetchOnce) {
 }
 
 function parseArgs(argv) {
-  const opts = { base: PROD, json: false };
+  const opts = { base: PROD, json: false, urlsFrom: null };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--json") opts.json = true;
     else if (argv[i] === "--base") opts.base = argv[++i];
     else if (argv[i].startsWith("--base=")) opts.base = argv[i].slice(7);
+    else if (argv[i] === "--urls-from") opts.urlsFrom = argv[++i];
+    else if (argv[i].startsWith("--urls-from="))
+      opts.urlsFrom = argv[i].slice(12);
     else throw new Error(`Unknown argument: ${argv[i]}`);
   }
   if (!/^https?:\/\//.test(opts.base ?? ""))
     throw new Error("--base must be an http(s) URL");
+  if (opts.urlsFrom === undefined) throw new Error("--urls-from needs a value");
   return opts;
+}
+
+async function readSitemap(source) {
+  if (!/^https?:\/\//.test(source)) return readFileSync(source, "utf8");
+  const res = await fetch(source, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+  if (!res.ok) throw new Error(`--urls-from ${source}: HTTP ${res.status}`);
+  return res.text();
 }
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const icons = parseIconList(readFileSync(ICON_LIST, "utf8"));
   if (icons.length === 0) throw new Error(`No URLs in ${ICON_LIST}`);
-  const checks = buildChecks(opts.base, icons);
+  let sitemapPaths = [];
+  if (opts.urlsFrom) {
+    sitemapPaths = parseSitemapPaths(await readSitemap(opts.urlsFrom));
+    if (sitemapPaths.length === 0)
+      throw new Error(`No <loc> entries in ${opts.urlsFrom}`);
+  }
+  const checks = buildChecks(opts.base, icons, sitemapPaths);
   const results = await Promise.all(checks.map((c) => runCheck(c)));
   const failed = results.filter((r) => !r.ok);
 

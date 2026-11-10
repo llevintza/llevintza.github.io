@@ -31,8 +31,10 @@ Don't start until every box is ticked.
 - [ ] **Lighthouse budgets green** on the latest `main` (required check "Lighthouse budgets"): Performance ≥ 95, Accessibility 100, Best Practices ≥ 95, SEO 100.
 - [ ] **All required checks green** on `main`, and the last "Deploy site" run on `main` succeeded with `deploy` skipped:
       `gh run list -R $REPO --workflow deploy.yml --branch main --limit 3`
-- [ ] **Local "after" dry run.** In `web/`: `pnpm build && pnpm start` (serves `out/` on port 3000), then in another shell `pnpm verify:live --base http://localhost:3000`. All checks pass.
-- [ ] **"Before" baseline.** `pnpm verify:live` against the live Jekyll site passes. Keep the output to compare.
+- [ ] **Snapshot the Jekyll sitemap.** It lists every URL Jekyll serves, including post permalinks, and `verify:live --urls-from` re-checks each one after the switch. Keep it outside `$TMPDIR`, since section 5 uses it again days later:
+      `curl -sf https://llevintza.github.io/sitemap.xml -o "$HOME/jekyll-sitemap-pre-cutover.xml" && grep -c '<loc>' "$HOME/jekyll-sitemap-pre-cutover.xml"`
+- [ ] **Local "after" dry run.** In `web/`: `pnpm build && pnpm start` (serves `out/` on port 3000), then in another shell `pnpm verify:live --base http://localhost:3000 --urls-from "$HOME/jekyll-sitemap-pre-cutover.xml"`. All checks pass.
+- [ ] **"Before" baseline.** `pnpm verify:live --urls-from "$HOME/jekyll-sitemap-pre-cutover.xml"` against the live Jekyll site passes. Keep the output to compare.
 - [ ] **Pages state is what this runbook expects:**
       `gh api repos/$REPO/pages -q '{build_type,source,cname}'` → `{"build_type":"legacy","cname":null,"source":{"branch":"main","path":"/"}}`
 - [ ] **The `github-pages` environment only deploys from `main`:**
@@ -79,10 +81,10 @@ Pages' CDN caches pages for up to 10 minutes (`cache-control: max-age=600`). If 
 1. **Run the script** in `web/`:
 
    ```sh
-   pnpm verify:live
+   pnpm verify:live --urls-from "$HOME/jekyll-sitemap-pre-cutover.xml"
    ```
 
-   It must end with `23/23 checks passed` (the count grows when `.github/email-icon-urls.txt` does). It checks:
+   It must end with `N/N checks passed`: 23 today, plus one per Jekyll sitemap entry beyond the four main pages and one per line added to `.github/email-icon-urls.txt`. It checks:
 
    | Group     | URLs                                                                                             | Pass                                   |
    | --------- | ------------------------------------------------------------------------------------------------ | -------------------------------------- |
@@ -91,6 +93,7 @@ Pages' CDN caches pages for up to 10 minutes (`cache-control: max-age=600`). If 
    | site      | `/sitemap.xml`                                                                                   | 200, XML with `<urlset>`               |
    | icon      | every URL in `.github/email-icon-urls.txt`                                                       | 200, `image/*`                         |
    | project   | `/email-icons/`, `/energlens/`, `/credit-desk-analytics/`, `/instrument-price-dashboard/`        | 200, HTML (served from their own repos) |
+   | sitemap   | every `<loc>` path in the saved Jekyll sitemap (posts, pages), not already listed above          | 200                                    |
    | portfolio | `https://llevintza.github.io/`                                                                   | 200, HTML                              |
 
 2. **Confirm it's the new site, not a cached Jekyll page.** The Next.js export ships `/_next/` assets and Jekyll doesn't:
@@ -100,7 +103,7 @@ Pages' CDN caches pages for up to 10 minutes (`cache-control: max-age=600`). If 
    gh api repos/$REPO/pages -q .build_type                     # → workflow
    ```
 
-3. **Spot-check by hand:** the home page, one old post URL from the Jekyll sitemap, the feed in a reader, and the contact icons on the home page. Do it in a private window, signed out.
+3. **Spot-check by hand:** the home page, one old post URL, the feed in a reader, and the contact icons on the home page. Do it in a private window, signed out.
 4. Post the `verify:live` output on #38 as a `[PR Author]` comment (or as Leo).
 
 ## 4. Rollback
@@ -120,7 +123,7 @@ gh api -X POST repos/$REPO/pages/builds
 gh api repos/$REPO/pages/builds/latest -q .status   # repeat until "built"
 
 # 4. Check the old site is back.
-cd web && pnpm verify:live
+cd web && pnpm verify:live --urls-from "$HOME/jekyll-sitemap-pre-cutover.xml"
 ```
 
 If you set `NEXT_PUBLIC_UMAMI_WEBSITE_ID` for the cutover, you can leave it: nothing reads it while the deploy job is off.
@@ -129,7 +132,7 @@ If you set `NEXT_PUBLIC_UMAMI_WEBSITE_ID` for the cutover, you can leave it: not
 
 ## 5. After a successful switch
 
-- [ ] Leave it for a day or two and re-run `pnpm verify:live`.
+- [ ] Leave it for a day or two and re-run `pnpm verify:live --urls-from "$HOME/jekyll-sitemap-pre-cutover.xml"`. Keep that snapshot until the Jekyll removal PR merges: Jekyll generates the sitemap at build time, so it can't be recovered from git.
 - [ ] **Follow-up PR: remove the Jekyll files** (`_config.yml`, `_data/`, `_includes/`, `_posts/`, `assets/` if unused, `Gemfile`, `index.md`, `blog.md`, `projects.md`, `about.md`). Update the README "Writing a post" and Jekyll local-preview sections for the new site (#38 acceptance), and drop Jekyll references from `AGENTS.md`. After it merges, the rollback in section 4 no longer works (there is nothing to build), so merge it only once you're confident.
 - [ ] **#23: add the scheduled rebuild** (a `schedule:` cron in `deploy.yml`) so the GitHub-sourced project data stays fresh. It shares the `pages` concurrency group, so it can't race a push.
 - [ ] Update ADR 0001 and #38 with the date of the switch, then close #38 and, once its other stories are done, epic #36.
