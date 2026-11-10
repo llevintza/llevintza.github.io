@@ -91,3 +91,41 @@ export function TagList({
     </ul>
   );
 }
+
+/**
+ * A project's tech stack as one console line, `go / typescript / python`:
+ * lowercase mono, no list markers, with decorative `/` separators that
+ * screen readers skip (they still announce a list of N items).
+ */
+export function StackList({
+  items,
+  label = "Stack",
+  className,
+}: {
+  items: readonly string[];
+  /** Accessible name for the list. */
+  label?: string;
+  className?: string;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <ul
+      aria-label={label}
+      className={cn(
+        "flex flex-wrap items-baseline gap-x-[1ch] gap-y-1 font-mono text-sm text-ink lowercase",
+        className,
+      )}
+    >
+      {items.map((item, index) => (
+        <li key={item} className="flex items-baseline gap-x-[1ch]">
+          {index > 0 && (
+            <span aria-hidden="true" className="text-muted">
+              /
+            </span>
+          )}
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
+}
