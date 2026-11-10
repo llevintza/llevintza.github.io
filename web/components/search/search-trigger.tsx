@@ -52,13 +52,28 @@ export function SearchTrigger({ className }: { className?: string }) {
   const apple = useApplePlatform();
   const mounted = apple !== null;
 
+  // Focus goes back to the button after the dialog has unmounted: while a
+  // modal <dialog> is still open the rest of the page is inert.
+  const restoreFocus = useRef(false);
+  const close = useCallback(() => {
+    restoreFocus.current = true;
+    setOpen(false);
+  }, []);
+  useEffect(() => {
+    if (open || !restoreFocus.current) return;
+    restoreFocus.current = false;
+    buttonRef.current?.focus({ preventScroll: true });
+  }, [open]);
+
   useEffect(() => {
     if (apple === null) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.isComposing) return;
       if (isPaletteShortcut(event)) {
         event.preventDefault();
-        setOpen((value) => !value);
+        // Toggle; closing goes through `close` so focus returns to the button.
+        if (open) close();
+        else setOpen(true);
       } else if (
         isSlashShortcut(event) &&
         !isTypingTarget(document.activeElement as HTMLElement | null)
@@ -69,12 +84,7 @@ export function SearchTrigger({ className }: { className?: string }) {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [apple]);
-
-  const close = useCallback(() => {
-    setOpen(false);
-    buttonRef.current?.focus({ preventScroll: true });
-  }, []);
+  }, [apple, open, close]);
 
   const preload = () => void loadDialog();
 

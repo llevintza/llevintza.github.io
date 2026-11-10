@@ -139,7 +139,8 @@ export default function SearchDialog({ onClose }: { onClose: () => void }) {
 
   let status: string;
   if (loadFailed) {
-    status = "Search index unavailable. Run `pnpm build` to create it.";
+    // In `pnpm dev` there is no index: run `pnpm build` and serve `out/`.
+    status = "Search is unavailable right now.";
   } else if (!pagefind) {
     status = "Loading search index…";
   } else if (!term) {

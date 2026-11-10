@@ -68,13 +68,20 @@ test.describe("site search", () => {
     expect(consoleErrors).toEqual([]);
   });
 
-  test("Esc closes the palette and returns focus to the trigger", async ({
+  test("Esc and Cmd/Ctrl+K close the palette and return focus to the trigger", async ({
     page,
   }) => {
     await openHome(page);
     await page.keyboard.press("ControlOrMeta+K");
     await expect(dialog(page)).toBeVisible();
     await page.keyboard.press("Escape");
+    await expect(dialog(page)).toBeHidden();
+    await expect(page.getByRole("button", { name: "search" })).toBeFocused();
+
+    // The shortcut toggles: pressed again it closes and returns focus too.
+    await page.keyboard.press("ControlOrMeta+K");
+    await expect(dialog(page)).toBeVisible();
+    await page.keyboard.press("ControlOrMeta+K");
     await expect(dialog(page)).toBeHidden();
     await expect(page.getByRole("button", { name: "search" })).toBeFocused();
   });
