@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { outboundProjectEvent } from "@/components/analytics/events";
+import { CaseStudyVideo } from "@/components/projects/case-study-video";
 import { StackList } from "@/components/ui/tag";
 import { renderMdx } from "@/lib/content/mdx";
 import {
@@ -57,7 +58,7 @@ export default async function CaseStudyPage({ params }: Props) {
           <h1>{study.title}</h1>
           <p>{study.summary}</p>
           <p>
-            {study.access === "public" && study.repo ? (
+            {study.access === "public" ? (
               <a
                 href={study.repo}
                 {...outboundProjectEvent(study.slug, "repo")}
@@ -72,6 +73,8 @@ export default async function CaseStudyPage({ params }: Props) {
 
         {/* MDX body: ## Problem, then ## Approach (checked at build). */}
         {content}
+
+        {study.video ? <CaseStudyVideo video={study.video} /> : null}
 
         <section aria-labelledby="stack-heading">
           <h2 id="stack-heading">Stack</h2>

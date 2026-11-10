@@ -259,6 +259,9 @@ describe("fixtures", () => {
     "signal-link.html": { "signal-link": 3 },
     "email.html": { "mailto-link": 1, "personal-email": 4 },
     "private-repo.html": { "private-repo-link": 1 },
+    // A private case study (#111): aria-label, prose, alt text, RSC payload.
+    "private-case-study.html": { "private-repo-link": 4 },
+    "captions.vtt": { "private-repo-link": 1 },
     "rsc-payload.txt": { "tel-sms-link": 1, "private-repo-link": 1 },
     "sitemap.xml": { "private-repo-link": 1 },
   };

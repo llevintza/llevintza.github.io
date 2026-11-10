@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { imageSize } from "image-size";
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 
@@ -50,6 +51,38 @@ const screenshotSchema = z.strictObject(
   { error: unknownKeys },
 );
 
+/** A file name in `public/projects/<slug>/`: `walkthrough.mp4`. */
+const assetFile = (extensions: readonly string[]) =>
+  text.regex(
+    new RegExp(`^[a-z0-9]+(?:[.-][a-z0-9]+)*\\.(?:${extensions.join("|")})$`),
+    {
+      error: (issue) =>
+        `must be a lowercase file name ending in .${extensions.join(" or .")}, got ${JSON.stringify(issue.input)}`,
+    },
+  );
+
+export const VIDEO_EXTENSIONS = ["mp4"] as const;
+export const POSTER_EXTENSIONS = ["webp", "png"] as const;
+export const CAPTIONS_EXTENSIONS = ["vtt"] as const;
+
+/**
+ * A self-hosted walkthrough video (#111). Files live in
+ * `public/projects/<slug>/`; the poster gives the player its size.
+ */
+const videoSchema = z.strictObject(
+  {
+    file: assetFile(VIDEO_EXTENSIONS),
+    poster: assetFile(POSTER_EXTENSIONS),
+    /** WebVTT captions (English), when the video has narration. */
+    captions: assetFile(CAPTIONS_EXTENSIONS).optional(),
+    /** Visible heading and the player's accessible name. */
+    title: text,
+    /** What the video shows, in words, under the player. */
+    summary: text,
+  },
+  { error: unknownKeys },
+);
+
 /** Strict, so a typo such as `screenshot:` fails instead of being ignored. */
 export const caseStudySchema = z.strictObject(
   {
@@ -69,6 +102,7 @@ export const caseStudySchema = z.strictObject(
     screenshots: z
       .array(screenshotSchema, { error: typeError("a list") })
       .default([]),
+    video: videoSchema.optional(),
   },
   { error: unknownKeys },
 );
@@ -86,15 +120,26 @@ export interface Screenshot {
   srcSet: Record<(typeof SCREENSHOT_FORMATS)[number], string>;
 }
 
-export interface CaseStudy {
+export interface CaseStudyVideo {
+  /** Site-relative URLs. */
+  src: string;
+  poster: string;
+  captions?: string;
+  /** Intrinsic size, read from the poster, for `width`/`height`. */
+  width: number;
+  height: number;
+  title: string;
+  summary: string;
+}
+
+interface CaseStudyBase {
   title: string;
   slug: string;
   summary: string;
   stack: string[];
   liveUrl?: string;
-  repo?: string;
-  access: FeaturedProject["access"];
   screenshots: Screenshot[];
+  video?: CaseStudyVideo;
   /** `/projects/<slug>/`. */
   permalink: string;
   /** Source file, relative to the app root (for error messages). */
@@ -102,6 +147,24 @@ export interface CaseStudy {
   /** Raw MDX body (frontmatter stripped). */
   body: string;
 }
+
+/** A public repo: the page links its source. */
+export interface PublicCaseStudy extends CaseStudyBase {
+  access: "public";
+  repo: string;
+}
+
+/**
+ * A private repo, named only (#111). The type makes a `repo` a compile
+ * error, like `PrivateFeaturedProject`; `parseCaseStudy` re-checks the
+ * frontmatter and the whole file for a link to the repo at build time.
+ */
+export interface PrivateCaseStudy extends CaseStudyBase {
+  access: "private";
+  repo?: never;
+}
+
+export type CaseStudy = PublicCaseStudy | PrivateCaseStudy;
 
 export interface ParseOptions {
   featured?: readonly FeaturedProject[];
@@ -168,6 +231,12 @@ export function parseCaseStudy(
         `repo: ${fm.slug} is private; private repos are listed by name only, so remove repo`,
       );
     }
+    // Anywhere in the file: body, alt text, video title or summary.
+    for (const link of findRepoLinks(source, fm.slug)) {
+      problems.push(
+        `${fm.slug} is private, so the file must not link its repo (found ${link}); name it without a link`,
+      );
+    }
   } else if (fm.repo !== project.repoUrl) {
     problems.push(
       `repo: must be ${project.repoUrl} (the featured entry's repoUrl), got ${JSON.stringify(fm.repo)}`,
@@ -200,20 +269,76 @@ export function parseCaseStudy(
     }
   }
 
+  let video: CaseStudyVideo | undefined;
+  if (fm.video) {
+    const resolved = resolveVideo(fm.slug, fm.video, publicDir);
+    if (typeof resolved === "string") problems.push(`video: ${resolved}`);
+    else video = resolved;
+  }
+
   if (problems.length > 0) fail(problems);
 
-  return {
+  const base: CaseStudyBase = {
     title: fm.title,
     slug: fm.slug,
     summary: fm.summary,
     stack: fm.stack,
     liveUrl: fm.liveUrl,
-    repo: fm.repo,
-    access: project!.access,
     screenshots,
+    video,
     permalink: `/projects/${fm.slug}/`,
     file,
     body,
+  };
+  return project!.access === "public"
+    ? { ...base, access: "public", repo: fm.repo! }
+    : { ...base, access: "private" };
+}
+
+/**
+ * Links to `github.com/llevintza/<repo>` in any spelling the guardrail
+ * catches (URL-encoded or JSON-escaped slashes), not `<repo>-other`.
+ */
+export function findRepoLinks(source: string, repo: string): string[] {
+  const escaped = repo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const sep = String.raw`(?:/|%2F|\\/)`;
+  const re = new RegExp(
+    String.raw`github\.com${sep}llevintza${sep}${escaped}(?![\w-]|\.(?!git\b)\w)`,
+    "gi",
+  );
+  return [...source.matchAll(re)].map((m) => m[0]);
+}
+
+/** Checks the video, poster and captions exist; reads the poster's size. */
+function resolveVideo(
+  slug: string,
+  video: NonNullable<CaseStudyFrontmatter["video"]>,
+  publicDir: string,
+): CaseStudyVideo | string {
+  const urlDir = `/projects/${slug}`;
+  const diskDir = path.join(publicDir, "projects", slug);
+  const names = [video.file, video.poster, video.captions].filter(
+    (name): name is string => name !== undefined,
+  );
+  const missing = names.filter(
+    (name) => !fs.existsSync(path.join(diskDir, name)),
+  );
+  if (missing.length > 0) {
+    return `missing ${missing.join(", ")} in public${urlDir}/`;
+  }
+  const size = readImageSize(
+    fs.readFileSync(path.join(diskDir, video.poster)),
+    POSTER_EXTENSIONS,
+  );
+  if (!size)
+    return `public${urlDir}/${video.poster} is not a valid PNG or WebP`;
+  return {
+    src: `${urlDir}/${video.file}`,
+    poster: `${urlDir}/${video.poster}`,
+    captions: video.captions ? `${urlDir}/${video.captions}` : undefined,
+    ...size,
+    title: video.title,
+    summary: video.summary,
   };
 }
 
@@ -262,7 +387,9 @@ function resolveScreenshot(
 
   const largest = SCREENSHOT_WIDTHS[SCREENSHOT_WIDTHS.length - 1];
   const pngName = `${shot.file}-${largest}.png`;
-  const size = readPngSize(fs.readFileSync(path.join(diskDir, pngName)));
+  const size = readImageSize(fs.readFileSync(path.join(diskDir, pngName)), [
+    "png",
+  ]);
   if (!size) return `public${urlDir}/${pngName} is not a valid PNG`;
 
   const srcSet = (format: string) =>
@@ -278,22 +405,22 @@ function resolveScreenshot(
   };
 }
 
-const PNG_SIGNATURE = Buffer.from([
-  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-]);
-
-/** Width and height from a PNG's IHDR chunk, or null if it isn't a PNG. */
-export function readPngSize(
+/**
+ * Width and height of a PNG or WebP via `image-size` (also used by
+ * mdx-image), or null if the data isn't an image of an allowed type.
+ */
+export function readImageSize(
   data: Buffer,
+  types: readonly string[],
 ): { width: number; height: number } | null {
-  if (
-    data.length < 24 ||
-    !data.subarray(0, 8).equals(PNG_SIGNATURE) ||
-    data.toString("ascii", 12, 16) !== "IHDR"
-  ) {
+  try {
+    const { type, width, height } = imageSize(data);
+    return type && types.includes(type) && width && height
+      ? { width, height }
+      : null;
+  } catch {
     return null;
   }
-  return { width: data.readUInt32BE(16), height: data.readUInt32BE(20) };
 }
 
 const cache = new Map<string, CaseStudy[]>();
