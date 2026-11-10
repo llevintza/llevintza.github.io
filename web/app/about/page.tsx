@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ContactSection } from "@/components/contact/contact-section";
 import { about, formatLanguages, type RichLine } from "@/content/about";
 import { buildMetadata } from "@/lib/site/metadata";
 
@@ -75,6 +76,8 @@ export default function AboutPage() {
           </ul>
           <p>{formatLanguages(about.languages)}</p>
         </section>
+
+        <ContactSection />
       </article>
     </main>
   );
