@@ -499,7 +499,18 @@
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     font-variant-numeric: tabular-nums;
+  }
+
+  /*
+   * Content tables scroll sideways inside the column instead of widening the
+   * page on phones. A block box shrink-wrapped to its content, capped at the
+   * column width; the rows still lay out as a table inside it.
+   */
+  :where(main) table {
+    display: block;
+    inline-size: max-content;
     max-inline-size: 100%;
+    overflow-x: auto;
   }
 
   th,
