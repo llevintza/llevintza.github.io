@@ -31,6 +31,9 @@ import { fileURLToPath } from "node:url";
 export const PROD = "https://llevintza.github.io";
 const TIMEOUT_MS = 15_000;
 const ATTEMPTS = 3;
+// At most this many requests in flight, so a long sitemap doesn't burst the
+// Pages CDN into 429s; the retries are a fallback, not the normal path.
+const CONCURRENCY = 6;
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ICON_LIST = path.resolve(here, "../../.github/email-icon-urls.txt");
@@ -147,6 +150,22 @@ export async function runCheck(check, fetcher = fetchOnce) {
   return last;
 }
 
+/** Like Promise.all(items.map(fn)), with at most `limit` calls in flight. */
+export async function mapLimit(items, limit, fn) {
+  const results = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++;
+      results[i] = await fn(items[i], i);
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, worker),
+  );
+  return results;
+}
+
 function parseArgs(argv) {
   const opts = { base: PROD, json: false, urlsFrom: null };
   for (let i = 0; i < argv.length; i++) {
@@ -160,7 +179,8 @@ function parseArgs(argv) {
   }
   if (!/^https?:\/\//.test(opts.base ?? ""))
     throw new Error("--base must be an http(s) URL");
-  if (opts.urlsFrom === undefined) throw new Error("--urls-from needs a value");
+  if (opts.urlsFrom === undefined || opts.urlsFrom === "")
+    throw new Error("--urls-from needs a value");
   return opts;
 }
 
@@ -182,7 +202,7 @@ async function main() {
       throw new Error(`No <loc> entries in ${opts.urlsFrom}`);
   }
   const checks = buildChecks(opts.base, icons, sitemapPaths);
-  const results = await Promise.all(checks.map((c) => runCheck(c)));
+  const results = await mapLimit(checks, CONCURRENCY, (c) => runCheck(c));
   const failed = results.filter((r) => !r.ok);
 
   if (opts.json) {

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   PROD,
   buildChecks,
+  mapLimit,
   parseIconList,
   parseSitemapPaths,
   runCheck,
@@ -204,5 +205,25 @@ describe("runCheck status and retries", () => {
     });
     const g = vi.fn().mockRejectedValue(refused);
     expect((await runCheck(check, g)).detail).toBe("ECONNREFUSED");
+  });
+});
+
+describe("mapLimit", () => {
+  it("keeps input order and never exceeds the limit", async () => {
+    let inFlight = 0;
+    let peak = 0;
+    const out = await mapLimit([5, 1, 4, 2, 3, 0, 6], 3, async (n: number) => {
+      inFlight++;
+      peak = Math.max(peak, inFlight);
+      await new Promise((r) => setTimeout(r, n));
+      inFlight--;
+      return n * 10;
+    });
+    expect(out).toEqual([50, 10, 40, 20, 30, 0, 60]);
+    expect(peak).toBe(3);
+  });
+
+  it("handles an empty list", async () => {
+    expect(await mapLimit([], 6, async () => 1)).toEqual([]);
   });
 });
