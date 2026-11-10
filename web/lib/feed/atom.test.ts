@@ -103,12 +103,21 @@ describe("buildAtomFeed", () => {
   });
 
   it("caps the feed at the jekyll-feed limit, keeping the newest posts", () => {
-    const posts = Array.from({ length: FEED_LIMIT + 5 }, (_, i) =>
-      post({ title: `Post ${i}`, permalink: `/blog/2026/11/09/post-${i}/` }),
-    );
+    // Newest first, as getAllPosts() returns them: 2026-11-28, 2026-11-27, ...
+    const posts = Array.from({ length: FEED_LIMIT + 5 }, (_, i) => {
+      const day = String(28 - i).padStart(2, "0");
+      return post({
+        title: `Post ${i}`,
+        date: `2026-11-${day}`,
+        permalink: `/blog/2026/11/${day}/post-${i}/`,
+      });
+    });
     const entries = parseFeed(buildAtomFeed(posts)).entry;
     expect(entries).toHaveLength(FEED_LIMIT);
-    expect(entries[0].title["#text"]).toBe("Post 0");
+    expect(entries[0].published).toBe("2026-11-28T00:00:00+00:00");
+    expect(entries[FEED_LIMIT - 1].published).toBe(
+      `2026-11-${28 - FEED_LIMIT + 1}T00:00:00+00:00`,
+    );
     expect(parseFeed(buildAtomFeed(posts, { limit: 3 })).entry).toHaveLength(3);
   });
 
