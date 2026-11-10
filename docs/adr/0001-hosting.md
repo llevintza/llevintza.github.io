@@ -47,7 +47,7 @@ deployments and server features.
 4. **Low operational load:** one owner, few moving parts, no extra accounts or secrets unless they earn their place.
 5. **Server features** (redirects, headers, functions) are nice to have. A static export can't use most of them
    anyway (see below).
-6. **Analytics hooks** for ADR 0002 (being written separately). This record only notes what each host offers.
+6. **Analytics hooks** for ADR 0002 (accepted: Umami Cloud). This record only notes what each host offers.
 
 ### What a static export gives up on any host
 
@@ -298,7 +298,8 @@ The source switch must stay reversible, so #38 implements these steps:
 
 ## Consequences
 
-- **Good:** no URL breaks at cutover, no new production vendor, no new cost, and previews become available.
+- **Good:** no URL breaks at cutover, no new production vendor, no new cost, and per-PR previews can be added
+  later without touching production.
 - **Bad:** the public site depends on keeping GitHub Pro, because the source repo is private. A downgrade unpublishes
   it (and `/instrument-price-dashboard/`). Making this repo public again would remove that dependency for the user
   site, but `/instrument-price-dashboard/` would still need Pro while its repo is private. There are no real HTTP
@@ -308,7 +309,7 @@ The source switch must stay reversible, so #38 implements these steps:
   them, reviewers use downloadable artifacts instead.
 - **Follow-ups:** #38 switches the Pages source to "GitHub Actions" at cutover, keeping the
   [Rollback](#rollback) path (`jekyll-legacy` branch, `workflow_dispatch` redeploy, 200 checks). #37 maps old URLs to static stubs.
-  ADR 0002 picks the analytics script. If a custom domain is ever wanted, it gets its own ADR that includes the email
+  ADR 0002 settled analytics (Umami Cloud). If a custom domain is ever wanted, it gets its own ADR that includes the email
   proxy test above.
 
 ## Known limitations
