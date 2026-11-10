@@ -1,6 +1,6 @@
 # ADR 0002: Privacy-friendly analytics
 
-- **Status:** Proposed (the owner decides)
+- **Status:** Accepted (2026-11-10, Leo Levintza: Umami Cloud, Hobby plan, EU region)
 - **Date:** 2026-11-09
 - **Issue:** #31 (part of epic #28, SEO, social previews and analytics)
 - **Deciders:** Leo Levintza (owner)
