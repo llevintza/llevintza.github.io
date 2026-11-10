@@ -2,12 +2,20 @@ import type { MDXComponents } from "mdx/types";
 import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
 
+import { Callout } from "./callout";
+import { MdxImage } from "./mdx-image";
+
+import "./mdx.css";
+
 /**
- * Components used when rendering post MDX. Plain defaults for now: #8 styles
- * the prose, and #18 adds callouts and Mermaid diagrams here.
+ * Components used when rendering post MDX. #8 styles the prose; #18 adds
+ * callouts, zoomable images, heading anchors and Mermaid diagrams (the last
+ * two come from rehype plugins in lib/content/mdx.tsx, styled in mdx.css).
  */
 export const mdxComponents: MDXComponents = {
   a: MdxLink,
+  img: MdxImage,
+  Callout,
 };
 
 /** Internal links (not protocol-relative `//host`) go through next/link; external ones open as usual. */
