@@ -6,7 +6,9 @@ name: Deploy site
 # PAGES_DEPLOY_ENABLED is 'true' AND the Pages source is "GitHub Actions".
 # Until the cutover (#38, docs/runbooks/cutover.md) neither is set, so this
 # workflow builds and uploads the artifact but Jekyll keeps serving the site.
-# Pull requests run the build only; they never deploy.
+# Pull requests run the build only; they never deploy. A weekly scheduled
+# run (#23) rebuilds from main so the repo list and dates stay fresh without
+# a push; it is gated the same way, so before the cutover it only builds.
 on:
   push:
     branches: [main]
@@ -18,12 +20,22 @@ on:
     paths:
       - "web/**"
       - ".github/workflows/deploy.yml"
+  # Manual start (also the cutover runbook's first deploy).
   workflow_dispatch:
+  # Weekly rebuild (#23): Mondays 04:17 UTC, an off-peak, non-round minute
+  # (top-of-the-hour cron runs are often delayed or dropped). Scheduled runs
+  # use main and share the `pages` concurrency group below.
+  # GitHub disables scheduled workflows after 60 days without repository
+  # activity (documented for public repos; this repo is private, so treat it
+  # as possible). If the cron stops, re-enable it on the Actions tab or with
+  # `gh workflow enable deploy.yml`.
+  schedule:
+    - cron: "17 4 * * 1"
 
 permissions:
   contents: read
 
-# One Pages deploy at a time: push, manual and the later #23 cron runs share
+# One Pages deploy at a time: push, manual and the weekly #23 cron runs share
 # the `pages` group, and a queued run waits instead of cancelling a deploy in
 # progress. PR runs (build only) get their own group so they never queue there.
 concurrency:
@@ -61,7 +73,9 @@ jobs:
           # Empty until Leo sets the Actions variable (ADR 0002, #58); the
           # site then ships without the analytics script.
           NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${{ vars.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}
-          # Read-only token so the build can list public repos (#22, #45).
+          # Read-only token so the build can list public repos (#22, #45,
+          # #65). Optional there: without it the API is unauthenticated
+          # (60 requests/hour) and the build falls back to its repo cache.
           GITHUB_TOKEN: ${{ github.token }}
         run: pnpm build
 
