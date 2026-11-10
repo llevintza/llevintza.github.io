@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+/*
+ * Direction B, "Engineer's Console" (design/README.md, section B).
+ *
+ * Single source of truth for colour tokens: the three palette blocks below.
+ * `scripts/check-contrast.mjs` parses them, so keep one `--name: value;`
+ * declaration per line and keep the selectors as written.
+ *
+ * Dark-first: `:root` holds the dark palette. Light applies when next-themes
+ * sets `data-theme="light"`, or, with JS off (no attribute), when the system
+ * prefers light. The two light blocks must stay identical; the contrast
+ * script fails if they drift.
+ */
+
+/* palette: dark (default) */
+:root {
+  --brand-blue: #3498db;
+  --brand-navy: rgb(44, 62, 80);
+  --bg: #0b1118;
+  --bg-2: #0f1822;
+  --panel: #111c28;
+  --panel-2: #16232f;
+  --head: #f2f6fa;
+  --ink: #d5dee7;
+  --muted: #8796a5;
+  --link: #5dade2;
+  --accent: #3498db;
+  --ok: #4ade80;
+  --line: #22313f;
+  --ring: #3498db;
+  --btn-bg: #3498db;
+  --btn-ink: #0b1118;
+  --grid: rgba(52, 152, 219, 0.07);
+  --mesh-1: rgba(52, 152, 219, 0.35);
+  --mesh-2: rgba(44, 62, 80, 0.85);
+  --mesh-3: rgba(93, 173, 226, 0.18);
+  color-scheme: dark;
+}
+
+/* palette: light (system preference, JS off) */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f7f9fb;
+    --bg-2: #eef2f6;
+    --panel: #ffffff;
+    --panel-2: #f3f6f9;
+    --head: #2c3e50;
+    --ink: #1f2a36;
+    --muted: #56677a;
+    --link: #1d6fa5;
+    --accent: #1d6fa5;
+    --ok: #16794a;
+    --line: #dae1e8;
+    --ring: #1d6fa5;
+    --btn-bg: #2c3e50;
+    --btn-ink: #ffffff;
+    --grid: rgba(44, 62, 80, 0.06);
+    --mesh-1: rgba(52, 152, 219, 0.22);
+    --mesh-2: rgba(44, 62, 80, 0.1);
+    --mesh-3: rgba(52, 152, 219, 0.12);
+    color-scheme: light;
+  }
+}
+
+/* palette: light (explicit) */
+:root[data-theme="light"] {
+  --bg: #f7f9fb;
+  --bg-2: #eef2f6;
+  --panel: #ffffff;
+  --panel-2: #f3f6f9;
+  --head: #2c3e50;
+  --ink: #1f2a36;
+  --muted: #56677a;
+  --link: #1d6fa5;
+  --accent: #1d6fa5;
+  --ok: #16794a;
+  --line: #dae1e8;
+  --ring: #1d6fa5;
+  --btn-bg: #2c3e50;
+  --btn-ink: #ffffff;
+  --grid: rgba(44, 62, 80, 0.06);
+  --mesh-1: rgba(52, 152, 219, 0.22);
+  --mesh-2: rgba(44, 62, 80, 0.1);
+  --mesh-3: rgba(52, 152, 219, 0.12);
+  color-scheme: light;
+}
+
+/* `dark:` / `light:` variants key off the data-theme attribute. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
+@theme inline {
+  /* Semantic colours only: the default Tailwind palette is removed so
+     components must use tokens (bg-bg, text-ink, border-line, ...). */
+  --color-*: initial;
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-navy: var(--brand-navy);
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-head: var(--head);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-link: var(--link);
+  --color-accent: var(--accent);
+  --color-ok: var(--ok);
+  --color-line: var(--line);
+  --color-ring: var(--ring);
+  --color-btn-bg: var(--btn-bg);
+  --color-btn-ink: var(--btn-ink);
+  --color-grid: var(--grid);
+  --color-mesh-1: var(--mesh-1);
+  --color-mesh-2: var(--mesh-2);
+  --color-mesh-3: var(--mesh-3);
+
+  /* Geist, self-hosted by next/font (variables set on <html> in layout.tsx). */
+  --font-sans:
+    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    var(--font-geist-mono), ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
+    Consolas, monospace;
+}
+
+@theme {
+  /* Minor-third (1.2) scale on 16px, plus a fluid display size. */
+  --text-*: initial;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1rem;
+  --text-base--line-height: 1.65;
+  --text-lg: 1.2rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.44rem;
+  --text-xl--line-height: 1.35;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 1.25;
+  --text-display: clamp(2.3rem, 4.5vw + 1rem, 4rem);
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.03em;
+
+  /* Spacing: Tailwind's 4px step (p-4 = 1rem) plus layout names. */
+  --spacing: 0.25rem;
+  --spacing-gutter: 1.75rem;
+  --spacing-section: 5rem;
+  --spacing-grid: 32px;
+  --container-wrap: 1200px;
+  --container-prose: 68ch;
+
+  /* Radius. */
+  --radius-*: initial;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-full: 9999px;
+}
+
+@layer base {
+  body {
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: var(--spacing-grid) var(--spacing-grid);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--head);
+  }
+
+  a {
+    color: var(--link);
+    text-underline-offset: 3px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
