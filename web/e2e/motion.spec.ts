@@ -11,16 +11,28 @@ import { getRoutes } from "./routes";
 // 3. For a visitor with no motion preference, everything ends up visible.
 // 4. Print shows the finished state, even for blocks not yet revealed.
 
+const allRoutes = getRoutes();
+
 /** The newest post, so the motion checks cover the MDX layout too. */
-const newestPost = getRoutes()
+const newestPost = allRoutes
   .filter((r) => /^\/blog\/\d{4}\/\d{2}\/\d{2}\/[^/]+\/$/.test(r))
   .sort()
   .at(-1);
+
+// Fail loudly rather than silently dropping the post layout from coverage if
+// the permalink shape or the route source ever changes.
+if (
+  !newestPost &&
+  allRoutes.some((r) => r.startsWith("/blog/") && r !== "/blog/")
+) {
+  throw new Error("motion.spec: no blog post permalink matched the pattern");
+}
 
 const ROUTES = [
   "/",
   "/blog/",
   "/projects/",
+  "/about/",
   ...(newestPost ? [newestPost] : []),
 ];
 
@@ -31,7 +43,7 @@ type Problem = { text: string; reason: string };
  * element with its own non-blank text that is rendered (has a box, so text in
  * a closed `<details>` menu or under `display: none` doesn't count):
  * - `visibility` other than `visible` (a "print" reveal stuck hidden), except
- *   inside a `<button>`,
+ *   inside the not-yet-mounted theme toggle,
  * - an effective opacity below 1 (its own times every ancestor's), or
  * - a single-line, overflow-clipped box narrower than its text (half-typed
  *   text), unless it truncates on purpose with `text-overflow: ellipsis`.
@@ -55,9 +67,14 @@ async function hiddenText(page: Page): Promise<Problem[]> {
       if (el.getClientRects().length === 0) continue; // not rendered
       if (rect.width <= 1 && rect.height <= 1) continue; // sr-only
 
-      // Controls that only work with JS (the theme toggle) are deliberately
-      // `invisible` until they mount, so a button's text is exempt here.
-      if (style.visibility !== "visible" && !el.closest("button")) {
+      // The theme toggle only works with JS, so it is deliberately disabled
+      // and `invisible` until it mounts. Exempt exactly that control (a
+      // disabled button labelled "theme"), not buttons in general.
+      const jsOnlyToggle = el.closest("button:disabled");
+      const isThemeToggle =
+        jsOnlyToggle !== null &&
+        /\btheme\b/i.test(jsOnlyToggle.textContent ?? "");
+      if (style.visibility !== "visible" && !isThemeToggle) {
         problems.push({ text, reason: `visibility ${style.visibility}` });
         continue;
       }
@@ -133,7 +150,10 @@ async function settle(page: Page) {
 /**
  * Scrolls to the bottom in viewport steps so scroll reveals can trigger.
  * Driven from the test, not an in-page loop: with JavaScript off, page
- * timers never fire.
+ * timers never fire. The 120 ms per step only gives IntersectionObserver a
+ * frame to fire; the assertions don't depend on it, because every caller
+ * then waits for animations to settle via `settle()` (no motion preference)
+ * or expects none at all (reduced motion).
  */
 async function scrollThrough(page: Page) {
   const { height, step } = await page.evaluate(() => ({
