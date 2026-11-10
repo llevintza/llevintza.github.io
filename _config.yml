@@ -51,3 +51,13 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - vendor
+  # Next.js rebuild and Node tooling: not part of the Jekyll site.
+  - web/
+  - design/
+  - docs/
+  - node_modules/
+  - package.json
+  - pnpm-lock.yaml
+  - commitlint.config.mjs
+  - .husky/
+  - CONTRIBUTING.md

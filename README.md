@@ -4,6 +4,10 @@ Source of https://llevintza.github.io/: a blog plus a portfolio of my projects, 
 
 Project sites (`/energlens/`, `/credit-desk-analytics/`, `/instrument-price-dashboard/`, `/email-icons/`, …) are served from their own repos under this same domain. They're unaffected by this repo.
 
+## Next.js rebuild (in progress)
+
+The site is being rebuilt in Next.js (App Router, TypeScript, static export) in [`web/`](web/). Until cutover, Jekyll at the repo root keeps serving the live site, and `_config.yml` excludes `web/` so Jekyll ignores it. See [`web/README.md`](web/README.md) to run it.
+
 ## Layout
 
 | Path | What |
