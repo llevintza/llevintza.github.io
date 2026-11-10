@@ -9,7 +9,7 @@ All three share:
 - **Reduced motion:** every animation and transition sits inside `@media (prefers-reduced-motion: no-preference)`. With reduced motion on, content renders in its final state.
 - **Real content only,** taken from `index.md`, `about.md`, `_data/featured.yml`, `_config.yml` and the public repo list. There are no posts yet, so the three post titles and the sample post are drafted from the public `aws-fastify-prometheus` README and are labelled "mockup" on the page. There is no phone number and no personal email. The private `instrument-price-dashboard` appears by name only, with no repo link.
 - **Contact icons** load from `https://llevintza.github.io/email-icons/img/color/` (linkedin, github, x, zoom). The GitHub and X icons are black, so dark themes put them on a light chip.
-- **Plain HTML and CSS,** plus one shared vanilla script (`mockups/_shared/site.js`: theme toggle, scroll reveal, TOC highlight). No CDN, no web fonts and no build step: open any `.html` file straight from disk.
+- **Plain HTML and CSS,** plus one shared vanilla script (`mockups/_shared/site.js`: theme toggle, scroll reveal, TOC highlight). No CDN, no web fonts and no build step. Pages open straight from disk; only the contact icons need a network connection.
 
 ```
 design/
