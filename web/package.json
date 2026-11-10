@@ -25,7 +25,8 @@
     "check:url-parity": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-url-parity.mjs",
     "test:public-content": "node --test scripts/__tests__/check-public-content.test.mjs",
     "lhci": "pnpm dlx @lhci/cli@0.16.0",
-    "screenshots:projects": "node scripts/capture-project-screenshots.mjs"
+    "screenshots:projects": "node scripts/capture-project-screenshots.mjs",
+    "refresh:repos": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/refresh-repos.mjs"
   },
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",
