@@ -1,6 +1,6 @@
 # ADR 0001: Hosting for the rebuilt site
 
-- **Status:** Proposed (the owner, Leo Levintza, decides)
+- **Status:** Accepted (2026-11-10, Leo Levintza)
 - **Date:** 2026-11-09
 - **Issue:** #39, part of epic #36 (Migration and cutover from Jekyll)
 - **Sources checked:** 2026-11-09 (see [Sources](#sources)). Prices and limits change, so re-check them before acting on this record.
@@ -47,7 +47,7 @@ deployments and server features.
 4. **Low operational load:** one owner, few moving parts, no extra accounts or secrets unless they earn their place.
 5. **Server features** (redirects, headers, functions) are nice to have. A static export can't use most of them
    anyway (see below).
-6. **Analytics hooks** for ADR 0002 (being written separately). This record only notes what each host offers.
+6. **Analytics hooks** for ADR 0002 (accepted: Umami Cloud). This record only notes what each host offers.
 
 ### What a static export gives up on any host
 
@@ -240,6 +240,13 @@ through the redirect.
 | Accounts / secrets added | None (one CF token if we take the preview workaround) | Vercel account + GitHub app | Cloudflare account + GitHub app or token |
 | Moving parts at cutover | Switch Pages source to Actions | New host, DNS, redirect stub, two sites in sync | Same as B |
 
+## Decision
+
+Accepted 2026-11-10 by Leo Levintza: stay on GitHub Pages, deployed by GitHub Actions from the Next.js static
+export (Option A), with no custom domain on the user site. Per-PR previews through a preview-only Cloudflare Pages
+Direct Upload project remain an option, not a commitment. The cutover is tracked in #38. The Recommendation section
+is kept as written, as the reasoning behind the decision.
+
 ## Recommendation
 
 **Stay on GitHub Pages, deployed by GitHub Actions from the static export (Option A), and don't set a custom domain on
@@ -291,7 +298,8 @@ The source switch must stay reversible, so #38 implements these steps:
 
 ## Consequences
 
-- **Good:** no URL breaks at cutover, no new production vendor, no new cost, and previews become available.
+- **Good:** no URL breaks at cutover, no new production vendor, no new cost, and per-PR previews can be added
+  later without touching production.
 - **Bad:** the public site depends on keeping GitHub Pro, because the source repo is private. A downgrade unpublishes
   it (and `/instrument-price-dashboard/`). Making this repo public again would remove that dependency for the user
   site, but `/instrument-price-dashboard/` would still need Pro while its repo is private. There are no real HTTP
@@ -301,8 +309,25 @@ The source switch must stay reversible, so #38 implements these steps:
   them, reviewers use downloadable artifacts instead.
 - **Follow-ups:** #38 switches the Pages source to "GitHub Actions" at cutover, keeping the
   [Rollback](#rollback) path (`jekyll-legacy` branch, `workflow_dispatch` redeploy, 200 checks). #37 maps old URLs to static stubs.
-  ADR 0002 picks the analytics script. If a custom domain is ever wanted, it gets its own ADR that includes the email
+  ADR 0002 settled analytics (Umami Cloud). If a custom domain is ever wanted, it gets its own ADR that includes the email
   proxy test above.
+
+## Known limitations
+
+These follow from the decision and are accepted with it:
+
+- **No server-side 301s.** GitHub Pages can't send real redirects, so every URL the Jekyll site serves today must
+  stay identical in the rebuild (#37). Where a URL truly has to move, the only option is a static HTML stub
+  (`<meta http-equiv="refresh">` plus `rel="canonical"`).
+- **Fixed cache header.** Pages sends `cache-control: max-age=600` on every response and it can't be changed, so
+  hashed assets can't be marked immutable and a deploy can take up to ten minutes to reach a returning visitor.
+- **No security response headers.** There's no way to set `Content-Security-Policy`, `X-Frame-Options` or other
+  custom headers. A CSP can only be a `<meta http-equiv="Content-Security-Policy">` tag, which can't express
+  `frame-ancestors`, so framing can't be blocked.
+- **No `next/image` optimiser.** The default loader needs a server, so images are optimised at build time or
+  served with `unoptimized`.
+- **Server-side features need third parties.** Forms, comments and analytics have no backend on Pages, so each one
+  relies on an external service. Analytics is settled in ADR 0002 (Umami Cloud).
 
 ## Sources
 
