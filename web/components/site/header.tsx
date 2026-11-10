@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SearchTrigger } from "@/components/search/search-trigger";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { cn } from "@/components/ui/cn";
 import { focusRing } from "@/components/ui/focus";
@@ -37,6 +38,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
+          <SearchTrigger />
           <ThemeToggle />
           <MobileNav className="md:hidden" />
         </div>
