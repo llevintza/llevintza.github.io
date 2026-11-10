@@ -68,6 +68,12 @@
   border-radius: 3px;
 }
 
+/* The blue Zoom icon would vanish on the blue button: give it a chip too. */
+.primary .icon {
+  padding: 1px;
+  background: var(--contact-chip);
+}
+
 /* Dark themes: the black GitHub and X logos sit on a light chip. */
 :global([data-theme="dark"]) .section {
   --contact-primary-bg: var(--accent, #1f6fa8);
