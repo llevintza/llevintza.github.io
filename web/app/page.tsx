@@ -1,4 +1,7 @@
 import { Hero } from "@/components/home/hero";
+import { buildMetadata } from "@/lib/site/metadata";
+
+export const metadata = buildMetadata({ path: "/" });
 
 export default function HomePage() {
   return (
