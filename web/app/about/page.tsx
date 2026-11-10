@@ -7,6 +7,7 @@ export const metadata = buildMetadata({
   description:
     "Leo Levintza, Principal Software Engineer: distributed systems, cloud-native backends, and agentic AI tooling for the SDLC.",
   path: "/about/",
+  image: "page",
 });
 
 function Line({ line }: { line: RichLine }) {

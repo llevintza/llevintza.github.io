@@ -5,6 +5,7 @@ export const metadata = buildMetadata({
   title: "Projects",
   description: "Featured projects by Leo Levintza.",
   path: "/projects/",
+  image: "page",
 });
 
 export default function ProjectsPage() {

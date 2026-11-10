@@ -1,6 +1,6 @@
 import { buildMetadata } from "@/lib/site/metadata";
 
-export const metadata = buildMetadata({ path: "/" });
+export const metadata = buildMetadata({ path: "/", image: "page" });
 
 export default function HomePage() {
   return (
