@@ -1,0 +1,20 @@
+# Pagefind search index (#19). `pnpm build` runs `pagefind` after `next build`,
+# which reads this file and writes the index to out/pagefind/. No server: the
+# browser loads out/pagefind/pagefind.js only when the search dialog opens.
+# Docs: https://pagefind.app/docs/config-options/
+site: out
+
+# Only posts (/blog/YYYY/MM/DD/slug/), the projects page and project case
+# studies (/projects/<slug>/). Blog indexes, tag pages, home and about are
+# listings or chrome, so they stay out of the results.
+glob: "{blog/*/*/*/*/index.html,projects/index.html,projects/*/index.html}"
+
+# Index only the page's <main>: the header, nav, footer and hero live outside
+# it. The result title is the first <h1> inside <main>.
+root_selector: main
+
+# Chrome inside <main> that would only add noise to excerpts: tables of
+# contents (<nav aria-label="On this page">) and other in-page navs. A page can
+# also drop an element with Pagefind's own `data-pagefind-ignore` attribute.
+exclude_selectors:
+  - nav
