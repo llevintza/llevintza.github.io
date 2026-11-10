@@ -8,7 +8,8 @@
 ## Context
 
 The site at `https://llevintza.github.io/` is Jekyll (minima). GitHub Pages builds it from `main` of
-`llevintza/llevintza.github.io` (the legacy branch build). The backlog rebuilds it in Next.js (App Router, TypeScript,
+`llevintza/llevintza.github.io` (the legacy branch build). That repo has been **private** since 2026-11-09 while
+the site stays public, which GitHub allows only on a paid plan (GitHub Pro here). The backlog rebuilds it in Next.js (App Router, TypeScript,
 MDX) with `output: 'export'`, so the deployable result is a folder of static HTML, CSS and JS.
 
 The `llevintza.github.io` host is shared. It serves the user site and also every project site the account
@@ -16,7 +17,7 @@ publishes. These URLs are live today (checked with `curl -I` on 2026-11-09):
 
 | URL | Served from | Status today |
 |---|---|---|
-| `https://llevintza.github.io/` | this repo (user site) | 200 |
+| `https://llevintza.github.io/` | this repo, private (user site, branch build) | 200 |
 | `https://llevintza.github.io/email-icons/img/color/*.png` | public repo `email-icons` (project site, branch build) | 200, `cache-control: max-age=600` |
 | `https://llevintza.github.io/energlens/` | public repo `energlens` (project site, Actions build) | 200 |
 | `https://llevintza.github.io/credit-desk-analytics/` | public repo `credit-desk-analytics` (project site, Actions build) | 200 |
@@ -42,7 +43,7 @@ deployments and server features.
 1. **Don't break any URL people or emails already use** (epic #36). Above all, `/email-icons/...` and the three
    project sites.
 2. **Per-PR previews** so reviewers (including Helms, Arch and Rex) can see a change before it merges.
-3. **Cost:** stay at $0 for a personal site.
+3. **Cost:** no spend beyond the GitHub Pro plan the account already has.
 4. **Low operational load:** one owner, few moving parts, no extra accounts or secrets unless they earn their place.
 5. **Server features** (redirects, headers, functions) are nice to have. A static export can't use most of them
    anyway (see below).
@@ -87,15 +88,20 @@ unaffected.
 - **Server features:** none. You can't set custom response headers (no CSP or HSTS control) and there are no
   server-side redirects. Redirects for moved Jekyll URLs (#37) would have to be static HTML stubs
   (`<meta http-equiv="refresh">` plus `rel="canonical"`), not real 301s.
-- **Build minutes:** standard GitHub-hosted runners are **free in public repositories** and free for GitHub Pages
-  ([GitHub Actions billing][gh-actions-billing]). The soft limit of 10 builds per hour doesn't apply to custom
+- **Build minutes:** standard GitHub-hosted runners are free in public repositories and for GitHub Pages' own
+  builds ([GitHub Actions billing][gh-actions-billing]). This repo is private, so a custom build-and-deploy workflow
+  (and any preview workflow) draws on GitHub Pro's included Actions compute: $18/month, about 3,000 standard Linux
+  minutes at $0.006/min ([GitHub included usage][gh-included], [GitHub Actions billing][gh-actions-billing]). A
+  static-export build takes a few minutes, so this is far more than the site needs. The soft limit of 10 builds per hour doesn't apply to custom
   Actions workflows ([Pages limits][gh-limits]).
 - **Limits:** published site ≤ 1 GB, soft bandwidth limit of 100 GB/month, deploys time out after 10 minutes,
   `429` rate limiting is possible, and it isn't allowed as free hosting *"to run your online business"*
   ([Pages limits][gh-limits]).
 - **Private repos:** GitHub Free covers Pages in public repos only. GitHub Pro adds Pages from private repos
-  ([GitHub plans][gh-plans]). This repo is public, so that's moot here. (The account already publishes
-  `instrument-price-dashboard` from a private repo.)
+  ([GitHub plans][gh-plans]). This repo and `instrument-price-dashboard` are both private, so **the site depends on
+  keeping GitHub Pro**: *"If you downgrade from GitHub Pro to GitHub Free, any GitHub Pages sites that are currently
+  published from private repositories in your account will be unpublished"* ([GitHub: custom domains][gh-custom-domain]).
+  `email-icons`, `energlens` and `credit-desk-analytics` are public, so they're unaffected.
 - **Analytics hooks:** nothing built in. Any client-side script works, for example the Cloudflare Web Analytics JS
   beacon, which runs on sites not hosted on Cloudflare ([CF Web Analytics][cf-wa-start]). ADR 0002 covers this.
 
@@ -220,13 +226,13 @@ through the redirect.
 
 | | A. GitHub Pages (Actions) | B. Vercel Hobby | C. Cloudflare Pages Free |
 |---|---|---|---|
-| Monthly cost | $0 | $0 (Pro $20/seat) | $0 (Workers Paid $5 if ever needed) |
+| Monthly cost | $0 extra (needs the existing GitHub Pro, because the repo is private) | $0 (Pro $20/seat) | $0 (Workers Paid $5 if ever needed) |
 | PR previews | Not native. Alpha `preview` input isn't public. Use Cloudflare Direct Upload previews or downloadable artifacts | Native, per push and per PR | Native, per PR and per branch, `noindex` |
 | Server-side redirects / headers | None (HTML meta-refresh stubs only) | `vercel.json` redirects + headers | `_redirects` + `_headers` |
 | Functions / SSR | None | Yes (if we drop static export) | Pages Functions / Workers |
-| Build limits | Free runners in public repos; no Pages build cap with Actions; 10-min deploy timeout | 100 deploys/day, 45-min build, 1 concurrent | 500 builds/month per account, 20-min build, 1 concurrent |
+| Build limits | Private repo: Pro's $18/month included compute (~3,000 Linux min); no Pages build cap with Actions; 10-min deploy timeout | 100 deploys/day, 45-min build, 1 concurrent | 500 builds/month per account, 20-min build, 1 concurrent |
 | Bandwidth | 100 GB/month (soft) | 100 GB/month, then a 30-day lockout | No egress charge for static assets |
-| Private repo | Pro needed | Personal repos OK | Supported |
+| Private repo | Pro needed (this repo is private) | Personal repos OK | Supported |
 | Terms | Not for running a business | Non-commercial only | No personal-only clause |
 | Analytics | Bring your own script | Vercel Web Analytics, 50k events/mo | CF Web Analytics, free |
 | `https://llevintza.github.io/` | Stays the real site | Needs a redirect stub on Pages | Needs a redirect stub on Pages |
@@ -249,7 +255,7 @@ Why:
 - Vercel and Cloudflare are clearly better at previews and headers. But with `output: 'export'` most of their server
   features go unused, and their extra value only shows up with a custom domain, which is exactly what triggers the
   redirect risk.
-- It costs $0, needs no new production account, and makes the cutover (#38) one settings change, which can be undone (see [Rollback](#rollback)).
+- It costs nothing beyond the existing GitHub Pro plan, needs no new production account, and makes the cutover (#38) one settings change, which can be undone (see [Rollback](#rollback)).
 
 ### If the owner wants a custom domain or another host anyway
 
@@ -286,7 +292,8 @@ The source switch must stay reversible, so #38 implements these steps:
 ## Consequences
 
 - **Good:** no URL breaks at cutover, no new production vendor, no new cost, and previews become available.
-- **Bad:** no real HTTP redirects or custom headers. Moved Jekyll URLs (#37) need HTML redirect stubs, and a CSP has
+- **Bad:** the public site depends on keeping GitHub Pro, because the source repo is private. A downgrade unpublishes
+  it (and `/instrument-price-dashboard/`); making the repo public again would remove that dependency. No real HTTP redirects or custom headers. Moved Jekyll URLs (#37) need HTML redirect stubs, and a CSP has
   to be a `<meta>` tag, not a header. The site stays on the `github.io` name.
 - **Neutral:** previews add one secret (a Cloudflare API token scoped to Pages) and one workflow. If the owner skips
   them, reviewers use downloadable artifacts instead.
@@ -304,6 +311,7 @@ All checked on 2026-11-09.
 - [GitHub: Using custom workflows with GitHub Pages][gh-workflows]
 - [GitHub's plans][gh-plans]
 - [GitHub Actions billing][gh-actions-billing]
+- [GitHub: product usage included with each plan][gh-included]
 - [actions/deploy-pages README (`preview` input)][deploy-pages]
 - [rossjrw/pr-preview-action README][pr-preview]
 - [Next.js: Static Exports, unsupported features][next-export]
@@ -335,6 +343,7 @@ All checked on 2026-11-09.
 [gh-workflows]: https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
 [gh-plans]: https://docs.github.com/en/get-started/learning-about-github/githubs-plans
 [gh-actions-billing]: https://docs.github.com/en/billing/concepts/product-billing/github-actions
+[gh-included]: https://docs.github.com/en/billing/reference/product-usage-included
 [deploy-pages]: https://github.com/actions/deploy-pages
 [pr-preview]: https://github.com/rossjrw/pr-preview-action
 [next-export]: https://nextjs.org/docs/app/guides/static-exports
