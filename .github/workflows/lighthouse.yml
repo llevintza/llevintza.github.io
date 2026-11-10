@@ -107,7 +107,7 @@ jobs:
           path: web/.lighthouseci/
           include-hidden-files: true
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 7
 
       - name: Sticky PR comment
         if: >-
@@ -171,9 +171,17 @@ jobs:
               return `| \`${p}\` | ${cells.join(' | ')} |`;
             });
 
-            const passed = process.env.ASSERT_OUTCOME === 'success';
+            // `skipped`/`cancelled` means an earlier step (install, build,
+            // collect) failed, which is not a budget miss.
+            const outcome = process.env.ASSERT_OUTCOME;
+            const status =
+              outcome === 'success'
+                ? '✅ All budgets met'
+                : outcome === 'failure'
+                  ? '❌ Budget missed'
+                  : '⚠️ Lighthouse did not run (an earlier step failed; see the run log)';
             const body = [
-              `${MARKER} ${passed ? '✅ All budgets met' : '❌ Budget missed'}`,
+              `${MARKER} ${status}`,
               '',
               rows.length ? [header, sep, ...rows].join('\n') : '_No Lighthouse results: see the run log._',
               '',
