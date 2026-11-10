@@ -1,0 +1,29 @@
+---
+title: Energlens
+slug: energlens
+summary: Utility-bill analytics across properties, with a Claude-powered PDF extraction CLI and a zero-cost demo deployment.
+stack:
+  - Python/FastAPI
+  - SQLAlchemy 2.0
+  - React 19
+  - Claude API
+liveUrl: https://llevintza.github.io/energlens/
+repo: https://github.com/llevintza/energlens
+screenshots:
+  - file: home
+    alt: The Energlens sign-in page, with a line chart of the all-in price per kWh from August 2024 to July 2026, up 28.2 percent.
+---
+
+## Problem
+
+Utility providers show one bill at a time. Tracking how electricity use, cost and the effective price per kWh change over time, across several properties, means retyping numbers from PDF bills into a spreadsheet.
+
+## Approach
+
+Energlens has three parts:
+
+- **Backend:** FastAPI with async SQLAlchemy 2.0 on PostgreSQL, Alembic migrations and JWT auth (email and password, with optional Google or GitHub OAuth).
+- **Frontend:** a React and TypeScript single-page app built with Vite, with Recharts dashboards, deployed to GitHub Pages.
+- **Ingest:** a CLI that extracts the data from bill PDFs with Claude and uploads it through the API. Results are cached by file hash, so a re-run never pays for the same extraction twice, a dry run previews the cache without calling Claude, and the API rejects duplicate bills.
+
+The demo runs at no cost: the front end is static on GitHub Pages and talks to a hosted backend. Because a Pages deploy runs after the PR has merged, it can't be gated by a required check, so a smoke job, a daily live-site check and a self-closing alert issue report a broken deploy instead.

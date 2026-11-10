@@ -1,0 +1,26 @@
+---
+title: Fastify Prometheus Metrics
+slug: aws-fastify-prometheus
+summary: "@llevintza/fastify-prometheus-metrics: automatic Prometheus HTTP metrics for Fastify, with an optional CloudWatch bridge. v1.0.2, MIT."
+stack:
+  - TypeScript
+  - Fastify
+  - Prometheus
+  - CloudWatch
+repo: https://github.com/llevintza/aws-fastify-prometheus
+---
+
+## Problem
+
+Every Fastify service needs the same HTTP metrics (request duration, count, response size, error and success rates), and teams on AWS often want them in CloudWatch as well as Prometheus. Wiring that up by hand in each service is repetitive and easy to get subtly wrong.
+
+## Approach
+
+`@llevintza/fastify-prometheus-metrics` is a Fastify plugin that collects the standard HTTP metrics automatically and exposes them in the Prometheus format.
+
+- **Configurable:** histogram buckets, labels and route include and exclude filters.
+- **Custom metrics:** counters, gauges, histograms and summaries for business logic, through a small plugin API.
+- **CloudWatch bridge:** optionally exports the same metrics to CloudWatch for centralised monitoring.
+- **TypeScript first:** full type definitions.
+
+It is published to GitHub Packages with release channels tied to branches: stable from `main`, beta from `release/*` and alpha from feature branches. The current release is v1.0.2 under the MIT licence.
