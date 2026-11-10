@@ -4,8 +4,10 @@ import {
   buildBaseline,
   checkFeedIdentity,
   checkPath,
+  exportedProjectPrefixes,
   extractSitemapLocs,
   isProjectSitePath,
+  nextPageUrl,
   pagesPrefixes,
   parseBaseline,
   parseFeed,
@@ -243,5 +245,55 @@ describe("buildBaseline", () => {
     ) as unknown as [string, { headers: Record<string, string> }];
     expect(apiCall[0]).toContain("/user/repos");
     expect(apiCall[1].headers.authorization).toBe("Bearer test-token");
+  });
+});
+
+describe("exportedProjectPrefixes", () => {
+  it("reports an out/<prefix>/ tree, checked relative to out/", () => {
+    const seen: string[] = [];
+    const exists = (rel: string) => {
+      seen.push(rel);
+      return rel === "email-icons";
+    };
+    expect(
+      exportedProjectPrefixes(["/email-icons/", "/energlens/"], exists),
+    ).toEqual(["/email-icons/"]);
+    expect(seen).toEqual(["email-icons", "energlens"]);
+  });
+});
+
+describe("GitHub API pagination", () => {
+  it("reads the next page from a Link header", () => {
+    expect(
+      nextPageUrl(
+        '<https://api.github.com/user/repos?page=2>; rel="next", <https://api.github.com/user/repos?page=3>; rel="last"',
+      ),
+    ).toBe("https://api.github.com/user/repos?page=2");
+    expect(nextPageUrl('<https://x/?page=1>; rel="prev"')).toBeNull();
+    expect(nextPageUrl(null)).toBeNull();
+  });
+
+  it("collects has_pages repos across pages", async () => {
+    const page2 = "https://api.github.com/users/llevintza/repos?page=2";
+    const fetchFn = vi.fn(async (url: string) => {
+      const ok = (body: unknown, link: string | null = null) => ({
+        ok: true,
+        status: 200,
+        headers: { get: (n: string) => (n === "link" ? link : null) },
+        text: async () => String(body),
+        json: async () => body,
+      });
+      if (url === page2) return ok([{ name: "later", has_pages: true }]);
+      if (url.startsWith("https://api.github.com/"))
+        return ok(
+          [{ name: "first", has_pages: true }],
+          `<${page2}>; rel="next"`,
+        );
+      if (url.endsWith("/sitemap.xml")) return ok(SITEMAP);
+      if (url.endsWith("/feed.xml")) return ok(FEED);
+      return ok("<html></html>");
+    });
+    const { prefixes } = await buildBaseline({ fetchFn });
+    expect(prefixes).toEqual(expect.arrayContaining(["/first/", "/later/"]));
   });
 });

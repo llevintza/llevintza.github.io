@@ -24,6 +24,7 @@ import {
   buildBaseline,
   checkFeedIdentity,
   checkPath,
+  exportedProjectPrefixes,
   formatMarkdown,
   formatTable,
   parseBaseline,
@@ -86,8 +87,8 @@ if (baseline.feed && isFile("feed.xml")) {
 }
 
 // A route under a project-site prefix would be shadowed by that repo's site.
-const shadowing = FALLBACK_PROJECT_PREFIXES.filter((p) =>
-  existsSync(path.join(outDir, p)),
+const shadowing = exportedProjectPrefixes(FALLBACK_PROJECT_PREFIXES, (rel) =>
+  existsSync(path.join(outDir, rel)),
 );
 if (shadowing.length)
   notes.push(

@@ -56,6 +56,7 @@ type FetchLike = (
 ) => Promise<{
   ok: boolean;
   status: number;
+  headers?: { get(name: string): string | null };
   text(): Promise<string>;
   json(): Promise<unknown>;
 }>;
@@ -225,6 +226,26 @@ export function parseBaseline(raw: string): Baseline {
 
 // Paths whose first segment is a project-site repo name: a Pages repo with
 // that name would shadow the route (ADR 0001).
+// The `rel="next"` URL from a GitHub API `Link` header, if any.
+export function nextPageUrl(link: string | null): string | null {
+  if (!link) return null;
+  for (const part of link.split(",")) {
+    const m = part.match(/<([^>]+)>\s*;\s*rel="next"/);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+// Project-site prefixes that have a file or directory in the export. Those
+// routes would be shadowed by the project site. `exists` takes a path
+// relative to `out/` (no leading slash).
+export function exportedProjectPrefixes(
+  prefixes: readonly string[],
+  exists: (relPath: string) => boolean,
+): string[] {
+  return prefixes.filter((p) => exists(p.replace(/^\/+|\/+$/g, "")));
+}
+
 export function shadowedPaths(
   paths: readonly string[],
   prefixes: readonly string[],
@@ -263,12 +284,15 @@ export async function buildBaseline(opts: {
     const url = opts.githubToken
       ? "https://api.github.com/user/repos?per_page=100&affiliation=owner"
       : `https://api.github.com/users/${owner}/repos?per_page=100&type=owner`;
-    const res = await fetchFn(url, { headers });
-    if (!res.ok) throw new Error(`GitHub API → ${res.status}`);
-    apiPrefixes = pagesPrefixes(
-      (await res.json()) as { name: string; has_pages?: boolean }[],
-      owner,
-    );
+    const repos: { name: string; has_pages?: boolean }[] = [];
+    // Follow `Link: rel="next"` so an owner with more than 100 repos is covered.
+    for (let next: string | null = url; next;) {
+      const res = await fetchFn(next, { headers });
+      if (!res.ok) throw new Error(`GitHub API → ${res.status}`);
+      repos.push(...((await res.json()) as typeof repos));
+      next = nextPageUrl(res.headers?.get("link") ?? null);
+    }
+    apiPrefixes = pagesPrefixes(repos, owner);
   } catch (err) {
     log(
       `warning: GitHub API unavailable (${(err as Error).message}); using the fallback project-site list only`,
