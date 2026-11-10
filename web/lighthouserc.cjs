@@ -70,7 +70,7 @@ module.exports = {
     },
     assert: {
       assertions: {
-        "categories:performance": budget(0.95),
+        "categories:performance": budget(1.01),
         "categories:accessibility": budget(1),
         "categories:best-practices": budget(0.95),
         "categories:seo": budget(1),
