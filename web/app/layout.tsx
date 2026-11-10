@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
+import { SiteFooter } from "@/components/site/footer";
+import { SiteHeader } from "@/components/site/header";
 import { ThemeProvider } from "@/components/theme/theme-provider";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -36,11 +37,9 @@ export default function RootLayout({
     <html lang="en" className={fontVariables} suppressHydrationWarning>
       <body className="min-h-dvh bg-bg font-prose text-ink">
         <ThemeProvider>
-          {/* Temporary placement; the site header (#8) will own this. */}
-          <div className="flex justify-end px-4 pt-4">
-            <ThemeToggle />
-          </div>
+          <SiteHeader />
           {children}
+          <SiteFooter />
         </ThemeProvider>
       </body>
     </html>
