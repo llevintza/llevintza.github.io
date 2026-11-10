@@ -99,6 +99,10 @@ jobs:
         if: steps.changes.outputs.web == 'true'
         run: pnpm typecheck
 
+      - name: Contrast
+        if: steps.changes.outputs.web == 'true'
+        run: pnpm check:contrast
+
       - name: Test
         if: steps.changes.outputs.web == 'true'
         run: pnpm test
