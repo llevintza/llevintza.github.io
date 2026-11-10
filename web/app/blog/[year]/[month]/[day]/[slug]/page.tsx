@@ -10,11 +10,10 @@ import {
   type PostParams,
 } from "@/lib/content/posts";
 import { extractToc, shouldShowToc } from "@/lib/content/toc";
+import { buildMetadata } from "@/lib/site/metadata";
 
 import "../../../../shiki.css";
 import "./post.css";
-
-const SITE_URL = "https://llevintza.github.io";
 
 type Props = PageProps<"/blog/[year]/[month]/[day]/[slug]">;
 
@@ -41,12 +40,12 @@ async function findPost(params: Props["params"]): Promise<Post> {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await findPost(params);
-  return {
+  return buildMetadata({
     title: post.title,
     description: post.summary,
-    // Absolute, because the root layout has no `metadataBase` yet (#29).
-    alternates: { canonical: new URL(post.permalink, SITE_URL).href },
-  };
+    path: post.permalink,
+    type: "article",
+  });
 }
 
 const dateFormat = new Intl.DateTimeFormat("en-US", {
