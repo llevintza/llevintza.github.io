@@ -21,7 +21,7 @@ Guidance for coding agents in this repo. Read [README.md](README.md), [CONTRIBUT
 
 - Feature branch `<type>/<issue>-<slug>` → PR against `main`. Never push to `main`.
 - Conventional Commits for every commit and the PR title (husky and commitlint locally, checked in CI). PR body: summary, `Closes #N`, verification (commands and results), screenshots for visual changes.
-- Required checks on `main` (commit and PR-title lint, web build, Lighthouse budgets, public content guardrail) are listed in [CONTRIBUTING.md](CONTRIBUTING.md#what-main-requires). All review conversations must be resolved; 0 approvals are required.
+- Required checks on `main` (commit and PR-title lint, web build, Lighthouse budgets, Playwright, public content guardrail) are listed in [CONTRIBUTING.md](CONTRIBUTING.md#what-main-requires). All review conversations must be resolved; 0 approvals are required.
 - Roles: **Rex**, **Arch** and **Helms** review in parallel; Helms owns technical direction; **Max** merges once the gate is clear. Docs-only PRs (no ADR, strategy, workflow, Dockerfile or code changes) need only Rex. Agents never merge. Every agent posts as the owner on GitHub, so prefix agent comments with a role tag (e.g. `[PR Author]`) and never use `gh pr review --approve`.
 - After opening a PR, watch it: answer or fix every review comment, resolve the thread, merge `origin/main` on conflicts. Don't rebase or force-push a branch under review, especially one other PRs are stacked on.
 - **Visual changes** need Playwright screenshots at 390×844 and 1440×900, light and dark, the `ux-review` label, and the owner's UX approval before merge. Screenshots go on the orphan branch `ux-screenshots` under `pr-<n>/`.
