@@ -9,8 +9,7 @@ import {
   type CaseStudy,
   type Screenshot,
 } from "@/lib/projects/case-studies";
-
-const SITE_URL = "https://llevintza.github.io";
+import { buildMetadata } from "@/lib/site/metadata";
 
 /** The `<img>` style caps the screenshot at 48rem, so it never renders wider. */
 const SCREENSHOT_SIZES = "(min-width: 48rem) 48rem, 100vw";
@@ -33,12 +32,12 @@ async function findCaseStudy(params: Props["params"]): Promise<CaseStudy> {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const study = await findCaseStudy(params);
-  return {
+  // The root layout's title template appends the site name.
+  return buildMetadata({
     title: `${study.title}: case study`,
     description: study.summary,
-    // Absolute, because the root layout has no `metadataBase` yet (#29).
-    alternates: { canonical: new URL(study.permalink, SITE_URL).href },
-  };
+    path: study.permalink,
+  });
 }
 
 export default async function CaseStudyPage({ params }: Props) {
