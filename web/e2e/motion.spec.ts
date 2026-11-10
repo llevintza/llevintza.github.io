@@ -43,14 +43,19 @@ type Problem = { text: string; reason: string };
  * element with its own non-blank text that is rendered (has a box, so text in
  * a closed `<details>` menu or under `display: none` doesn't count):
  * - `visibility` other than `visible` (a "print" reveal stuck hidden), except
- *   inside the not-yet-mounted theme toggle,
+ *   inside a not-yet-mounted JS-only control (the theme toggle, search),
  * - an effective opacity below 1 (its own times every ancestor's), or
  * - a single-line, overflow-clipped box narrower than its text (half-typed
  *   text), unless it truncates on purpose with `text-overflow: ellipsis`.
- * Visually-hidden text (`sr-only`, 1px boxes) is skipped.
+ * Visually-hidden text (`sr-only`, 1px boxes) is skipped. With
+ * `inViewport`, only elements that intersect the viewport count: below the
+ * fold, scroll reveals are rightly still hidden until scrolled to.
  */
-async function hiddenText(page: Page): Promise<Problem[]> {
-  return page.evaluate(() => {
+async function hiddenText(
+  page: Page,
+  { inViewport = false } = {},
+): Promise<Problem[]> {
+  return page.evaluate((inViewport) => {
     const problems: { text: string; reason: string }[] = [];
     const ownText = (el: Element) =>
       [...el.childNodes]
@@ -66,15 +71,25 @@ async function hiddenText(page: Page): Promise<Problem[]> {
       const rect = el.getBoundingClientRect();
       if (el.getClientRects().length === 0) continue; // not rendered
       if (rect.width <= 1 && rect.height <= 1) continue; // sr-only
+      if (
+        inViewport &&
+        (rect.bottom <= 0 ||
+          rect.right <= 0 ||
+          rect.top >= window.innerHeight ||
+          rect.left >= window.innerWidth)
+      ) {
+        continue;
+      }
 
-      // The theme toggle only works with JS, so it is deliberately disabled
-      // and `invisible` until it mounts. Exempt exactly that control (a
-      // disabled button labelled "theme"), not buttons in general.
-      const jsOnlyToggle = el.closest("button:disabled");
-      const isThemeToggle =
-        jsOnlyToggle !== null &&
-        /\btheme\b/i.test(jsOnlyToggle.textContent ?? "");
-      if (style.visibility !== "visible" && !isThemeToggle) {
+      // The theme toggle and the search trigger only work with JS, so they
+      // are deliberately disabled and `invisible` until they mount. Exempt
+      // exactly those controls (a disabled button labelled "theme" or
+      // "search"), not buttons in general.
+      const disabledButton = el.closest("button:disabled");
+      const isJsOnlyControl =
+        disabledButton !== null &&
+        /\b(theme|search)\b/i.test(disabledButton.textContent ?? "");
+      if (style.visibility !== "visible" && !isJsOnlyControl) {
         problems.push({ text, reason: `visibility ${style.visibility}` });
         continue;
       }
@@ -102,7 +117,7 @@ async function hiddenText(page: Page): Promise<Problem[]> {
       }
     }
     return problems;
-  });
+  }, inViewport);
 }
 
 /** Animations still running (infinite ones included). */
@@ -250,7 +265,11 @@ test.describe("no motion preference", () => {
     test(`${route} ends with everything visible`, async ({ page }) => {
       await page.goto(route, { waitUntil: "load" });
       await settle(page);
-      expect(await hiddenText(page), "hidden text after load").toEqual([]);
+      // Before scrolling, only what is on screen must be visible.
+      expect(
+        await hiddenText(page, { inViewport: true }),
+        "hidden text in the viewport after load",
+      ).toEqual([]);
 
       await scrollThrough(page);
       await settle(page);
