@@ -1,17 +1,20 @@
 import Link from "next/link";
 
+import { AllRepos } from "@/components/projects/all-repos";
 import { getAllCaseStudies } from "@/lib/projects/case-studies";
 import { getFeaturedProjects } from "@/lib/projects/featured";
+import { getPublicReposCached } from "@/lib/projects/repos";
 import { buildMetadata } from "@/lib/site/metadata";
 
 export const metadata = buildMetadata({
   title: "Projects",
-  description: "Featured projects by Leo Levintza.",
+  description: "Featured projects and all public repos by Leo Levintza.",
   path: "/projects/",
 });
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
   const projects = getFeaturedProjects();
+  const repos = await getPublicReposCached();
   const caseStudies = new Map(
     getAllCaseStudies().map((study) => [study.slug, study.permalink]),
   );
@@ -61,7 +64,7 @@ export default function ProjectsPage() {
         </p>
       </section>
 
-      {/* TODO(#22): "All public repos" section goes here, below Featured. */}
+      <AllRepos repos={repos} />
     </main>
   );
 }
