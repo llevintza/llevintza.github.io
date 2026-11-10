@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { StackList } from "@/components/ui/tag";
 import { getFeaturedProjects } from "@/lib/projects/featured";
 
 export const metadata: Metadata = {
@@ -21,11 +22,7 @@ export default function ProjectsPage() {
           >
             <h2 id={`project-${project.name}`}>{project.name}</h2>
             <p>{project.description}</p>
-            <ul aria-label="Stack">
-              {project.stack.map((tech) => (
-                <li key={tech}>{tech}</li>
-              ))}
-            </ul>
+            <StackList items={project.stack} />
             <p>
               {project.liveUrl ? (
                 <>
