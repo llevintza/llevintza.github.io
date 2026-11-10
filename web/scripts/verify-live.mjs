@@ -107,7 +107,7 @@ export async function runCheck(check, fetcher = fetchOnce) {
           ? "ok"
           : r.status !== 200
             ? `HTTP ${r.status}`
-            : `not a ${KINDS[check.kind].label}`,
+            : `expected ${KINDS[check.kind].label}`,
       };
       // Retry only what looks transient: 5xx and 429.
       if (last.ok || (r.status < 500 && r.status !== 429)) return last;
