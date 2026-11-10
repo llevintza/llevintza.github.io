@@ -1,16 +1,13 @@
-import type { CSSProperties } from "react";
+import { TerminalLines } from "@/components/motion";
 
 import { building, npmPackage } from "./content";
-import styles from "./hero.module.css";
-
-/** Stagger for the one-shot "print" reveal (no-op under reduced motion). */
-const printAt = (i: number, delayMs = 300) =>
-  ({ "--i": i, "--delay": `${delayMs}ms` }) as CSSProperties;
+import { heroLineDelay, npmStart, panelStart } from "./timing";
 
 /**
- * A console window listing what Leo is building now (#60 §5). Text only:
- * private repos are named and never linked, so the panel has no links at
- * all. Rows print in line by line once; with reduced motion they are all
+ * A console window listing what Leo is building now (#60 §5). The rows come
+ * from `content/featured.ts` (see `content.ts`). Text only: private repos
+ * are named and never linked, so the panel has no links at all. Rows print
+ * in line by line once (`<TerminalLines>`); with reduced motion they are all
  * there from the start. `mt-0` opts out of the base `* + section` spacing:
  * the hero grid's gap already separates it from the intro.
  *
@@ -20,8 +17,6 @@ const printAt = (i: number, delayMs = 300) =>
  * (e.g. Linux CI) and breaks the e2e font check.
  */
 export function TerminalPanel() {
-  const npmRow = building.length + 2;
-
   return (
     <section
       aria-labelledby="hero-building-title"
@@ -47,13 +42,15 @@ export function TerminalPanel() {
           </span>
           ls ~/building
         </p>
-        <ul className="mt-2">
-          {building.map((entry, i) => (
-            <li
-              key={entry.repo}
-              className={`${styles.print} flex flex-wrap items-baseline gap-x-2`}
-              style={printAt(i + 1)}
-            >
+        <TerminalLines
+          as="ul"
+          className="mt-2"
+          lineClassName="flex flex-wrap items-baseline gap-x-2"
+          startDelay={panelStart}
+          lineDelay={heroLineDelay}
+        >
+          {building.map((entry) => (
+            <span key={entry.repo} className="contents">
               <span className="text-head">
                 {entry.repo}
                 {entry.private ? (
@@ -70,30 +67,33 @@ export function TerminalPanel() {
                 className="min-w-4 flex-1 translate-y-[-0.3em] border-b border-dotted border-muted/50"
               />
               <span className="ml-auto text-muted">{entry.status}</span>
-            </li>
+            </span>
           ))}
-        </ul>
+        </TerminalLines>
         <p className="mt-1 text-muted" aria-hidden="true">
           <span className="text-accent">*</span> private: source on request
         </p>
 
-        <p
-          className={`${styles.print} mt-4 break-words text-muted`}
-          style={printAt(npmRow)}
+        <TerminalLines
+          className="mt-4"
+          startDelay={npmStart(building.length)}
+          lineDelay={heroLineDelay}
         >
-          <span className="text-accent" aria-hidden="true">
-            ${" "}
-          </span>
-          npm view {npmPackage.name}
-        </p>
-        <p className={`${styles.print} mt-0`} style={printAt(npmRow + 1)}>
-          <span className="text-ok" aria-hidden="true">
-            [ok]{" "}
-          </span>
-          <span className="sr-only">Published: </span>v{npmPackage.version} ·{" "}
-          {npmPackage.licence}
-          <span className="cursor-block" aria-hidden="true" />
-        </p>
+          <p className="break-words text-muted">
+            <span className="text-accent" aria-hidden="true">
+              ${" "}
+            </span>
+            npm view {npmPackage.name}
+          </p>
+          <p className="mt-0">
+            <span className="text-ok" aria-hidden="true">
+              [ok]{" "}
+            </span>
+            <span className="sr-only">Published: </span>v{npmPackage.version} ·{" "}
+            {npmPackage.licence}
+            <span className="cursor-block" aria-hidden="true" />
+          </p>
+        </TerminalLines>
       </div>
     </section>
   );

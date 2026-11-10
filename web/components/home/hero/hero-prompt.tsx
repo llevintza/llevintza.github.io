@@ -1,11 +1,9 @@
-import type { CSSProperties } from "react";
-
-import styles from "./hero.module.css";
+import { TypedText } from "@/components/motion";
 
 /**
- * The `$ whoami --long` line above the name. The command types out once
- * (CSS `steps()`, no JS); with reduced motion it is shown complete. The full
- * text is always in the DOM, so screen readers get it immediately.
+ * The `$ whoami --long` line above the name, typed once with the shared
+ * `<TypedText>` primitive (pure CSS, no client JS). The full command is in
+ * the DOM from the start, and under reduced motion it shows complete.
  */
 export function HeroPrompt({ command }: { command: string }) {
   return (
@@ -13,13 +11,7 @@ export function HeroPrompt({ command }: { command: string }) {
       <span className="text-accent" aria-hidden="true">
         ${" "}
       </span>
-      <span
-        className={`${styles.typed} text-ink`}
-        style={{ "--chars": command.length } as CSSProperties}
-      >
-        {command}
-      </span>
-      <span className="cursor-block" aria-hidden="true" />
+      <TypedText text={command} className="text-ink" />
     </p>
   );
 }
