@@ -20,13 +20,7 @@ if (!process.env.PW_BUILT) {
       );
     }
   } else {
-    // REPOS_OFFLINE=1: /projects/ builds from content/repos.cache.json, so
-    // the e2e build never calls the GitHub API (#22).
-    execSync("pnpm build", {
-      cwd: __dirname,
-      stdio: "inherit",
-      env: { ...process.env, REPOS_OFFLINE: "1" },
-    });
+    execSync("pnpm build", { cwd: __dirname, stdio: "inherit" });
   }
   process.env.PW_BUILT = "1";
 }
