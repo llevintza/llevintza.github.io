@@ -56,8 +56,7 @@ export const featuredProjects: readonly FeaturedProject[] = [
   },
   {
     name: "credit-desk-analytics",
-    access: "public",
-    repoUrl: "https://github.com/llevintza/credit-desk-analytics",
+    access: "private",
     liveUrl: "https://llevintza.github.io/credit-desk-analytics/",
     description:
       "Front-office analytics for a structured-credit desk: very large position grids, fund performance and deal exploration. Built spec-first and tuned for load and render speed. Phases 0-6 shipped",
