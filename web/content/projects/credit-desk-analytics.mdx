@@ -30,5 +30,12 @@ The README is the implementation spec: a person or a coding agent can build the 
 - **API:** ASP.NET Core minimal APIs send only the visible row block and the displayed columns, in a columnar shape, with totals over all filtered rows in the same response. Data changes once a day, so responses are cached in-process until the next as-of date and served with an ETag.
 - **Front end:** Angular with signals, OnPush and zoneless change detection, and AG Grid Community's Infinite Row Model with column virtualisation. `switchMap` makes sure a stale response never wins, and multi-source pages render progressively.
 - **Delivery:** one PR per phase, with Playwright end-to-end tests, coverage gates and k6 performance budgets in CI. The same SPA is served by a Render web service and by GitHub Pages, so the login page paints at once even while the free-tier API wakes up.
+- **Assistant access over MCP:** `desk-mcp` is a read-only Model Context Protocol server that lets AI assistants and coding agents answer desk questions from the real data, such as "what's our CMBS exposure by rating?" or "which deals have OC cushions under 2%?", without scraping the UI or querying the database by hand. Its tools cover as-of dates, positions (whitelisted filters and sorts, plus summaries), fund performance, insights and deals. It runs locally and goes through the app's own API, so a user's portfolio permissions, rate limits, caching and audit trail apply exactly as they do in the web app. It has no write tools and never connects to production directly.
+- **Rolling history:** the last 22 NYSE trading sessions are each selectable as an as-of date, within the free-tier storage budget.
 
 Phases 0 to 6 have shipped: positions, fund performance, an insights board of 20 small grids from five sources, a deal explorer and a performance lab that compares wire formats and compression on real requests.
+
+## What's next
+
+- **A daily market data pipeline (in progress):** it collects public market reference data such as rate curves, overnight rates and FX from several licensed sources, then rolls the book forward to a new as-of date, repriced from that day's moves. The start-of-day screens then show current data instead of a frozen snapshot.
+- **More reach for the MCP server:** registering it for the repo's own agent sessions, and later a remote endpoint for hosted assistants. The remote endpoint needs its own sign-in design.
