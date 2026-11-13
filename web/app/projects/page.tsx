@@ -1,23 +1,20 @@
 import Link from "next/link";
 
 import { outboundProjectEvent } from "@/components/analytics/events";
-import { AllRepos } from "@/components/projects/all-repos";
 import { StackList } from "@/components/ui/tag";
 import { getAllCaseStudies } from "@/lib/projects/case-studies";
 import { getFeaturedProjects } from "@/lib/projects/featured";
-import { getPublicReposCached } from "@/lib/projects/repos";
 import { buildMetadata } from "@/lib/site/metadata";
 
 export const metadata = buildMetadata({
   title: "Projects",
-  description: "Featured projects and all public repos by Leo Levintza.",
+  description: "Featured projects by Leo Levintza.",
   path: "/projects/",
   image: "page",
 });
 
-export default async function ProjectsPage() {
+export default function ProjectsPage() {
   const projects = getFeaturedProjects();
-  const repos = await getPublicReposCached();
   const caseStudies = new Map(
     getAllCaseStudies().map((study) => [study.slug, study.permalink]),
   );
@@ -72,8 +69,6 @@ export default async function ProjectsPage() {
           Private repos: email me your GitHub username for read-only access.
         </p>
       </section>
-
-      <AllRepos repos={repos} />
     </main>
   );
 }

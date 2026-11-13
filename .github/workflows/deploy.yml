@@ -7,8 +7,8 @@ name: Deploy site
 # Until the cutover (#38, docs/runbooks/cutover.md) neither is set, so this
 # workflow builds and uploads the artifact but Jekyll keeps serving the site.
 # Pull requests run the build only; they never deploy. A weekly scheduled
-# run (#23) rebuilds from main so the repo list and dates stay fresh without
-# a push; it is gated the same way, so before the cutover it only builds.
+# run (#23) rebuilds from main so dates stay fresh without a push; it is
+# gated the same way, so before the cutover it only builds.
 on:
   push:
     branches: [main]
@@ -78,10 +78,6 @@ jobs:
           # Google Search Console verification token (ADR 0002 amendment,
           # #58): same gate as the Umami ID. Empty means no meta tag.
           NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '' }}
-          # Read-only token so the build can list public repos (#22, #45,
-          # #65). Optional there: without it the API is unauthenticated
-          # (60 requests/hour) and the build falls back to its repo cache.
-          GITHUB_TOKEN: ${{ github.token }}
         run: pnpm build
 
       - name: Public content guardrail

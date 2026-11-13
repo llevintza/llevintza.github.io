@@ -60,8 +60,6 @@ Every test imports `test` and `expect` from `./fixtures`, never directly from
 - known externals: answered from committed files in `e2e/fixtures/`:
   - `llevintza.github.io/email-icons/img/**.png` →
     `fixtures/email-icons/<name>.png` (falls back to `placeholder.png`);
-  - `api.github.com/<path>` → `fixtures/github-api/<path with / as __>.json`,
-    e.g. `/repos/llevintza/foo` → `repos__llevintza__foo.json`;
 - anything else: aborted, and the test fails listing the URLs.
 
 To allow a new external, add an entry to `EXTERNALS` in `fixtures.ts` and

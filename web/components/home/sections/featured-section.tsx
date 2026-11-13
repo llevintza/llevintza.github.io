@@ -81,7 +81,7 @@ export function FeaturedSection({
         link={{
           href: "/projects/",
           label: "ls -a →",
-          srLabel: "All projects and public repos",
+          srLabel: "All projects",
         }}
       />
       <Stagger

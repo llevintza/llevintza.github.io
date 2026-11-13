@@ -106,10 +106,6 @@ jobs:
       - name: Build static export
         if: steps.changes.outputs.web == 'true'
         run: pnpm build
-        env:
-          # Build /projects/ from the committed repo cache, not the live
-          # GitHub API, so the run is hermetic (#22).
-          REPOS_OFFLINE: "1"
 
       - name: Smoke tests
         if: steps.changes.outputs.web == 'true'

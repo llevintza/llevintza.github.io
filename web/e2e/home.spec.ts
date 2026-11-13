@@ -55,7 +55,7 @@ test.describe("home page", () => {
       ).toHaveCount(0);
     }
     await expect(
-      section.getByRole("link", { name: /All projects and public repos/ }),
+      section.getByRole("link", { name: "All projects", exact: true }),
     ).toHaveAttribute("href", "/projects/");
   });
 

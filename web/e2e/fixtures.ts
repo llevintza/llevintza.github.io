@@ -15,11 +15,6 @@ import { test as base, expect, type Route } from "@playwright/test";
 
 const FIXTURES = path.join(__dirname, "fixtures");
 
-function githubFixture(url: URL): string {
-  const slug = url.pathname.replace(/^\/+|\/+$/g, "").replace(/\//g, "__");
-  return path.join(FIXTURES, "github-api", `${slug}.json`);
-}
-
 type External = {
   /** Label for readers; not used at runtime. */
   name: string;
@@ -47,21 +42,6 @@ const EXTERNALS: External[] = [
           : path.join(FIXTURES, "email-icons", "placeholder.png"),
       );
       await route.fulfill({ status: 200, contentType: "image/png", body });
-    },
-  },
-  {
-    // GitHub REST API: `e2e/fixtures/github-api/<path, / as __>.json`, e.g.
-    // GET /repos/llevintza/foo -> github-api/repos__llevintza__foo.json.
-    // An API path with no fixture file counts as an unexpected request.
-    name: "github-api",
-    match: (url) =>
-      url.hostname === "api.github.com" && existsSync(githubFixture(url)),
-    fulfill: async (route, url) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: readFileSync(githubFixture(url)),
-      });
     },
   },
 ];
